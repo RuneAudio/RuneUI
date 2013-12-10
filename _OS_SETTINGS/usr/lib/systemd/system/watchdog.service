@@ -1,0 +1,13 @@
+[Unit]
+Description=RuneAudio Player Watchdog
+Requires=mpd
+Requires=php-fpm
+Requires=nginx
+After=nginx
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /var/www/command/player_wdog.sh startup > /dev/null 2>&1
+
+[Install]
+WantedBy=multi-user.target

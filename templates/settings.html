@@ -1,0 +1,131 @@
+<div class="container">
+	<h1>Settings</h1>
+	<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>Sound quality tweaks</legend>
+			<p>
+				These profiles include a set of performance tweaks that act on some system kernel parameters.<br>
+				It does not have anything to do with DSPs or other sound effects: the output is kept untouched (bit perfect).<br>
+				It happens that these parameters introduce an audible impact on the overall sound quality, acting on kernel latency parameters (and probably on the amount of overall<a href="http://www.thewelltemperedcomputer.com/KB/BitPerfectJitter.htm" title="Bit Perfect Jitter by Vincent Kars" target="_blank"> jitter</a>).<br>
+				Sound results may vary depending on where music is listened, so choose according to your personal taste.<br>
+				(If you can't hear any tangible differences... nevermind, just stick to the default settings.)
+			</p>
+			<div class="control-group">
+				<label class="control-label">Kernel profile</label>
+				<div class="controls">
+					<select class="input-large" name="orionprofile">
+					
+$_system_select[orionprofile]
+
+					</select>
+				</div>
+			</div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="save" name="save" type="submit">Apply settings</button>
+			</div>
+		</fieldset>
+	</form>
+	<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>System commands</legend>
+			<p>Just some handy system commands, without the hassle of logging into SSH.</p>
+			<div class="control-group">
+				<label class="control-label">System reboot</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="reboot" id="syscmd-reboot">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">System poweroff</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="poweroff" id="syscmd-poweroff">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Restart MPD service</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="mpdrestart" id="syscmd-mpdrestart">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Update MPD database</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="updatempdDB" id="syscmd-updatempddb">
+				</div>
+			</div>
+		</fieldset>
+	</form>
+	<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>Compatibility fixes</legend>
+			<p>For people suffering problems with some receivers and DACs.</p>
+			<div class="control-group">
+				<label class="control-label">CMedia fix</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleOption2" >ON</label>
+						
+$_system_select[cmediafix1]
+
+						<label class="toggle-radio" for="toggleOption1">OFF</label>
+
+$_system_select[cmediafix0]				
+						
+					</div>
+					<span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
+					A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
+				</div>
+			</div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Apply fixes</button>
+			</div>
+		</fieldset>
+	</form>
+	<!--
+	<form class="form-horizontal" data-validate="parsley" action="" method="post">
+        <fieldset>
+            <legend>Last.FM scrobbling</legend>
+            <div class="control-group" >
+                <label class="control-label" for="port">Port</label>
+                <div class="controls">
+                    <input class="input-large" class="input-large" type="text" id="lastfm_user" name="lastfm[user]" value="$_lastfm[user]" data-trigger="change">
+					<input class="input-large" class="input-large" type="text" id="lastfm_pass" name="lastfm[pass]" value="$_lastfm[pass]" data-trigger="change">
+                    <span class="help-block">This setting is the TCP port that is desired for the daemon to get assigned to.</span>
+                </div>
+            </div>
+		</fieldset>
+
+<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>Backup / Restore configuration</legend>
+			<p>&nbsp;</p>
+			<div class="control-group">
+				<label class="control-label">Backup player config</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="backup" id="syscmd-backup">
+				</div>
+			</div>
+					</fieldset>
+	</form>
+	<form class="form-horizontal" method="post">
+		<fieldset>
+			<div class="control-group" >
+				<label class="control-label" for="port">Configuration file</label>
+
+				<div class="controls">
+			
+			<div class="fileupload fileupload-new" data-provides="fileupload">
+					  <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
+					  <span class="fileupload-preview"></span>
+					  <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
+					</div>
+
+				</div>
+			</div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="restore" name="syscmd" type="submit">Restore config</button>
+			</div>
+		</fieldset>
+	</form>
+	-->
+</div>

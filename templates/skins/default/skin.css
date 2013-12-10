@@ -1,0 +1,142 @@
+/* Color scheme
+-------------------------------------------------------------- */
+
+a:hover, a:focus {
+	color: #77CAEF;
+}
+
+a,
+.demo-text-box a:hover,
+.navbar .brand,
+.navbar .nav > li > a:hover,
+.navbar-inverse .nav .active > a, .navbar-inverse .nav .active > a:hover, .navbar-inverse .nav .active > a:focus,
+.checkbox:hover, .radio:hover,
+.toggle .toggle-radio,
+.todo li.todo-done, .todo li.todo-done .todo-name,
+.login-form .login-field:focus + .login-field-icon, /* end FlatUI */
+#currentsong,
+.keyword,
+.btn-link, .btn-link:hover, .btn-link:focus {
+	color: #0095D8;
+}
+
+.btn.btn-primary,
+.navbar .nav ul li.active > a, .navbar .nav ul li.active > a:hover,
+.navbar .nav ul a:hover,
+.dk_toggle,
+.select-icon,
+.dk_open .dk_toggle,
+.dk_options a:hover,
+.dk_option_current a,
+.tagsinput .tag,
+.tagsinput-add:hover,
+.progress .bar, .ui-slider .bar,
+.ui-slider-range,
+.pagination ul > li > a:hover, .pagination ul > li > a :focus, .pagination ul > li > span:hover, .pagination ul > li > span :focus,
+.palette-firm,
+.todo-search,
+.footer-banner,
+.vjs-play-progress,
+.login-screen,  /* end FlatUI */
+#menu-top .dropdown-menu > li > a:hover,
+#menu-top .dropdown-menu > li > a:focus,
+#menu-top .dropdown-menu > li.active > a,
+#context-menus .dropdown-menu > li > a:hover,
+#context-menus .dropdown-menu > li.active > a,
+#menu-bottom li.active a,
+.playlist .active, .database .active,
+#db-browse .dropdown-menu > li > a:hover,
+#db-browse .dropdown-menu > li > a:focus,
+#db-browse .dropdown-menu > li.active > a,
+.ui-pnotify .alert,
+.bootstrap-select .dropdown-menu > li > a:hover,
+.bootstrap-select .dropdown-menu > li > a:focus {
+	background-color: #0095D8;
+}
+
+.btn.btn-primary:hover, .btn.btn-primary:focus,
+.dk_toggle:hover, .dk_toggle:focus, .dk_focus .dk_toggle,
+.ui-slider-handle:hover, .ui-slider-handle:focus {
+	background-color: #77CAEF;
+}
+
+textarea:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="month"]:focus,
+input[type="time"]:focus,
+input[type="week"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="color"]:focus,
+.uneditable-input:focus,
+.tagsinput,
+.pagination ul > li > a:hover, .pagination ul > li > a :focus, .pagination ul > li > span:hover, .pagination ul > li > span :focus { /* end FlatUI */
+	border-color: #0095D8;
+}
+
+
+
+/* Images
+-------------------------------------------------------------- */
+
+.radio .icon-to-fade {
+    background-image: url("checkbox.png");
+}
+.radio .icon-to-fade {
+  background-image: url("../images/radio.png"); }
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (-moz-min-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 3 / 2), only screen and (-o-min-device-pixel-ratio: 2 / 1), only screen and (min--moz-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 2) {
+	.checkbox .icon {
+		background-image: url("checkbox-2x.png");
+	}
+	.radio .icon {
+		background-image: url("radio-2x.png");
+	}
+}
+.toggle.toggle-off .toggle-radio {
+	background-image: url("toggle/icon-off.png");
+}
+.toggle .toggle-radio {
+    background: url("toggle/icon-on.png") right top no-repeat;
+}
+.toggle.toggle-icon.toggle-off .toggle-radio {
+	background-image: url("toggle/block-off.png");
+}
+.toggle.toggle-icon .toggle-radio {
+	background-image: url("toggle/block-on.png");
+}
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (-moz-min-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 3 / 2), only screen and (-o-min-device-pixel-ratio: 2 / 1), only screen and (min--moz-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 2) {
+	.toggle.toggle-off .toggle-radio {
+		background-image: url("toggle/icon-off-2x.png");
+	}
+	.toggle .toggle-radio {
+		background-image: url("toggle/icon-on-2x.png");
+	}
+}
+.todo li {
+    background-image: url("todo/todo.png");
+}
+.todo li.todo-done {
+	background-image: url("todo/done.png");
+}
+.todo-search {
+	background-image: url("todo/search.png");
+}
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (-moz-min-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 3 / 2), only screen and (-o-min-device-pixel-ratio: 2 / 1), only screen and (min--moz-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 2) {
+	.todo li {
+		background-image: "todo/todo-2x.png";
+	}
+	.todo li.todo-done {
+		background-image: "todo/done-2x.png";
+	}
+	.todo-search {
+		background-image: "todo/search-2x.png";
+	}
+}

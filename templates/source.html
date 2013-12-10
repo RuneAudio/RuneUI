@@ -1,0 +1,114 @@
+<div class="container credits">
+	<h1>NAS mounts</h1>	
+	<form class="form-horizontal" data-validate="parsley" action="sources.php" method="post">
+		<fieldset>
+			<!--<legend>$_title  <span class=" $_hide ">(<button type="submit" class="btn btn-link btn-nobtn" name="delete" value="1">remove this mount</button>)</span></legend>-->
+			<legend>$_title  <span class=" $_hide ">(<a href="#source-delete-modal" data-toggle="modal">remove this mount</a>)</span></legend>
+			<div class="control-group">
+			<div class="alert alert-info $_hideerror ">
+			<i class='icon-remove red sx'></i> Last system mount error</br>
+			$_error
+			</div>
+				<label class="control-label" for="nas-name">Source name</label>
+				<div class="controls">
+					<input class="input-large" class="input-large" type="text" id="nas-name" name="mount[name]" value="$_name" data-trigger="change" placeholder="es: Classical">
+					<input type="hidden" name="mount[id]" value="$_id">
+					<input type="hidden" name="mount[action]" value="$_action">
+					<span class="help-block">The name you want to give to this source. It will appear in your database tree structure</span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="nas-type">fileshare protocol</label>
+				<div class="controls">
+					<select id="mount-type" name="mount[type]" class="input-large">
+					$_source_select[type]
+					</select>
+					<span class="help-block">Select SMB/CIFS for connect Windows file shares or NFS for unix file shares</span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="nas-ip">IP address</label>
+				<div class="controls">
+					<input class="input-large" class="input-large" type="text" id="nas-ip" name="mount[address]" value="$_address" data-trigger="change" placeholder="es: 192.168.1.250">
+					<span class="help-block">Specify your NAS address</span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="nas-dir">Remote directory</label>
+				<div class="controls">
+					<input class="input-large" class="input-large" type="text" id="nas-dir" name="mount[remotedir]" value="$_remotedir" data-trigger="change" placeholder="es: Music/Classical">
+					<span class="help-block">Specify the directory name on the NAS where to scan music files (case sensitive)</span>
+				</div>
+			</div>
+			<div id="mount-auth" class="hide">
+				<div class="control-group">
+					<label class="control-label" for="nas-usr">Username</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="text" id="nas-usr" name="mount[username]" value="$_username" data-trigger="change" placeholder="user">
+						<span class="help-block">If required, specify username to grant access to the NAS (case sensitive)</span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="nas-pasw">Password</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="password" id="nas-pasw" name="mount[password]" value="$_password" placeholder="pass" autocomplete="off">
+						<span class="help-block">If required, specify password to grant access to the NAS (case sensitive)</span>
+					</div>
+				</div>
+			</div>
+			<p><a href="#notarget" class="show-advanced-config"><i class="icon-plus-sign"></i> <span>show advanced options</span></a></p>
+			<div class="advanced-config hide">
+				<div class="control-group">
+					<label class="control-label" for="nas-charset">Charset</label>
+					<div class="controls">
+						<select id="log-level" name="mount[charset]" class="input-large">
+							<option value="utf8" $_charset>UTF8 (default)</option>
+							<option value="iso8859-1" $_charset>ISO 8859-1</option>
+						</select>
+						<span class="help-block">Change this settings if you experience problems with character encoding</span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="nas-rsize">Rsize</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="text" id="nas-rsize" name="mount[rsize]" value="$_rsize" data-trigger="change" placeholder="2048">
+						<span class="help-block">Change this settings if you experience problems with music playback (es: pops or clips)</span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="nas-wsize">Wsize</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="text" id="nas-wsize" name="mount[wsize]" value="$_wsize" data-trigger="change" placeholder="4096">
+						<span class="help-block">Change this settings if you experience problems with music playback (es: pops or clips)</span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="options">Mount flags</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="text" id="options" name="mount[options]" value="$_options" data-trigger="change" placeholder="cache=strict,ro">
+						<input type="hidden" name="mount[error]" value="$_error">
+						<span class="help-block">Advanced mount flags. Don't use this field if you don't know what you are doing.</span>
+					</div>
+				</div>
+			</div>
+		<fieldset>
+		<div class="form-actions">
+			<a href="sources.php" class="btn btn-large" data-ajax="false">Cancel</a>
+			<button type="submit" class="btn btn-primary btn-large" name="save" value="save">Save mount</button>
+		</div>
+		
+		<div id="source-delete-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-delete-modal-label" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3 id="source-delete-modal-label">Remove the mount</h3>
+			</div>
+			<div class="modal-body">
+				<p>Are you sure you want to delete this mount?</p>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<button type="submit" class="btn btn-primary" name="delete" value="1">Remove</button>
+			</div>
+		</div>
+	</form>
+</div>

@@ -1,0 +1,4 @@
+# /etc/auto.server
+# list all the shares to automount, here are some examples
+# you need one credential file per different username/password combination
+#NAS    -fstype=cifs,file_mode=0777,dir_mode=0777,iocharset=utf8,rsize=2048,wsize=4096,cache=strict,username=pi,password=    ://192.168.1.nasip/share
