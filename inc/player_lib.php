@@ -1292,19 +1292,20 @@ $url = "http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=".$lastfm
 // debug
 //echo $url;
 $ch = curl_init($url);
-curl_setopt($ch, CURLOPT_FILE, $fp);
 curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $output = curl_exec($ch);
 $output = json_decode($output,true);
 curl_close($ch);
-/* debug
-echo "<pre>";
-print_r($output);
-echo "</pre>";
-echo "<br>";
-*/
+//debug
+//echo $url;
+//echo "<pre>";
+//print_r($output);
+//echo "</pre>";
+//echo "<br>";
+
 // key [3] == extralarge last.fm image
+// key [4] == mega last.fm image
 return $output['album']['image'][3]['#text'];
 }
 

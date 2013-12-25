@@ -46,7 +46,7 @@ $status['currentsong'] = $curTrack[0]['Title'];
 $status['currentalbum'] = $curTrack[0]['Album'];
 $status['fileext'] = parseFileStr($curTrack[0]['file'],'.');
 }
-$currentpath = "/mnt/".findPLposPath($status['song'],$mpd);
+$currentpath = "/mnt/MPD/".findPLposPath($status['song'],$mpd);
 //echo $currentpath;
 
 $flac = new Zend_Media_Flac($currentpath);
@@ -58,15 +58,18 @@ if ($flac->hasMetadataBlock(Zend_Media_Flac::PICTURE)) {
 } else {
 
 $ch = curl_init(ui_lastFM_coverart($status['currentartist'],$status['currentalbum'],$_SESSION['lastfm_apikey']));
-curl_setopt($ch, CURLOPT_FILE, $fp);
 curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $image = curl_exec($ch);
 curl_close($ch);
 
-header('Content-Type: ' .mime_content_type($image));
-echo $image;
-
+if (!empty($image)) {
+    header('Content-Type: ' .mime_content_type($image));
+    echo $image;
+    } else {
+    echo "No image found!";    
+    }
 }
+
 
 ?>
