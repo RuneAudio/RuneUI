@@ -1,0 +1,2 @@
+# set deadline scheduler for non-rotating disks
+ACTION=="add|change", KERNEL=="mmcblk[0-9]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="noop"
