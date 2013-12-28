@@ -158,7 +158,7 @@ if (isset($_POST['orionprofile']) && $_POST['orionprofile'] != $_SESSION['orionp
 	// start / respawn session
 	session_start();
 	$_SESSION['w_queue'] = 'orionprofile';
-	$_SESSION['w_queueargs'] = $_POST['orionprofile'];
+	$_SESSION['w_queueargs'] = $_POST['orionprofile']." ".$_SESSION['hwplatformid'];
 	// set UI notify
 	$_SESSION['notify']['title'] = 'KERNEL PROFILE';
 	$_SESSION['notify']['msg'] = 'orionprofile changed <br> current profile:     <strong>'.$_POST['orionprofile']."</strong>";

@@ -214,6 +214,8 @@ if (isset($_GET['p']) && !empty($_GET['p'])) {
 	$_action = 'add';
 	$_source_select['type'] .= "<option value=\"cifs\">SMB/CIFS</option>\n";	
 	$_source_select['type'] .= "<option value=\"nfs\">NFS</option>\n";	
+	$_source_select['charset'] .="<option value=\"utf8\">UTF8 (default)</option>\n";
+	$_source_select['charset'] .="<option value=\"iso8859-1\">ISO 8859-1</option>\n";
 	}
 	$tpl = 'source.html';
 } 

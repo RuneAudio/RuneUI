@@ -27,7 +27,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: player_lib.php
- *  version: 1.1
+ *  version: 1.1.1-dev
  *
  */
  
@@ -715,6 +715,10 @@ function debug_footer($db) {
 		}
 		echo "\n";
 		echo "\n";
+		echo "###### Kernel module snd_usb_audio settings ######\n";
+		echo "\n";
+		$sndusbinfo = sysCmd('systool -v -m snd_usb_audio');
+		echo implode("\n",$sndusbinfo)."\n\n";
 		echo "###### Kernel optimization parameters ######\n";
 		echo "\n";
 		echo "hardware platform:\t".$_SESSION['hwplatform']."\n";
@@ -724,8 +728,8 @@ function debug_footer($db) {
 		echo  "kernel scheduler for mmcblk0:\t\t".file_get_contents('/sys/block/mmcblk0/queue/scheduler');
 		echo  "/proc/sys/vm/swappiness:\t\t".file_get_contents('/proc/sys/vm/swappiness');
 		echo  "/proc/sys/kernel/sched_latency_ns:\t".file_get_contents('/proc/sys/kernel/sched_latency_ns');
-		echo  "/proc/sys/kernel/sched_rt_period_us:\t".file_get_contents('/proc/sys/kernel/sched_rt_period_us');
-		echo  "/proc/sys/kernel/sched_rt_runtime_us:\t".file_get_contents('/proc/sys/kernel/sched_rt_runtime_us');
+		#echo  "/proc/sys/kernel/sched_rt_period_us:\t".file_get_contents('/proc/sys/kernel/sched_rt_period_us');
+		#echo  "/proc/sys/kernel/sched_rt_runtime_us:\t".file_get_contents('/proc/sys/kernel/sched_rt_runtime_us');
 		echo "\n";
 		echo "\n";
 		echo "###### Filesystem mounts ######\n";
@@ -928,7 +932,7 @@ function wrk_mpdconf($outpath,$db) {
 	$output .= "audio_output {\n\n";
 	$output .= "\t\t type \t\t\"alsa\"\n";
 	$output .= "\t\t name \t\t\"Output\"\n";
-	$output .= "\t\t device \t\"hw:1,0\"\n";
+	$output .= "\t\t device \t\"hw:0,0\"\n";
 	if (isset($hwmixer)) {
 	// $output .= "\t\t mixer_device \t\"".$hwmixer['device']."\"\n";
 	$output .= "\t\t mixer_control \t\"".$hwmixer['control']."\"\n";
@@ -949,13 +953,13 @@ function wrk_sourcemount($db,$action,$id) {
 		case 'mount':
 			$dbh = cfgdb_connect($db);
 			$mp = cfgdb_read('cfg_source',$dbh,'',$id);
-			sysCmd("mkdir \"/mnt/NAS/".$mp[0]['name']."\"");
+			sysCmd("mkdir \"/mnt/MPD/".$mp[0]['name']."\"");
 			if ($mp[0]['type'] == 'cifs') {
 			// smb/cifs mount
-			$mountstr = "mount -t cifs \"//".$mp[0]['address']."/".$mp[0]['remotedir']."\" -o username=".$mp[0]['username'].",password=".$mp[0]['password'].",rsize=".$mp[0]['rsize'].",wsize=".$mp[0]['wsize'].",iocharset=".$mp[0]['charset'].",".$mp[0]['options']." \"/mnt/NAS/".$mp[0]['name']."\"";
+			$mountstr = "mount -t cifs \"//".$mp[0]['address']."/".$mp[0]['remotedir']."\" -o username=".$mp[0]['username'].",password=".$mp[0]['password'].",rsize=".$mp[0]['rsize'].",wsize=".$mp[0]['wsize'].",iocharset=".$mp[0]['charset'].",".$mp[0]['options']." \"/mnt/MPD/".$mp[0]['name']."\"";
 			} else {
 			// nfs mount
-			$mountstr = "mount -t nfs -o ".$mp[0]['options']." \"".$mp[0]['address'].":/".$mp[0]['remotedir']."\" \"/mnt/NAS/".$mp[0]['name']."\"";
+			$mountstr = "mount -t nfs -o ".$mp[0]['options']." \"".$mp[0]['address'].":/".$mp[0]['remotedir']."\" \"/mnt/MPD/".$mp[0]['name']."\"";
 			}
 			// debug
 			error_log(">>>>> mount string >>>>> ".$mountstr,0);
@@ -968,7 +972,7 @@ function wrk_sourcemount($db,$action,$id) {
 				}
 			$return = 1;
 			} else {
-			sysCmd("rmdir \"/mnt/NAS/".$mp[0]['name']."\"");
+			sysCmd("rmdir \"/mnt/MPD/".$mp[0]['name']."\"");
 			$mp[0]['error'] = implode("\n",$sysoutput);
 			cfgdb_update('cfg_source',$dbh,'',$mp[0]);
 			$return = 0;
@@ -999,8 +1003,8 @@ unset($queueargs['mount']['action']);
 		$dbh = cfgdb_connect($db);
 		$source = cfgdb_read('cfg_source',$dbh);
 			foreach ($source as $mp) {
-			sysCmd("umount -f \"/mnt/NAS/".$mp['name']."\"");
-			sysCmd("rmdir \"/mnt/NAS/".$mp['name']."\"");
+			sysCmd("umount -f \"/mnt/MPD/".$mp['name']."\"");
+			sysCmd("rmdir \"/mnt/MPD/".$mp['name']."\"");
 			}
 		if (cfgdb_delete('cfg_source',$dbh)) {
 		$return = 1;
@@ -1041,10 +1045,10 @@ unset($queueargs['mount']['action']);
 		$dbh = cfgdb_connect($db);
 		$mp = cfgdb_read('cfg_source',$dbh,'',$queueargs['mount']['id']);
 		cfgdb_update('cfg_source',$dbh,'',$queueargs['mount']);	
-		sysCmd("umount -f \"/mnt/NAS/".$mp[0]['name']."\"");
+		sysCmd("umount -f \"/mnt/MPD/".$mp[0]['name']."\"");
 			if ($mp[0]['name'] != $queueargs['mount']['name']) {
-			sysCmd("rmdir \"/mnt/NAS/".$mp[0]['name']."\"");
-			sysCmd("mkdir \"/mnt/NAS/".$queueargs['mount']['name']."\"");
+			sysCmd("rmdir \"/mnt/MPD/".$mp[0]['name']."\"");
+			sysCmd("mkdir \"/mnt/MPD/".$queueargs['mount']['name']."\"");
 			}
 		if (wrk_sourcemount($db,'mount',$queueargs['mount']['id'])) {
 		$return = 1;
@@ -1058,8 +1062,8 @@ unset($queueargs['mount']['action']);
 		case 'delete':
 		$dbh = cfgdb_connect($db);
 		$mp = cfgdb_read('cfg_source',$dbh,'',$queueargs['mount']['id']);
-		sysCmd("umount -f \"/mnt/NAS/".$mp[0]['name']."\"");
-		sysCmd("rmdir \"/mnt/NAS/".$mp[0]['name']."\"");
+		sysCmd("umount -f \"/mnt/MPD/".$mp[0]['name']."\"");
+		sysCmd("rmdir \"/mnt/MPD/".$mp[0]['name']."\"");
 		if (cfgdb_delete('cfg_source',$dbh,$queueargs['mount']['id'])) {
 		$return = 1;
 		} else {

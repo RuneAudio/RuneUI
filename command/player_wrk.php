@@ -222,6 +222,7 @@ $_SESSION['debugdata'] = '';
 
 // initialize OrionProfile
 if ($_SESSION['dev'] == 0) {
+// --- REWORK NEEDED ---
 $cmd = "/var/www/command/orion_optimize.sh ".$_SESSION['orionprofile']." startup" ;
 sysCmd($cmd);
 }
