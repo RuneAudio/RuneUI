@@ -27,7 +27,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: db/index.php
- *  version: 1.1
+ *  version: 1.2
  *
  */
  
