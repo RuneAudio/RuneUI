@@ -1,16 +1,16 @@
 <?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,18 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
 					$status = _parseStatusResponse(MpdStatus($mpd));
 					$pos = $status['playlistlength'] ;
 					addQueue($mpd,$_POST['path']);
-					sendMpdCommand($mpd,'play '.$pos);
+					// -- REWORK NEEDED -- tempfix for analog/hdmi out of raspberrypi (should be integrated with sendMpdCommand() function)
+						if ($_SESSION['hwplatformid'] == '01' && ($_SESSION['ao'] == 2 OR $_SESSION['ao'] == 3)) {
+							$cmdstr = "pause";
+							sendMpdCommand($mpd,$cmdstr);
+							closeMpdSocket($mpd);
+							usleep(500000);
+							$mpd = openMpdSocket(DAEMONIP, 6600) ;
+							$cmdstr = $_GET['cmd'];
+							sendMpdCommand($mpd,$cmdstr);
+						} else {
+							sendMpdCommand($mpd,'play '.$pos);
+						}
 					echo json_encode(readMpdResponse($mpd));
 					}
 				break;
@@ -76,7 +87,18 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
 					if (isset($_POST['path']) && $_POST['path'] != '') {
 					sendMpdCommand($mpd,'clear');
 					addQueue($mpd,$_POST['path']);
-					sendMpdCommand($mpd,'play');
+					// -- REWORK NEEDED -- tempfix for analog/hdmi out of raspberrypi (should be integrated with sendMpdCommand() function)
+						if ($_SESSION['hwplatformid'] == '01' && ($_SESSION['ao'] == 2 OR $_SESSION['ao'] == 3)) {
+							$cmdstr = "pause";
+							sendMpdCommand($mpd,$cmdstr);
+							closeMpdSocket($mpd);
+							usleep(500000);
+							$mpd = openMpdSocket(DAEMONIP, 6600) ;
+							$cmdstr = $_GET['cmd'];
+							sendMpdCommand($mpd,$cmdstr);
+						} else {
+							sendMpdCommand($mpd,'play');
+						}
 					echo json_encode(readMpdResponse($mpd));
 					}
 				break;

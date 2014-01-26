@@ -1,5 +1,4 @@
 <div class="tab-content">
-
 	<!-- -------------------- PLAYBACK PANEL -------------------- -->
 	<div id="playback" class="tab-pane active">
 		<div class="container txtmid">
@@ -9,7 +8,7 @@
 			<span id="playlist-position">&nbsp;</span>
 			<span id="format-bitrate"></span>
 			<div class="row-fluid">
-				<div class="span6">
+				<div class="span$_index[colspan]">
 					<div id="timeknob">
 						<div id="countdown" ms-user-select="none">
 							<input id="time" class="playbackknob" value="0" data-readonly="false" data-min="0" data-max="1000" data-width="100%" data-thickness="0.30" data-bgColor="#34495E" data-fgcolor="#0095D8">
@@ -26,22 +25,20 @@
 						</div>
 					</div>
 				</div>
-				<div class="span6 volume">
-					<input id="volume" class="volumeknob" data-width="211" data-cursor="true" data-bgColor="#fff" data-fgColor="#0095D8" data-thickness=".25" data-angleArc="250" data-angleOffset="-125" data-skin="tron" value="66">	
-					<div class="btn-toolbar floatright">
-						<div class="btn-group">
-							<a id="volumedn" class="btn btn-cmd btn-volume" href="#notarget"><i class="icon-volume-down"></i></a>
-							<a id="volumemute" class="btn btn-cmd btn-volume" href="#notarget"><i class="icon-volume-off"></i> <i class="icon-exclamation"></i></a>
-							<!--<a id="ramplay" class="btn btn-cmd btn-toggle" title="Ramplay" href="#notarget"><i class="icon-copy"></i></a> -->
-							<a id="volumeup" class="btn btn-cmd btn-volume" href="#notarget"><i class="icon-volume-up"></i></a>
-							<!--<a id="dbupdate" class="btn btn-cmd" href="#notarget" title="Updating Music DB..."><i class="icon-refresh"></i></a>-->
+$_index[coverart]
+				<div class="span$_index[colspan] volume $_volume[divclass]">
+					<input id="volume" class="volumeknob" onfocus="this.blur()" data-width="211"  data-cursor="true" data-bgColor="#000"  data-thickness=".25" data-angleArc="250" data-angleOffset="-125" data-skin="tron" value="66" data-readOnly="$_volume[readonly]" data-fgColor="$_volume[color]" $_volume[disabled]>	
+						<div class="btn-toolbar floatright">
+							<div class="btn-group">
+								<button id="volumedn" class="btn btn-cmd btn-volume" $_volume[disabled]><i class="icon-volume-down"></i></button>
+								<button id="volumemute" class="btn btn-cmd btn-volume" $_volume[disabled]><i class="icon-volume-off"></i> <i class="icon-exclamation"></i></button>
+								<button id="volumeup" class="btn btn-cmd btn-volume " $_volume[disabled]><i class="icon-volume-up"></i></button>
+							</div>
 						</div>
-					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	
 	<!-- -------------------- DATABASE PANEL -------------------- -->
 	<div id="panel-sx" class="tab-pane">
 		<div class="btnlist btnlist-top">
@@ -81,7 +78,6 @@
 			</div>
 		</div>		
 	</div>
-	
 	<!-- -------------------- PLAYLIST PANEL -------------------- -->
 	<div id="panel-dx" class="tab-pane">
 		<div class="btnlist btnlist-top">
@@ -110,7 +106,6 @@
 	</div>
 	
 </div>
-
 <div id="context-menus">
 	<div id="context-menu" class="context-menu">
 		<ul class="dropdown-menu" role="menu">

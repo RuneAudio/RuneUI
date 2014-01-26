@@ -2,17 +2,17 @@ RuneAudio
 Free and open source Hi-Fi music player for embedded hardware
 
 
- Copyright (C) 2013 RuneAudio Team
+ Copyright (C) 2013-2014 RuneAudio Team
  http://www.runeaudio.com
  
  RuneUI
- copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  
  RuneOS
- copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ copyright (C) 2013-2014 – Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  
  RuneAudio website and logo
- copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ copyright (C) 2013-2014 – ACX webdesign (Andrea Coiutti)
  
  This Program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

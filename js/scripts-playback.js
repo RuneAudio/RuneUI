@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file:         scripts-playback.js
- *  version:   1.1
+ *  file:         js/scripts-playback.js
+ *  version:   1.2
  *
  */
  
@@ -116,32 +116,59 @@ jQuery(document).ready(function($){ 'use strict';
 			window.clearInterval(GUI.currentKnob);
         }
         // step volume control
-        else if ($(this).hasClass('btn-volume')) {
-            if (GUI.volume == null ) {
-                GUI.volume = $('#volume').val();
-            }
-            if ($(this).attr('id') == 'volumedn') {
-                var vol = parseInt(GUI.volume) - 1;
-                GUI.volume = vol;
-                $('#volumemute').removeClass('btn-primary');
-            } else if ($(this).attr('id') == 'volumeup') {
-                var vol = parseInt(GUI.volume) + 1;
-                GUI.volume = vol;
-                $('#volumemute').removeClass('btn-primary');
-            } else if ($(this).attr('id') == 'volumemute') {
-                if ($('#volume').val() != 0 ) {
-                    GUI.volume = $('#volume').val();
-                    $(this).addClass('btn-primary');
-                    var vol = 0;
-                } else {
-                    $(this).removeClass('btn-primary');
-                    var vol = GUI.volume;
-                }
-            }
+//        else if ($(this).hasClass('btn-volume')) {
+//        if (!$(this).prop('disabled')) {
+//            if ($(this).attr('id') == 'volumedn') {
+//                var vol = parseInt(GUI.volume) - 1;
+//                GUI.volume = vol;
+//                $('#volumemute').removeClass('btn-primary');
+//            } else if ($(this).attr('id') == 'volumeup') {
+//                var vol = parseInt(GUI.volume) + 1;
+//                GUI.volume = vol;
+//                $('#volumemute').removeClass('btn-primary');
+//            } else if ($(this).attr('id') == 'volumemute') {
+//                if ($('#volume').val() != 0 ) {
+//                    GUI.volume = $('#volume').val();
+//                    $(this).addClass('btn-primary');
+//                    var vol = 0;
+//                } else {
+//                    $(this).removeClass('btn-primary');
+//                    var vol = GUI.volume;
+//                }
+//            }
             //console.log('volume = ', GUI.volume);
-            sendCmd('setvol ' + vol);
-            return;
+//            sendCmd('setvol ' + vol);
+//            return;
+//        }
+//        }
+
+        // step volume control
+        else if ($(this).hasClass('btn-volume')) {
+			if ($(this).prop('disabled', false)) {
+				if ($(this).attr('id') == 'volumedn') {
+					var vol = parseInt(GUI.volume) - 1;
+					GUI.volume = vol;
+					$('#volumemute').removeClass('btn-primary');
+				} else if ($(this).attr('id') == 'volumeup') {
+					var vol = parseInt(GUI.volume) + 1;
+					GUI.volume = vol;
+					$('#volumemute').removeClass('btn-primary');
+				} else if ($(this).attr('id') == 'volumemute') {
+					if ($('#volume').val() != 0 ) {
+						GUI.volume = $('#volume').val();
+						$(this).addClass('btn-primary');
+						var vol = 0;
+					} else {
+						$(this).removeClass('btn-primary');
+						var vol = GUI.volume;
+					}
+				}
+				//console.log('volume = ', GUI.volume);
+				sendCmd('setvol ' + vol);
+				return;
+			}
         }
+
 
         // toggle buttons
         if ($(this).hasClass('btn-toggle')) {
@@ -171,8 +198,8 @@ jQuery(document).ready(function($){ 'use strict';
 				//console.log('GUI.halt (Knobs)= ', GUI.halt);
 				window.clearInterval(GUI.currentKnob)
 				//$('#time').val(value);
-				//console.log('click percent = ', value);
-				// implementare comando
+				// console.log('click percent = ', value);
+				// add command
 			} else $('#time').val(0);
         },
         release : function (value) {
@@ -276,10 +303,10 @@ jQuery(document).ready(function($){ 'use strict';
         sendPLCmd(cmd);
     });
 
-    // click on playlist tab
-    $('#open-panel-dx a').click(function(){
+	// on ready playlist tab
+    $('#open-panel-dx a').on('shown.bs.tab', function (e) {
         var current = parseInt(GUI.json['song']);
-        customScroll('pl', current, 200); // exec on ready tab!
+        customScroll('pl', current, 0);
     });
 
     // click on playback tab
@@ -291,7 +318,12 @@ jQuery(document).ready(function($){ 'use strict';
 
     // DATABASE
     // ----------------------------------------------------------------------------------------------------
-
+	
+	// on ready database tab
+    $('#open-panel-sx a').on('shown.bs.tab', function (e) {
+		customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]], 0);
+    });
+	
     // click on database entry
     $('.database').on('click', '.db-browse', function() {
         $('.database li').removeClass('active');

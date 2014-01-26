@@ -1,0 +1,15 @@
+[Unit]
+Description=Usb Automount (udevil)
+After=sound.target
+#Requires=mpd.service
+#After=mpd.service
+
+[Service]
+User=mpd
+Group=mpd
+ExecStart=/usr/bin/devmon
+Restart=always
+Timeout=0
+
+[Install]
+WantedBy=multi-user.target

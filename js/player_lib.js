@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: player_lib.js
- *  version: 1.1
+ *  file: js/player_lib.js
+ *  version: 1.2
  *
  */
  
@@ -36,6 +36,7 @@
     cmd: 'status',
     playlist: null,
     currentsong: null,
+    currentalbum: null,
     currentknob: null,
     state: '',
     currentpath: '',
@@ -53,10 +54,8 @@
 
 function sendCmd(inputcmd) {
 	$.ajax({
-		type: 'GET',
-		url: 'command/?cmd=' + inputcmd,
-		async: true,
-		cache: false,
+		url: 'command/',
+		data: { cmd: inputcmd },
 		success: function(data){
 			GUI.halt = 1;
 			//console.log('GUI.halt (sendCmd)= ', GUI.halt);
@@ -159,7 +158,7 @@ function getPlaylist(json){
         }
         $('ul.playlist').html(output);
         var current = parseInt(json['song']);
-        if (current != json && GUI.halt != 1) {
+        if (current != json && GUI.halt != 1 && $('#panel-dx').hasClass('active')) {
             customScroll('pl', current, 200); // active current song
         }
     });
@@ -287,7 +286,7 @@ function populateDB(data, path, uplevel, keyword){
 	if (uplevel) {
 		//console.log('PREV LEVEL');
 		$('#db-' + GUI.currentDBpos[GUI.currentDBpos[10]]).addClass('active');
-		customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]]);
+		customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]], 0);
 	} else {
 		//console.log('NEXT LEVEL');
 		customScroll('db', 0, 0);
@@ -312,39 +311,50 @@ function updateGUI(json){
         }
     }
     // common actions
-    //console.log('GUI.halt (azioni comuni)= ', GUI.halt);
-    //if (!GUI.halt) {
-        //refreshTimer(parseInt(json['elapsed']), parseInt(json['time']), json['state']);
 
-        $('#volume').val((json['volume'] == '-1') ? 100 : json['volume']).trigger('change');
-        $('#currentartist').html(json['currentartist']);
-        $('#currentsong').html(json['currentsong']);
-        $('#currentalbum').html(json['currentalbum']);
-        if (json['repeat'] == 1) {
-            $('#repeat').addClass('btn-primary');
-        } else {
-            $('#repeat').removeClass('btn-primary');
-        }
-        if (json['random'] == 1) {
-            $('#random').addClass('btn-primary');
-        } else {
-            $('#random').removeClass('btn-primary');
-        }
-        if (json['consume'] == 1) {
-            $('#consume').addClass('btn-primary');
-        } else {
-            $('#consume').removeClass('btn-primary');
-        }
-        if (json['single'] == 1) {
-            $('#single').addClass('btn-primary');
-        } else {
-            $('#single').removeClass('btn-primary');
-        }
-
-    //}
+	$('#volume').val((json['volume'] == '-1') ? 100 : json['volume']).trigger('change');
+	$('#currentartist').html(json['currentartist']);
+	$('#currentsong').html(json['currentsong']);
+	$('#currentalbum').html(json['currentalbum']);
+	if (json['repeat'] == 1) {
+		$('#repeat').addClass('btn-primary');
+	} else {
+		$('#repeat').removeClass('btn-primary');
+	}
+	if (json['random'] == 1) {
+		$('#random').addClass('btn-primary');
+	} else {
+		$('#random').removeClass('btn-primary');
+	}
+	if (json['consume'] == 1) {
+		$('#consume').addClass('btn-primary');
+	} else {
+		$('#consume').removeClass('btn-primary');
+	}
+	if (json['single'] == 1) {
+		$('#single').addClass('btn-primary');
+	} else {
+		$('#single').removeClass('btn-primary');
+	}
+	
     GUI.halt = 0;
-    //console.log('GUI.halt (azioni comuni2)= ', GUI.halt);
     GUI.currentsong = json['currentsong'];
+	var currentalbumstring = json['currentartist'] + ' - ' + json['currentalbum'];
+	if (GUI.currentalbum != currentalbumstring) {
+		$('#cover-art').css('background-image','url(images/cover-default.png');
+		var covercachenum = Math.floor(Math.random()*1001);
+		request = $.ajax({
+			type: 'GET',
+			url: 'inc/coverart.php?v=' + covercachenum,
+			success: function(data){
+				if ($.parseJSON(data) != 'NOCOVER') {
+					//$('#cover-art').css('background-image','url(inc/coverart.php?v=' + covercachenum + ')');
+					$('#cover-art').css('background-image','url(' + data + ')');
+				}
+			}
+		});
+	}
+	GUI.currentalbum = currentalbumstring;
 }
 
 // update status on playback view

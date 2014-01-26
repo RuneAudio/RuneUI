@@ -1,16 +1,16 @@
 <?php 
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,15 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: _player_engine.php
- *  version: 1.1
+ *  version: 1.2
  *
  */
- 
+
 // common include
 include('inc/connection.php');
 playerSession('open',$db,'',''); 
-?>
 
+?>
 <?php
 // setup endless loop
 //set_time_limit(0);
@@ -51,17 +51,6 @@ if ( !$mpd) {
 		$_SESSION['lastbitdepth'] = $status['audio'];
 		}
 		
-		// check for Ramplay
-		if (isset($_SESSION['ramplay']) && $_SESSION['ramplay'] == 1) {
-			// record "lastsongid" in PHP SESSION
-			$_SESSION['lastsongid'] = $status['songid'];
-			// controllo per cancellazione ramplay
-				// if (!rp_checkPLid($_SESSION['lastsongid'],$mpd)) {
-				// rp_deleteFile($_SESSION['lastsongid'],$mpd);
-				// }
-			// recupero id nextsong e metto in sessione
-			$_SESSION['nextsongid'] = $status['nextsongid']; 
-		}
 // register player STATE in SESSION
 $_SESSION['state'] = $status['state'];
 // Unlock SESSION file
@@ -86,36 +75,26 @@ session_write_close();
 			$status['fileext'] = parseFileStr($curTrack[0]['file'],'.');
 			$status['currentartist'] = "";
 			$status['currentsong'] = $song;
-			$status['currentalbum'] = "path: ".$path;
+				if (!empty($path)){
+				$status['currentalbum'] = $path;
+				} else {
+				$status['currentalbum'] = "";
+				}
 			}
 		
 		// CMediaFix
-		if (isset($_SESSION['cmediafix']) && $_SESSION['cmediafix'] == 1 && $status['state'] == 'play' ) {
+		if (isset($_SESSION['cmediafix']) && $_SESSION['cmediafix'] == 1 && $status['state'] == 'play') {
 			$status['lastbitdepth'] = $_SESSION['lastbitdepth'];
 				if ($_SESSION['lastbitdepth'] != $status['audio']) {
 					sendMpdCommand($mpd,'cmediafix');
 				}
+			
 		}
-		
-		// Ramplay
-		if (isset($_SESSION['ramplay']) && $_SESSION['ramplay'] == 1) {
-				// set consume mode ON
-				// if ($status['consume'] == 0) {
-				// sendMpdCommand($mpd,'consume 1');
-				// $status['consume'] = 1;
-				// }
-
-			// copio il pezzo in /dev/shm
-			$path = rp_copyFile($status['nextsongid'],$mpd);
-			// lancio update mdp locazione ramplay
-			rp_updateFolder($mpd);
-			// lancio addandplay canzone
-			rp_addPlay($path,$mpd,$status['playlistlength']);
-		}
-		
 		
 		// JSON response for GUI
 		echo json_encode($status);
-		
+// debug
+runelog('--- [_player_engine.php] --- CLOSE MPD SOCKET <<< (0) ---','');		
 closeMpdSocket($mpd);	
 }
+?>

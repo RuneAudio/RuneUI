@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-#  Copyright (C) 2013 RuneAudio Team
+#  Copyright (C) 2013-2014 RuneAudio Team
 #  http://www.runeaudio.com
 #
 #  RuneUI
-#  copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+#  copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
 #
 #  RuneOS
-#  copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+#  copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
 #
 #  RuneAudio website and logo
-#  copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+#  copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
 #
 #  This Program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -26,36 +26,20 @@
 #  along with RuneAudio; see the file COPYING.  If not, see
 #  <http://www.gnu.org/licenses/gpl-3.0.txt>.
 # 
-#  file: player_wdog.sh
-#  version: 1.1
+#  file: command/rune_wdog
+#  version: 1.2
 #
 #
 #####################################
-# watchdog for php-fpm and player_wrk.php execution 
+# watchdog for php-fpm
 # by Orion					     													
 #####################################
 numproc=`pgrep -c php-fpm`
-WRKPIDFILE='/run/player_wrk.pid'
-# check player_worker exec
-if [[ !(-x "/var/www/command/player_wrk.php") ]]
-then	
-	chmod a+x /var/www/command/player_wrk.php
-fi
-
 while true 
 do
- 	if (($numproc > 12 )); then 
-		killall player_wrk.php
-		rm $WRKPIDFILE > /dev/null 2>&1
-		systemctl restart php-fpm > /dev/null 2>&1
-	fi
-	if ! kill -0 `cat $WRKPIDFILE` > /dev/null 2>&1; then
-		rm $WRKPIDFILE > /dev/null 2>&1
-			if [ "$1" == "startup" ]; then
-			sleep 5
-			fi
-		/var/www/command/player_wrk.php > /dev/null 2>&1
-	fi
-    sleep 12
+    if (($numproc > 11 )); then 
+	systemctl reload php-fpm > /dev/null 2>&1
+    fi
+    sleep 10
     numproc=`pgrep -c php-fpm`
 done

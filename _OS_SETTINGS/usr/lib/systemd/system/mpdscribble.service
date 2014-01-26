@@ -1,0 +1,12 @@
+[Unit]
+Description=MPD Scribble
+After=sound.target
+Requires=mpd.service
+After=mpd.service
+
+[Service]
+ExecStart=/usr/local/bin/mpdscribble -D
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

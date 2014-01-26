@@ -36,7 +36,6 @@
 <script src="js/jquery.tagsinput.js"></script>
 <script src="js/jquery.placeholder.js"></script>
 <script src="js/parsley.min.js"></script>
-<script src="js/i18n/messages.it.js" type="text/javascript"></script>
 <script src="js/application.js"></script>
 <script src="js/scripts-configuration.js"></script>
 <script src="js/jquery.pnotify.min.js"></script>
@@ -55,6 +54,9 @@ session_start();
 $_SESSION['notify'] = '';
 session_write_close();
 }
+?>
+<?php
+closeMpdSocket($mpd);
 ?>
 <div id="debug" <?php if ($_SESSION['hiddendebug'] == 1 OR $_SESSION['debug'] == 0) {echo "class=\"hide\"";} ?>>
 	<pre>

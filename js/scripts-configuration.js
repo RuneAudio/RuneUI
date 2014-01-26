@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: scripts-configuration.js
- *  version: 1.1
+ *  file: js/scripts-configuration.js
+ *  version: 1.2
  *
  */
 
@@ -111,7 +111,6 @@
             sendCmd('setvol ' + vol);
             return;
         }
-
         // toggle buttons
         if ($(this).hasClass('btn-toggle')) {
             if ($(this).hasClass('btn-primary')) {
@@ -144,11 +143,60 @@
 		});
 	}
 	
+	// select MPD output interface
+	if( $('#audio-output-interface').length ){                    
+		$('#audio-output-interface').change(function(){          
+			var output = $(this).val();
+			switchOutputInterface(output);
+			if (output == '0') {
+              var msg = 'USB-Audio output selected';
+            } else if (output == '1') {
+              var msg = 'NULL output selected';
+            } else if (output == '2') {
+              var msg = 'Analog Jack selected';
+            } else if (output == '3') {
+              var msg = 'HDMI output selected';
+            }
+          	$.pnotify.defaults.history = false;
+			$.pnotify({	
+			text: msg,
+			icon: 'icon-ok',
+			opacity: .9});
+			});
+	}
+	
+	// show/hide last.fm user/pass form based on select value (section Features management)        
+	$('#toggleScrobblingLastfm2').change(function(){          
+		if ($(this).val() == '0') {
+			$('#lastfmAuth').hide();
+		}                                                          
+	});
+	$('#toggleScrobblingLastfm1').change(function(){          
+		if ($(this).val() == '1') {
+			$('#lastfmAuth').show();
+		}                                                       
+	});
+	
+	// show/hide user/pass if Guest access is checked. (CIFS mount)
+	$('#smbguest2').change(function(){          
+		if ($(this).val() == '0') {
+			$('#authdata').show();
+		}                                                          
+	});
+	$('#smbguest1').change(function(){          
+		if ($(this).val() == '1') {
+			$('#authdata').hide();
+		}                                                       
+	});
+	
 	// show/hide user and password fields if NFS is selected
 	if( $('#mount-type').length ){
 		if ($('#mount-type').val() == 'cifs') {
 			$('#mount-auth').show();
-		}                        
+		}
+		if ($('#mount-type').val() == 'nfs') {
+			$('#mount-auth').hide();
+		}   		
 		$('#mount-type').change(function(){          
 			if ($(this).val() == 'nfs') {
 				$('#mount-auth').hide();
@@ -189,3 +237,13 @@
 	}
 	
 });
+
+function switchOutputInterface(outputID){
+	request = $.ajax({
+		type: 'GET',
+		url: 'command/?cmd=enableao&ao=' + outputID,
+		success: function(data){
+			//
+		}
+	});
+}

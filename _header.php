@@ -1,36 +1,3 @@
-<!--
-/*
- * Copyright (C) 2013 RuneAudio Team
- * http://www.runeaudio.com
- *
- * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
- *
- * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
- *
- * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
- *
- * This Program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This Program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with RuneAudio; see the file COPYING.  If not, see
- * <http://www.gnu.org/licenses/gpl-3.0.txt>.
- *
- * file: _header.php
- * RuneUI version: 1.1
- * RuneOS version: 0.1-beta
- */
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,15 +20,45 @@
 	<link rel="stylesheet" href="css/runeui.css">
 	<link rel="stylesheet" href="templates/skins/default/skin.css">
     <link rel="shortcut icon" href="images/favicon.ico">
-
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
     <!--[if lt IE 9]>
       <script src="js/html5shiv.js"></script>
     <![endif]-->
 </head>
-
 <body class="<?php echo $sezione ?>">
-
+<!--
+/*
+ * Copyright (C) 2013-2014 RuneAudio Team
+ * http://www.runeaudio.com
+ *
+ * RuneUI
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ *
+ * RuneOS
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
+ *
+ * RuneAudio website and logo
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
+ *
+ * This Program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * This Program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with RuneAudio; see the file COPYING.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.txt>.
+ *
+ * file: _header.php
+ * RuneOS version: 0.2-beta
+ * RuneUI version: 1.2
+ */
+-->
 <div id="menu-top" class="ui-header ui-bar-f ui-header-fixed slidedown" data-position="fixed" data-role="header" role="banner">
 	<div class="dropdown">
 		<a class="dropdown-toggle" id="menu-settings" role="button" data-toggle="dropdown" data-target="#" href="<?php echo $sezione ?>.php">MENU <i class="icon-th-list dx"></i></a>

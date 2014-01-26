@@ -1,0 +1,13 @@
+[Unit]
+Description=RapspberryPi HDMI OnTheFly switch helper
+Requires=mpd.service
+After=mpd.service
+
+[Service]
+Type=simple
+ExecStart=/var/www/command/rune_rpi_oHdmi
+TimeoutSec=0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

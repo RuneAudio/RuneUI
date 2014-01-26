@@ -1,16 +1,16 @@
 <?php 
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,22 +27,21 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: dev.php
- *  version: 1.1
+ *  version: 1.2
  *
  */
  
 // common include
 include('inc/connection.php');
-playerSession('open',$db,'',''); 
+playerSession('open',$db,'','');
 playerSession('unlock',$db,'','');
-?>
 
+?>
 <?php
 if (isset($_POST['syscmd'])){
 	switch ($_POST['syscmd']) {
 	
 	case 'reboot':
-	
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -61,7 +60,6 @@ if (isset($_POST['syscmd'])){
 		break;
 		
 	case 'poweroff':
-	
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -78,7 +76,6 @@ if (isset($_POST['syscmd'])){
 		break;
 		
 	case 'mpdrestart':
-	
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -95,7 +92,6 @@ if (isset($_POST['syscmd'])){
 		break;
 		
 	case 'phprestart':
-	
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -114,7 +110,6 @@ if (isset($_POST['syscmd'])){
 		break;
 	
 	case 'syschmod':
-	
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -140,18 +135,23 @@ if (isset($_POST['syscmd'])){
 		break;
 		
 	case 'phpclearcache':
-	
-		sleep(2);
-		apc_clear_cache();
-		apc_clear_cache('opcode');
+		wrk_opcache('reset');
 		session_start();
 		$_SESSION['notify']['title'] = '';
-		$_SESSION['notify']['msg'] = 'PHP APC Cache cleared';
+		$_SESSION['notify']['msg'] = 'PHP 5.5 OPCache cleared';
+		playerSession('unlock');
+		break;
+	
+	case 'clearimg':
+		session_start();
+		$_SESSION['w_queue'] = "clearimg";
+		$_SESSION['w_active'] = 1;
+		$_SESSION['notify']['title'] = '';
+		$_SESSION['notify']['msg'] = 'SD Image logs cleared';
 		playerSession('unlock');
 		break;
 	
 	case 'workerrestart':
-			
 			// reset worker status
 			session_start();
 			$_SESSION['w_queue'] = '';
@@ -163,13 +163,12 @@ if (isset($_POST['syscmd'])){
 			$_SESSION['w_queue'] = "workerrestart";
 			$_SESSION['w_active'] = 1;
 			$_SESSION['notify']['title'] = 'Worker reset';
-			$_SESSION['notify']['msg'] = 'player_wrk.php restarted...';
+			$_SESSION['notify']['msg'] = 'rune_SY_wrk.php restarted...';
 		// unlock session file
 		playerSession('unlock');
 		break;
 	
 	case 'workersessionreset':
-	
 		session_start();
 		$_SESSION['w_queue'] = '';
 		$_SESSION['w_queueargs'] = '';
@@ -182,7 +181,6 @@ if (isset($_POST['syscmd'])){
 		break;
 		
 	case 'backup':
-			
 			if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
 			// start / respawn session
 			session_start();
@@ -243,41 +241,23 @@ if (isset($_POST['save'])){
 	playerSession('unlock');
 }
 
-if (isset($_POST['cmediafix']) && $_POST['cmediafix'] != $_SESSION['cmediafix']){
-	// load worker queue 
-	// start / respawn session
-	session_start();
-	// save new value on SQLite datastore
-	if ($_POST['cmediafix'] == 1 OR $_POST['cmediafix'] == 0) {
-	playerSession('write',$db,'cmediafix',$_POST['cmediafix']);
-	}
-	// set UI notify
-	if ($_POST['cmediafix'] == 1) {
-	$_SESSION['notify']['title'] = '';
-	$_SESSION['notify']['msg'] = 'CMediaFix enabled';
-	} else {
-	$_SESSION['notify']['title'] = '';
-	$_SESSION['notify']['msg'] = 'CMediaFix disabled';
-	}
-	// unlock session file
-	playerSession('unlock');
-}
-
-if (isset($_POST['enableapc']) && $_POST['enableapc'] != $_SESSION['enableapc']) {
+if (isset($_POST['opcache']) && $_POST['opcache'] != $_SESSION['opcache']) {
+// start / respawn session
+session_start();
 	if ($_SESSION['w_lock'] != 1 && $_SESSION['w_queue'] == '') {
-	// start / respawn session
-	session_start();
-	$_SESSION['w_queue'] = "enableapc";
-	$_SESSION['w_queueargs'] =  $_POST['enableapc'];
+		if ($_POST['opcache'] == 1) {
+		$_SESSION['notify']['msg'] = 'Persistent cache enabled.';
+		} else {
+		$_SESSION['notify']['msg'] = 'Persistent cache disabled.';
+		}
+	$_SESSION['w_queue'] = "opcache";
+	$_SESSION['w_queueargs'] =  $_POST['opcache'];
 	$_SESSION['w_active'] = 1;
-	// unlock session file
-	playerSession('unlock');
-	$_SESSION['notify']['msg'] = 'persistent cache enabled.';
 	} else {
 	$_SESSION['notify']['msg'] = 'background worker busy...retry later...';
 	}
 // set UI notify
-$_SESSION['notify']['title'] = 'PHP APC';
+$_SESSION['notify']['title'] = 'PHP 5.5 OPcache';
 
 // unlock session file
 playerSession('unlock');
@@ -285,14 +265,51 @@ playerSession('unlock');
 // wait for worker output if $_SESSION['w_active'] = 1
 waitWorker(1);
 ?>
-
 <?php 
 $sezione = basename(__FILE__, '.php');
 include('_header.php'); 
 ?>
-
 <div class="container">
 	<h1>Development settings</h1>
+		<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>PHP backend control</legend>
+			<p>Just some handy "tools" for PHP backend management.</p>
+			<div class="control-group">
+				<label class="control-label">Clear PHP 5.5 OPcache</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="phpclearcache" id="syscmd-phpclearcache">
+				</div>
+			</div>			
+			<div class="control-group">
+				<label class="control-label">View PHP 5.5 OPcache status</label>
+				<div class="controls">
+					<a class="btn" type="submit" href="command/opcache.php" name="syscmd" id="syscmd-viewphpcache" target="_blank">php cache status</a>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Restart PHP service</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="phprestart" id="syscmd-phprestart">
+				</div>
+			</div> 
+		<div class="control-group">
+				<label class="control-label">PHP 5.5 OPcache (persistent cache)</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleOption5" >ON</label>
+						<input type="radio" name="opcache" id="toggleOption6" value="1" <?php if ($_SESSION['opcache'] == 1) echo "checked=\"checked\""; ?>>
+						<label class="toggle-radio" for="toggleOption6">OFF</label>
+						<input type="radio" name="opcache" id="toggleOption5" value="0" <?php if ($_SESSION['opcache'] == 0) echo "checked=\"checked\""; ?>>
+					</div>
+					<span class="help-block">Enable PHP 5.5 OPcache persistence. This drastically speed-up page render, but you must manually clear cache (use above button) at any source code change. This is enabled by default in production environment.</span>
+				</div>
+			</div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Save settings</button>
+			</div>
+		</fieldset>
+	</form>
 	<form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>Debug level</legend>
@@ -343,7 +360,7 @@ include('_header.php');
 			</div>
 		</fieldset>
 	</form>
-	<!--<form class="form-horizontal" method="post">
+	<form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>System commands</legend>
 			<p>Just some handy system commands, without the hassle of logging into SSH.</p>
@@ -359,12 +376,12 @@ include('_header.php');
 					<input class="btn" type="submit" name="syscmd" value="poweroff" id="syscmd-poweroff">
 				</div>
 			</div>
-			<div class="control-group">
+			<!--<div class="control-group">
 				<label class="control-label">Setup FS permissions</label>
 				<div class="controls">
 					<input class="btn" type="submit" name="syscmd" value="syschmod" id="syscmd-syschmod">
 				</div>
-			</div>
+			</div> -->
 			<div class="control-group">
 				<label class="control-label">Restart MPD service</label>
 				<div class="controls">
@@ -387,52 +404,20 @@ include('_header.php');
 				<label class="control-label">blank playerID</label>
 				<div class="controls">
 					<input class="btn" type="submit" name="syscmd" value="blankplayerid" id="syscmd-blankplayerid">
-					<span class="help-block">actual playerID: <?php echo $_SESSION['playerid'];?></span>
-					<span class="help-block">REMEMBER to use this function prior to public a Player IMG.</span>
+					<span class="help-block">Actual playerID: <?php echo $_SESSION['playerid'];?></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">clear installation</label>
+				<div class="controls">
+					<input class="btn" type="submit" name="syscmd" value="clearimg" id="syscmd-clearimg">
+					<span class="help-block">Clear command history, logs, reset image parameters to default settings.</span>
+					<span class="help-block">NOTE: (Dev team function) Use this function prior to public a RuneOS image.</span>
+					<span class="help-block">WARNING: Automatic system shutdown after execution!</span>
 				</div>
 			</div>
 		</fieldset>
-	</form> -->
-	<!-- <form class="form-horizontal" method="post">
-		<fieldset>
-			<legend>PHP backend control</legend>
-			<p>Just some handy "tools" for PHP backend management.</p>
-			<div class="control-group">
-				<label class="control-label">Restart PHP service</label>
-				<div class="controls">
-					<input class="btn" type="submit" name="syscmd" value="phprestart" id="syscmd-phprestart">
-				</div>
-			</div> 
-			<div class="control-group">
-				<label class="control-label">Clear PHP APC cache</label>
-				<div class="controls">
-					<input class="btn" type="submit" name="syscmd" value="phpclearcache" id="syscmd-phpclearcache">
-				</div>
-			</div>			
-			<div class="control-group">
-				<label class="control-label">View PHP APC status</label>
-				<div class="controls">
-					<a class="btn" type="submit" href="command/apc.php" name="syscmd" id="syscmd-viewphpcache" target="_blank">php cache status</a>
-				</div>
-			</div>
-		<div class="control-group">
-				<label class="control-label">PHP APC persistent cache</label>
-				<div class="controls">
-					<div class="toggle">
-						<label class="toggle-radio" for="toggleOption5" >ON</label>
-						<input type="radio" name="enableapc" id="toggleOption6" value="0" <?php if ($_SESSION['enableapc'] == 0) echo "checked=\"checked\""; ?>>
-						<label class="toggle-radio" for="toggleOption6">OFF</label>
-						<input type="radio" name="enableapc" id="toggleOption5" value="1" <?php if ($_SESSION['enableapc'] == 1) echo "checked=\"checked\""; ?>>
-					</div>
-					<span class="help-block">Enable PHP APC persistence (apc.stat = 0). This drastically speed-up page render, but you must manually clear cache (use above button) at any source code change. This is enabled by default in production environment.</span>
-				</div>
-			</div>
-			<div class="form-actions">
-				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Save settings</button>
-			</div>
-		</fieldset>
-	</form> -->
-	<!--
+	</form>
 	<form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>Background WORKER control</legend>
@@ -451,29 +436,6 @@ include('_header.php');
 			</div>	
 		</fieldset>
 	</form>
-	
-	<form class="form-horizontal" method="post">
-		<fieldset>
-			<legend>Compatibility fixes</legend>
-			<p>For people suffering problems with some receivers and DACs.</p>
-			<div class="control-group">
-				<label class="control-label">CMedia fix</label>
-				<div class="controls">
-					<div class="toggle">
-						<label class="toggle-radio" for="toggleOption7" >ON</label>
-						<input type="radio" name="cmediafix" id="toggleOption8" value="1" <?php if ($_SESSION['cmediafix'] == 1) echo "checked=\"checked\""; ?>>
-						<label class="toggle-radio" for="toggleOption8">OFF</label>
-						<input type="radio" name="cmediafix" id="toggleOption7" value="0" <?php if ($_SESSION['cmediafix'] == 0) echo "checked=\"checked\""; ?>>
-					</div>
-					<span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
-					A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
-				</div>
-			</div>
-			<div class="form-actions">
-				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Apply fixes</button>
-			</div>
-		</fieldset>
-	</form> -->
 <!-- <form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>Backup / Restore configuration</legend>
@@ -490,15 +452,12 @@ include('_header.php');
 		<fieldset>
 			<div class="control-group" >
 				<label class="control-label" for="port">Configuration file</label>
-
 				<div class="controls">
-			
 					<div class="fileupload fileupload-new" data-provides="fileupload">
 					  <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
 					  <span class="fileupload-preview"></span>
 					  <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
-					</div>
-			
+					</div>			
 				</div>
 			</div>
 			<div class="form-actions">

@@ -1,16 +1,16 @@
 <?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,13 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: net-config.php
- *  ver: 1.1
+ *  version: 1.2
  *
  */
-
 // common include
 include('inc/connection.php');
 playerSession('open',$db,'','');
 ?>
-
 <?php
 // open player session
 playerSession('open',$db,'','');
@@ -250,21 +248,16 @@ $tpl = "net-config.html";
 // unlock session files
 playerSession('unlock',$db,'','');
 ?>
-
 <?php
 $sezione = basename(__FILE__, '.php');
 include('_header.php');
 ?>
-
-
 <!-- content --!>
 <?php
 eval("echoTemplate(\"".getTemplate("templates/$tpl")."\");");
 ?>
 <!-- content -->
-
 <?php
 debug($_POST);
 ?>
-
 <?php include('_footer.php'); ?>

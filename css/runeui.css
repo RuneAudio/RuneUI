@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: runeui.css
- *  version: 1.1
+ *  file:         css/runeui.css
+ *  version:   1.2
  *
  */
 
@@ -181,12 +181,54 @@ html, body {
 }
 #volume {
 	font-family: inherit !important;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+#volume:hover {
+cursor:default;
 }
 .manual-edit-confirm {
 	margin-bottom: 20px;
 }
-
-
+.volume.nomixer canvas:hover {
+  cursor: not-allowed
+  }
+  
+#cover-art {
+	position: relative;
+	width: auto;
+	height: 249px;
+	margin: 40px auto 0;
+	background: #111 url(../images/cover-default.png) no-repeat center center;
+	background-size: 100% 100%;
+	border: 2px solid #34495E;
+	border-radius: 6px;
+}
+/*
+#cover-art:after {
+	content: 'a';
+	display: block;
+	width: 100px; height: 100px; background: #00f;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    text-decoration: inherit;
+    color: #fff;
+    font-size: 200px;
+    position: absolute;
+    top: 100px;
+    left: 0;
+	animation: 2s linear 0s normal none infinite spin;
+}
+*/
+.volume .btn.disabled, .volume .btn[disabled] {
+    margin: 0;
+    }
 
 /* Top Menu
 -------------------------------------------------------------- */
@@ -782,6 +824,11 @@ hr {
     border-width: 1px 0 0;
 	color: #34495E;
 }
+
+.btn.disabled, .btn[disabled] {
+    background-color: #34495E;
+    opacity: 0.5;
+    }
 
 /* Awesome Font cursor fix */
 a:hover [class^="icon-"]:before, a:hover [class*=" icon-"]:before,

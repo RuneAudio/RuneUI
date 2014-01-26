@@ -1,16 +1,16 @@
-<?php 
+<?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: mpd-config.php
- *  version: 1.1
+ *  version: 1.2
  *
  */
  
@@ -37,7 +37,6 @@ playerSession('open',$db,'','');
 $dbh = cfgdb_connect($db);
 session_write_close();
 ?>
-
 <?php
 // handle (reset)
 if (isset($_POST['reset']) && $_POST['reset'] == 1) {
@@ -119,6 +118,7 @@ $mpdconf = cfgdb_read('',$dbh,'mpdconf');
 // prepare array
 $_mpd = array (
 										'port' => '',
+										'log_level' => '',
 										'gapless_mp3_playback' => '',
 										'auto_update' => '',
 										'auto_update_depth' => '',
@@ -142,6 +142,10 @@ foreach ($mpdconf as $key => $value) {
 }
 
 // setup select dropdown menu for template
+// log_level
+$_mpd_select['log_level'] .= "<option value=\"default\" ".(($_mpd['log_level'] == 'default') ? "selected" : "")." >default</option>\n";
+$_mpd_select['log_level'] .= "<option value=\"secure\" ".(($_mpd['log_level'] == 'secure') ? "selected" : "")." >secure</option>\n";	
+$_mpd_select['log_level'] .= "<option value=\"verbose\" ".(($_mpd['log_level'] == 'verbose') ? "selected" : "")." >verbose</option>\n";	
 
 // gapeless_mp3_playback
 $_mpd_select['gapless_mp3_playback'] .= "<option value=\"yes\" ".(($_mpd['gapless_mp3_playback'] == 'yes') ? "selected" : "")." >yes</option>\n";	
@@ -161,8 +165,6 @@ $_mpd_select['buffer_before_play'] .= "<option value=\"10%\" ".(($_mpd['buffer_b
 $_mpd_select['buffer_before_play'] .= "<option value=\"20%\" ".(($_mpd['buffer_before_play'] == '20%') ? "selected" : "")." >20%</option>\n";	
 $_mpd_select['buffer_before_play'] .= "<option value=\"30%\" ".(($_mpd['buffer_before_play'] == '30%') ? "selected" : "")." >30%</option>\n";	
 
-// $_mpd[audio_buffer_size]
-
 // auto_update
 $_mpd_select['auto_update'] .= "<option value=\"yes\" ".(($_mpd['auto_update'] == 'yes') ? "selected" : "").">yes</option>\n";	
 $_mpd_select['auto_update'] .= "<option value=\"no\" ".(($_mpd['auto_update'] == 'no') ? "selected" : "").">no</option>\n";
@@ -178,36 +180,35 @@ $_mpd_select['audio_output_format'] .= "<option value=\"96000:24:2\" ".(($_mpd['
 
 // mixer_type
 $_mpd_select['mixer_type'] .= "<option value=\"disabled\" ".(($_mpd['mixer_type'] == 'none' OR $_mpd['mixer_type'] == '') ? "selected" : "").">disabled</option>\n";
-$_mpd_select['mixer_type'] .= "<option value=\"hardware\" ".(($_mpd['mixer_type'] == 'hardware') ? "selected" : "").">hardware</option>\n";
-$_mpd_select['mixer_type'] .= "<option value=\"software\" ".(($_mpd['mixer_type'] == 'software') ? "selected" : "").">software</option>\n";
-
+$_mpd_select['mixer_type'] .= "<option value=\"software\" ".(($_mpd['mixer_type'] == 'software') ? "selected" : "").">enabled - software</option>\n";
+$_mpd_select['mixer_type'] .= "<option value=\"hardware\" ".(($_mpd['mixer_type'] == 'hardware') ? "selected" : "").">enabled - hardware</option>\n";
 // set normal config template
 $tpl = "mpd-config.html";
 }
-
 
 // close DB connection
 $dbh = null;
 // unlock session files
 playerSession('unlock',$db,'','');
 
-if (wrk_checkStrSysfile('/proc/asound/card0/pcm0p/info','bcm2835')) {
- $_audioout = "<select id=\"audio-output-interface\" name=\"conf[audio-output-interface]\" class=\"input-large\">\n";
- //$_audioout .= "<option value=\"disabled\">disabled</option>";
- $_audioout .= "<option value=\"jack\">Analog Jack</option>\n";
- $_audioout .= "<option value=\"hdmi\">HDMI</option>\n";
- $_audioout .= "</select>\n";
- $_audioout .= "<span class=\"help-block\">Select MPD Audio output interface</span>\n";
-} else {
- $_audioout .= "<input class=\"input-large\" class=\"input-large\" type=\"text\" id=\"port\" name=\"\" value=\"USB Audio\" data-trigger=\"change\" disabled>\n";
+// check actual active output interface
+//$active_ao = _parseOutputsResponse(getMpdOutputs($mpd),1);
+$active_ao = $_SESSION['ao'];
+$_audioout = '';
+if (wrk_checkStrSysfile('/proc/asound/cards','USB-Audio')) {
+$_audioout .= "<option value=\"0\" ".(($active_ao == 0) ? "selected" : "").">USB Audio</option>\n";
 }
-?>
+if (($_SESSION['hwplatformid'] == '01' OR $_SESSION['hwplatformid'] == '04') && wrk_checkStrSysfile('/proc/asound/card1/pcm0p/info','bcm2835')) {
+$_audioout .= "<option value=\"2\" ".(($active_ao == 2) ? "selected" : "").">Analog Out</option>\n";
+$_audioout .= "<option value=\"3\" ".(($active_ao == 3) ? "selected" : "").">HDMI</option>\n";
+} 
+$_audioout .= "<option value=\"1\" ".(($active_ao == 1) ? "selected" : "").">Null (test output)</option>";
 
+?>
 <?php
 $sezione = basename(__FILE__, '.php');
 include('_header.php'); 
 ?>
-
 <!-- content --!>
 <?php
 // wait for worker output if $_SESSION['w_active'] = 1
@@ -215,9 +216,7 @@ waitWorker(1);
 eval("echoTemplate(\"".getTemplate("templates/$tpl")."\");");
 ?>
 <!-- content -->
-
 <?php 
-// debug($_POST);
+debug($_POST);
 ?>
-
 <?php include('_footer.php'); ?>

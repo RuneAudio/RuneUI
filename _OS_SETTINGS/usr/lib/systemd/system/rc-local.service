@@ -1,0 +1,12 @@
+[Unit]
+Description=/etc/rc.local
+Requires=dhcpcd@eth0.service
+After=dhcpcd@eth0.service
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target

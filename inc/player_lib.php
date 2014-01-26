@@ -1,16 +1,16 @@
 <?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: player_lib.php
- *  version: 1.1.1-dev
+ *  version: 1.2
  *
  */
  
@@ -39,17 +39,16 @@ define("MPD_RESPONSE_OK",  "OK");
 function openMpdSocket($host, $port) {
 $sock = stream_socket_client('tcp://'.$host.':'.$port.'', $errorno, $errorstr, 30 );
 $response = readMpdResponse($sock);
-	if ($response = '') {
-	sysCmd('command/shell.sh '.$response);
-	exit;
-	} else {
-	return $sock;
-	}
+// debug
+runelog("[1][".$sock."]\t>>>>>> OPEN MPD SOCKET <<<<<<\t\t\t",'');
+return $sock;
 } //end openMpdSocket()
 
 function closeMpdSocket($sock) {
 sendMpdCommand($sock,"close");
 fclose($sock);
+// debug
+runelog("[0][".$sock."]\t<<<<<< CLOSE MPD SOCKET >>>>>>\t\t\t",'');
 }
 
 // v2
@@ -82,6 +81,7 @@ return $output;
 
 // v2
 function sendMpdIdle($sock) {
+//sendMpdCommand($sock,"idle player,playlist"); 
 sendMpdCommand($sock,"idle"); 
 $response = readMpdResponse($sock);
 return true;
@@ -109,6 +109,37 @@ return _parseFileListResponse($playqueue);
 
 function getTemplate($template) {
 return str_replace("\"","\\\"",implode("",file($template)));
+}
+
+function getMpdOutputs($mpd) {
+sendMpdCommand($mpd,"outputs");
+$outputs= readMpdResponse($mpd);
+return $outputs;
+}
+
+function getLastFMauth($db) {
+$dbh = cfgdb_connect($db);
+$querystr = "SELECT param,value FROM cfg_plugins WHERE name='lastfm'";
+$result = sdbquery($querystr,$dbh);
+$dbh = null;
+$lastfm['user'] = $result[0]['value'];
+$lastfm['pass'] = $result[1]['value'];
+return $lastfm;
+}
+
+function setLastFMauth($db,$lastfm) {
+$dbh = cfgdb_connect($db);
+// set LastFM username
+$value['plugin_name'] = 'lastfm';
+$value['value'] = $lastfm['user'];
+$key = 'username';
+cfgdb_update('cfg_plugins',$dbh,$key,$value);
+// set LastFM password
+$value['value'] = $lastfm['pass'];
+$key = 'password';
+cfgdb_update('cfg_plugins',$dbh,$key,$value);
+// close DB connection
+$dbh = null;
 }
 
 function echoTemplate($template) {
@@ -182,20 +213,21 @@ $version = phpversion();
 return substr($version, 0, 3); 
 }
 
-// fix sessioni per ambienti PHP 5.3 (il solito WAMP di ACX...)
-if (phpVer() == '5.3') {
-	function session_status() {
-		if (session_id()) {
-		return 1;
-		} else {
-		return 2;
-		}
-	}
-}
-
 function sysCmd($syscmd) {
 exec($syscmd." 2>&1", $output);
+runelog('sysCmd($str)',$syscmd);
+runelog('sysCmd() output:',$output);
 return $output;
+}
+
+function getMpdDaemonDetalis() {
+$cmd = sysCmd('id -u mpd');
+$details['uid'] = $cmd[0];
+$cmd = sysCmd('id -g mpd');
+$details['gid'] = $cmd[0];
+$cmd = sysCmd('pgrep -u mpd');
+$details['pid'] = $cmd[0];
+return $details;
 }
 
 // format Output for "playlist"
@@ -288,6 +320,39 @@ function _parseStatusResponse($resp) {
 		return $plistArray;
 	}
 
+function _parseOutputsResponse($input,$active) {
+		if ( is_null($input) ) {
+				return NULL;
+		} else {
+			$response = preg_split("/\r?\n/", $input);
+			$outputs = array();
+			$linenum = 0;
+			$i = -1;
+			foreach($response as $line) {
+				if ($linenum % 3 == 0) {
+				$i++;
+				} 
+			if (!empty($line)) {
+			$value = explode(':',$line);
+			$outputs[$i][$value[0]] = trim($value[1]);
+				if (isset($active)) {
+					if ($value[0] == 'outputenabled' && $outputs[$i][$value[0]] == 1) {
+					$active = $i;
+					}
+				}
+			} else {
+			unset($outputs[$i]);
+			}
+			$linenum++;
+			}
+		}
+	if (isset($active)) {
+	return $active;
+	} else {
+	return $outputs;
+	}
+}
+	
 // get file extension
 function parseFileStr($strFile,$delimiter) {
 $pos = strrpos($strFile, $delimiter);
@@ -386,18 +451,20 @@ function cfgdb_connect($dbpath) {
 
 function cfgdb_read($table,$dbh,$param,$id) {
 	if(!isset($param)) {
-	$querystr = 'SELECT * from '.$table;
+	$querystr = "SELECT * FROM ".$table;
 	} else if (isset($id)) {
-	$querystr = "SELECT * from ".$table." WHERE id='".$id."'";
+	$querystr = "SELECT * FROM ".$table." WHERE id='".$id."'";
 	} else if ($param == 'mpdconf'){
 	$querystr = "SELECT param,value_player FROM cfg_mpd WHERE value_player!=''";
 	} else if ($param == 'mpdconfdefault') {
 	$querystr = "SELECT param,value_default FROM cfg_mpd WHERE value_default!=''";
+	} else if ($table == 'cfg_plugins') {
+	$querystr = "SELECT * FROM ".$table." WHERE name='".$param['plugin_name']."' AND param='".$param['plugin_param']."'";
 	} else {
 	$querystr = 'SELECT value from '.$table.' WHERE param="'.$param.'"';
 	}
 //debug
-error_log(">>>>> cfgdb_read(".$table.",dbh,".$param.",".$id.") >>>>> \n".$querystr, 0);
+runelog('cfgdb_read('.$table.',dbh,'.$param.','.$id.')',$querystr);
 $result = sdbquery($querystr,$dbh);
 return $result;
 }
@@ -423,9 +490,13 @@ switch ($table) {
 	case 'cfg_source':
 	$querystr = "UPDATE ".$table." SET name='".$value['name']."', type='".$value['type']."', address='".$value['address']."', remotedir='".$value['remotedir']."', username='".$value['username']."', password='".$value['password']."', charset='".$value['charset']."', rsize='".$value['rsize']."', wsize='".$value['wsize']."', options='".$value['options']."', error='".$value['error']."' where id=".$value['id'];
 	break;
+	
+	case 'cfg_plugins':
+	$querystr = "UPDATE ".$table." SET value='".$value['value']."' where param='".$key."' AND name='".$value['plugin_name']."'";
+	break;
 }
 //debug
-error_log(">>>>> cfgdb_update(".$table.",dbh,".$key.",".$value.") >>>>> \n".$querystr, 0);
+runelog('cfgdb_update('.$table.',dbh,'.$key.','.$value.')',$querystr);
 	if (sdbquery($querystr,$dbh)) {
 	return true;
 	} else {
@@ -436,7 +507,7 @@ error_log(">>>>> cfgdb_update(".$table.",dbh,".$key.",".$value.") >>>>> \n".$que
 function cfgdb_write($table,$dbh,$values) {
 $querystr = "INSERT INTO ".$table." VALUES (NULL, ".$values.")";
 //debug
-error_log(">>>>> cfgdb_write(".$table.",dbh,".$values.") >>>>> \n".$querystr, 0);
+runelog('cfgdb_write('.$table.',dbh,'.$values.')',$querystr);
 	if (sdbquery($querystr,$dbh)) {
 	return true;
 	} else {
@@ -451,7 +522,7 @@ $querystr = "DELETE FROM ".$table;
 $querystr = "DELETE FROM ".$table." WHERE id=".$id;
 }
 //debug
-error_log(">>>>> cfgdb_delete(".$table.",dbh,".$id.") >>>>> \n".$querystr, 0);
+runelog('cfgdb_delete('.$table.',dbh,'.$id.')',$querystr);
 	if (sdbquery($querystr,$dbh)) {
 	return true;
 	} else {
@@ -493,7 +564,7 @@ echo "<br>debug__".stripos($response,'MPD error');
 	}
 }
 
-//## unire con findPLposPath
+//<< TODO: join with findPLposPath
 function rp_findPath($id,$mpd) {
 //$_SESSION['DEBUG'] .= "rp_findPath:$id |";
 sendMpdCommand($mpd,'playlistid '.$id);
@@ -503,7 +574,7 @@ $path = $idinfo[0]['file'];
 return $path;
 }
 
-//## unire con rp_findPath()
+//<< TODO: join with rp_findPath()
 function findPLposPath($songpos,$mpd) {
 //$_SESSION['DEBUG'] .= "rp_findPath:$id |";
 sendMpdCommand($mpd,'playlistinfo '.$songpos);
@@ -654,7 +725,7 @@ playerSession('unlock');
 return true;
 }
 
-// debug functions
+// log & debug functions
 function debug($input) {
 session_start();
 	// if $input = 1 clear SESSION debug data else load debug data into session
@@ -665,6 +736,19 @@ session_start();
 	}
 session_write_close();
 }
+
+function runelog($title,$data) {
+	if ($_SESSION['debug'] > 0) {
+	    if(is_array($data)) {
+		foreach($data as $line) {
+		error_log('[debug='.$_SESSION['debug'].'] ### '.$title.' ###  '.$line,0);
+		}
+	    } else {
+	    error_log('[debug='.$_SESSION['debug'].'] ### '.$title.' ###  '.$data,0);
+	    }
+	}
+}
+
 
 function debug_footer($db) {
 		if ($_SESSION['debug'] > 0) {
@@ -774,6 +858,8 @@ function debug_footer($db) {
 		$data['cfg_mpd'] = sdbquery($querystr,$connection);
 		$querystr="SELECT * FROM cfg_source";
 		$data['cfg_source'] = sdbquery($querystr,$connection);
+		$querystr="SELECT * FROM cfg_plugins";
+		$data['cfg_plugins'] = sdbquery($querystr,$connection);
 		$connection = null;
 		echo "\n";
 		echo "\n";
@@ -794,6 +880,10 @@ function debug_footer($db) {
 		echo "\n";
 		echo "### table CFG_SOURCE ###\n";
 		print_r($data['cfg_source']);
+		echo "\n";
+		echo "\n";
+		echo "### table CFG_PLUGINS ###\n";
+		print_r($data['cfg_plugins']);
 		echo "\n";
 		echo "\n";
 		echo "### table CFG_MPD ###\n";
@@ -834,15 +924,41 @@ function waitWorker($sleeptime,$section) {
 } 
 
 // search a string in a file and replace with another string the whole line.
-function wrk_replaceTextLine($file,$pos_start,$pos_stop,$strfind,$strrepl) {
+function wrk_replaceTextLine($file,$inputArray,$strfind,$strrepl,$linelabel,$lineoffset) {
+	runelog('wrk_replaceTextLine($file,$inputArray,$strfind,$strrepl,$linelabel,$lineoffset)','');
+	runelog('wrk_replaceTextLine $file',$file);
+	runelog('wrk_replaceTextLine $strfind',$strfind);
+	runelog('wrk_replaceTextLine $strrepl',$strrepl);
+	runelog('wrk_replaceTextLine $linelabel',$linelabel);
+	runelog('wrk_replaceTextLine $lineoffset',$lineoffset);
+	if (!empty($file)) {
 	$fileData = file($file);
+	} else {
+	$fileData = $inputArray;
+	}
 	$newArray = array();
+	if (isset($linelabel) && isset($lineoffset)) {
+	$linenum = 0;
+	}
 	foreach($fileData as $line) {
-	  // find the line that starts with $strfind (search offset $pos_start / $pos_stop)
-	  if (substr($line, $pos_start, $pos_stop) == $strfind OR substr($line, $pos_start++, $pos_stop) == $strfind) {
-		// replace presentation_url with current IP address
-		$line = $strrepl."\n";
-	  }
+		if (isset($linelabel) && isset($lineoffset)) {
+		$linenum++;
+			if (preg_match('/'.$linelabel.'/', $line)) {
+			$lineindex = $linenum;
+			runelog('line index match! $line',$lineindex);
+			}
+			if ((($lineindex+$lineoffset)-$linenum)==0) {
+			  if (preg_match('/'.$strfind.'/', $line)) {
+				$line = $strrepl."\n";
+				runelog('internal loop $line',$line);
+			  }
+			}
+		} else {
+		  if (preg_match('/'.$strfind.'/', $line)) {
+			$line = $strrepl."\n";
+			runelog('replaceall $line',$line);
+		  }
+		}
 	  $newArray[] = $line;
 	}
 	return $newArray;
@@ -855,12 +971,61 @@ function wrk_backup($bktype) {
 	$cmdstring = "tar -czf ".$filepath." /var/lib/mpd /boot/cmdline.txt /var/www /etc";
 	} else {
 	$filepath = "/run/backup_".date('Y-m-d').".tar.gz";
-	$cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/auto.nas /etc/mpd.conf /var/www/db/player.db";
+	$cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/www/db/player.db";
 	}
 	
 sysCmd($cmdstring);
 return $filepath;
 }
+
+
+function wrk_opcache($action) {
+	switch ($action) {
+		case 'prime':
+			if ($_SESSION['opcache'] == 1) {
+			$ch = curl_init('http://localhost/command/cachectl.php?action=prime');
+			curl_exec($ch);
+			curl_close($ch);
+			}
+		break;
+		
+		case 'forceprime':
+			$ch = curl_init('http://localhost/command/cachectl.php?action=prime');
+			curl_exec($ch);
+			curl_close($ch);
+		break;
+		
+		case 'reset':
+			$ch = curl_init('http://localhost/command/cachectl.php?action=reset');
+			curl_exec($ch);
+			curl_close($ch);
+		break;
+		
+		case 'enable':
+		wrk_opcache('reset');
+		// opcache.ini
+		$file = '/etc/php/conf.d/opcache.ini';
+		$newArray = wrk_replaceTextLine($file,'','opcache.enable','opcache.enable=1','zend_extension',1);
+		// Commit changes to /etc/php/conf.d/opcache.ini
+		$fp = fopen($file, 'w');
+		fwrite($fp, implode("",$newArray));
+		fclose($fp);
+		break;
+		
+		case 'disable':
+		wrk_opcache('reset');
+		// opcache.ini
+		// -- REWORK NEEDED --
+		$file = '/etc/php/conf.d/opcache.ini';
+		$newArray = wrk_replaceTextLine($file,'','opcache.enable','opcache.enable=0','zend_extension',1);
+		// Commit changes to /etc/php/conf.d/opcache.ini
+		$fp = fopen($file, 'w');
+		fwrite($fp, implode("",$newArray));
+		fclose($fp);
+		break;
+	}
+}
+
 
 function wrk_restore($backupfile) {
 $path = "/run/".$backupfile;
@@ -878,12 +1043,52 @@ return "job_".$jobID;
 function wrk_checkStrSysfile($sysfile,$searchstr) {
 $file = stripcslashes(file_get_contents($sysfile));
 // debug
-//error_log(">>>>> wrk_checkStrSysfile(".$sysfile.",".$searchstr.") >>>>> ",0);
+runelog('wrk_checkStrSysfile('.$sysfile.','.$searchstr.')',$searchstr);
 	if (strpos($file, $searchstr)) {
 	return true;
 	} else {
 	return false;
 	}
+}
+
+function wrk_cleanDistro($db) {
+runelog('function CLEAN DISTRO invoked!!!','');
+// remove mpd.db
+sysCmd('systemctl stop mpd');
+sleep(1);
+sysCmd('rm /var/lib/mpd/mpd.db');
+sysCmd('rm /var/lib/mpd/mpdstate');
+// reset /var/log/*
+sysCmd('rm -f /var/log/*');
+// reset /var/log/nginx/*
+sysCmd('rm -f /var/log/nginx/*');
+// reset /var/log/atop/*
+sysCmd('rm -f /var/log/atop/*');
+// reset /var/log/old/*
+sysCmd('rm -f /var/log/old/*');
+// reset /var/log/samba/*
+sysCmd('rm -rf /var/log/samba/*');
+// reset /root/ logs
+sysCmd('rm -rf /root/.*');
+// delete .git folder
+sysCmd('rm -rf /var/www/.git');
+// switch smb.conf to 'production' state
+sysCmd('rm /var/www/_OS_SETTINGS/etc/samba/smb.conf');
+sysCmd('ln -s /var/www/_OS_SETTINGS/etc/samba/smb-prod.conf /var/www/_OS_SETTINGS/etc/samba/smb.conf');
+// switch nginx.conf to 'production' state
+sysCmd('systemctl stop nginx');
+sysCmd('rm /etc/nginx/nginx.conf');
+sysCmd('ln -s /var/www/_OS_SETTINGS/etc/nginx/nginx-prod.conf /etc/nginx/nginx.conf');
+sysCmd('systemctl start nginx');
+// reset /var/log/runeaudio/*
+sysCmd('rm -f /var/log/runeaudio/*');
+// rest mpd.conf
+sysCmd('cp /var/www/_OS_SETTINGS/mpd.conf /etc/mpd.conf');
+sysCmd('chown mpd.audio /etc/mpd.conf');
+// restore default player.db
+sysCmd('cp /var/www/db/player.db.default /var/www/db/player.db');
+sysCmd('chmod 777 /var/www/db/player.db');
+sysCmd('poweroff');
 }
 
 function wrk_mpdconf($outpath,$db) {
@@ -912,12 +1117,43 @@ function wrk_mpdconf($outpath,$db) {
 		// $hwmixer['device'] = 'hw:0';
 		$hwmixer['control'] = alsa_findHwMixerControl(0);
 		// $hwmixer['index'] = '1';
+		playerSession('write',$db,'volume',1);
+		} else if ($cfg['param'] == 'mixer_type' && $cfg['value_player'] == 'software') {
+		// --- REWORK NEEDED ---
+		playerSession('write',$db,'volume',1);
+		$output .= $cfg['param']." \t\"".$cfg['value_player']."\"\n";
+		} else if ($cfg['param'] == 'mixer_type' && $cfg['value_player'] == 'disabled') {
+		// --- REWORK NEEDED ---
+		playerSession('write',$db,'volume',0);
+		$output .= $cfg['param']." \t\"".$cfg['value_player']."\"\n";
 		} else {
 		$output .= $cfg['param']." \t\"".$cfg['value_player']."\"\n";
 		}
 	}
-
-// format audio input / output interfaces
+	
+	if (wrk_checkStrSysfile('/proc/asound/cards','USB-Audio')) {
+	$usbout = 'yes';
+	$jackout = 'no';
+	$hdmiout = 'no';
+	$nullout = 'yes';
+	} else if ($_SESSION['hwplatformid'] == '01' OR $_SESSION['hwplatformid'] == '02') {
+	$usbout = 'no';
+	$jackout = 'yes';
+	$hdmiout = 'no';
+	$nullout = 'no';
+	} else if ($_SESSION['hwplatformid'] == '03' OR $_SESSION['hwplatformid'] == '04') {
+	$usbout = 'no';
+	$jackout = 'no';
+	$hdmiout = 'no';
+	$nullout = 'yes';
+	} else {
+	$usbout = 'no';
+	$jackout = 'no';
+	$hdmiout = 'no';
+	$nullout = 'yes';
+	}
+	
+	// format audio input / output interfaces
 	$output .= "max_connections \"20\"\n";
 	$output .= "\n";
 	$output .= "decoder {\n";
@@ -929,22 +1165,63 @@ function wrk_mpdconf($outpath,$db) {
 	$output .= "\t\tplugin \"curl\"\n";
 	$output .= "}\n";
 	$output .= "\n";
-	$output .= "audio_output {\n\n";
-	$output .= "\t\t type \t\t\"alsa\"\n";
-	$output .= "\t\t name \t\t\"Output\"\n";
-	$output .= "\t\t device \t\"hw:0,0\"\n";
+	
+	// Output #index: 0 (USB-Audio)
+	$output .= "audio_output {\n";
+	$output .= "enabled\t\t\"".$usbout."\"\n";
+	$output .= "type\t\t\"alsa\"\n";
+	$output .= "name\t\t\"USB-Audio\"\n";
+	$output .= "device\t\t\"hw:0,0\"\n";
 	if (isset($hwmixer)) {
 	// $output .= "\t\t mixer_device \t\"".$hwmixer['device']."\"\n";
-	$output .= "\t\t mixer_control \t\"".$hwmixer['control']."\"\n";
+	$output .= "mixer_control\t\"".$hwmixer['control']."\"\n";
 	// $output .= "\t\t mixer_index \t\"".$hwmixer['index']."\"\n";
 	}
-	$output .= "\t\t dsd_usb \t\"".$dsd."\"\n";
-	$output .= "\n}\n";
+	$output .= "dsd_usb\t\t\"".$dsd."\"\n";
+	$output .= "}\n\n";
+	
+	// Output #index: 1 (Null)
+	$output .= "audio_output {\n";
+	$output .= "enabled\t\t\"".$nullout."\"\n";
+	$output .= "type\t\t\"null\"\n";
+	$output .= "name\t\t\"Null\"\n";
+	$output .= "}\n\n";
+	
+	if ($_SESSION['hwplatformid'] == '01' OR $_SESSION['hwplatformid'] == '02') {
+	// Output #index: 2 (AnalogJack/HDMI)
+	$output .= "audio_output {\n";
+	$output .= "enabled\t\t\"".$jackout."\"\n";
+	$output .= "type\t\t\"alsa\"\n";
+	$output .= "device\t\t\"hw:1,0\"\n";
+	$output .= "name\t\t\"AnalogJack/HDMI\"\n";
+	$output .= "}\n\n";
 
+	// Output #index: 3 (HDMI)
+	//$output .= "audio_output {\n";
+	//$output .= "enabled\t\t\"".$hdmiout."\"\n";
+	//$output .= "type\t\t\"alsa\"\n";
+	//$output .= "device\t\t\"hw:1,1\"\n";
+	//$output .= "name\t\t\"HDMI\"\n";
+	//$output .= "}\n\n";
+	}
+	
 // write mpd.conf file
 	$fh = fopen($outpath."/mpd.conf", 'w');
 	fwrite($fh, $output);
 	fclose($fh);
+}
+
+function wrk_setMpdStartOut($archID) {
+// -- REWORK NEEDED --
+	if (wrk_checkStrSysfile('/proc/asound/cards','USB-Audio')) {
+	sysCmd("mpc enable only USB-Audio");
+	} else if ($archID == '01' OR $archID == '02') {
+	sysCmd("mpc enable only 'AnalogJack/HDMI'");
+	} else if ($archID == '03' OR $archID == '04') {
+	sysCmd("mpc enable only 'Null Output'");
+	} else {
+	sysCmd("mpc enable only 'Null Output'");
+	}
 }
 
 function wrk_sourcemount($db,$action,$id) {
@@ -953,18 +1230,24 @@ function wrk_sourcemount($db,$action,$id) {
 		case 'mount':
 			$dbh = cfgdb_connect($db);
 			$mp = cfgdb_read('cfg_source',$dbh,'',$id);
+			$mpdproc = getMpdDaemonDetalis();
 			sysCmd("mkdir \"/mnt/MPD/".$mp[0]['name']."\"");
 			if ($mp[0]['type'] == 'cifs') {
 			// smb/cifs mount
-			$mountstr = "mount -t cifs \"//".$mp[0]['address']."/".$mp[0]['remotedir']."\" -o username=".$mp[0]['username'].",password=".$mp[0]['password'].",rsize=".$mp[0]['rsize'].",wsize=".$mp[0]['wsize'].",iocharset=".$mp[0]['charset'].",".$mp[0]['options']." \"/mnt/MPD/".$mp[0]['name']."\"";
+			$auth = 'guest';
+			if (!empty($mp[0]['username'])) {
+			$auth = "username=".$mp[0]['username'].",password=".$mp[0]['password'];
+			}
+			$mountstr = "mount -t cifs \"//".$mp[0]['address']."/".$mp[0]['remotedir']."\" -o ".$auth.",sec=ntlm,uid=".$mpdproc['uid'].",gid=".$mpdproc['gid'].",rsize=".$mp[0]['rsize'].",wsize=".$mp[0]['wsize'].",iocharset=".$mp[0]['charset'].",".$mp[0]['options']." \"/mnt/MPD/".$mp[0]['name']."\"";
 			} else {
 			// nfs mount
-			$mountstr = "mount -t nfs -o ".$mp[0]['options']." \"".$mp[0]['address'].":/".$mp[0]['remotedir']."\" \"/mnt/MPD/".$mp[0]['name']."\"";
+			$mountstr = "mount -t nfs -o rsize=".$mp[0]['rsize'].",wsize=".$mp[0]['wsize'].",".$mp[0]['options']." \"".$mp[0]['address'].":/".$mp[0]['remotedir']."\" \"/mnt/MPD/".$mp[0]['name']."\"";
 			}
 			// debug
-			error_log(">>>>> mount string >>>>> ".$mountstr,0);
+			runelog('mount string',$mountstr);
 			$sysoutput = sysCmd($mountstr);
-			error_log(var_dump($sysoutput),0);
+			// -- REWORK NEEDED --
+			runelog('system response',var_dump($sysoutput));
 			if (empty($sysoutput)) {
 				if (!empty($mp[0]['error'])) {
 				$mp[0]['error'] = '';
@@ -995,14 +1278,20 @@ return $return;
 }
 
 function wrk_sourcecfg($db,$queueargs) {
+if (isset($queueargs['mount']['action'])) {
 $action = $queueargs['mount']['action'];
 unset($queueargs['mount']['action']);
+} else {
+$action = $queueargs;
+}
+runelog('wrk_sourcecfg($db,'.$queueargs.')',$action);
 	switch ($action) {
 
 		case 'reset': 
 		$dbh = cfgdb_connect($db);
 		$source = cfgdb_read('cfg_source',$dbh);
 			foreach ($source as $mp) {
+			runelog('wrk_sourcecfg() internal loop $mp[name]',$mp['name']);
 			sysCmd("umount -f \"/mnt/MPD/".$mp['name']."\"");
 			sysCmd("rmdir \"/mnt/MPD/".$mp['name']."\"");
 			}
@@ -1016,20 +1305,24 @@ unset($queueargs['mount']['action']);
 
 		case 'add':
 		$dbh = cfgdb_connect($db);
-		print_r($queueargs);
+		// debug
+		runelog('wrk_sourcecfg($db,$queueargs) $queueargs',var_dump($queueargs));
 		unset($queueargs['mount']['id']);
 		// format values string
 		$values = null;
 		foreach ($queueargs['mount'] as $key => $value) {
 			if ($key == 'error') {
 			$values .= "'".SQLite3::escapeString($value)."'";
-			error_log(">>>>> values on line 1014 >>>>> ".$values, 0);
+			// debug
+			runelog('wrk_sourcecfg($db,$queueargs) case ADD scan $values',$values);
 			} else {
 			$values .= "'".SQLite3::escapeString($value)."',";
-			error_log(">>>>> values on line 1016 >>>>> ".$values, 0);
+			// debug
+			runelog('wrk_sourcecfg($db,$queueargs) case ADD scan $values',$values);
 			}
 		}
-		error_log(">>>>> values on line 1019 >>>>> ".$values, 0);
+		// debug
+		runelog('wrk_sourcecfg($db,$queueargs) complete $values string',$values);
 		// write new entry
 		cfgdb_write('cfg_source',$dbh,$values);
 		$newmountID = $dbh->lastInsertId();
@@ -1055,7 +1348,7 @@ unset($queueargs['mount']['action']);
 		} else {
 		$return = 0;
 		}
-		error_log(">>>>> wrk_sourcecfg(edit) exit status = >>>>> ".$return, 0);
+		runelog('wrk_sourcecfg(edit) exit status',$return);
 		$dbh = null;
 		break;
 		
@@ -1063,6 +1356,7 @@ unset($queueargs['mount']['action']);
 		$dbh = cfgdb_connect($db);
 		$mp = cfgdb_read('cfg_source',$dbh,'',$queueargs['mount']['id']);
 		sysCmd("umount -f \"/mnt/MPD/".$mp[0]['name']."\"");
+		sleep(3);
 		sysCmd("rmdir \"/mnt/MPD/".$mp[0]['name']."\"");
 		if (cfgdb_delete('cfg_source',$dbh,$queueargs['mount']['id'])) {
 		$return = 1;
@@ -1081,7 +1375,9 @@ $file = '/proc/cpuinfo';
 	$fileData = file($file);
 	foreach($fileData as $line) {
 		if (substr($line, 0, 8) == 'Hardware') {
-			$arch = trim(substr($line, 11, 50)); 
+			$arch = trim(substr($line, 11, 50));
+			// debug
+			runelog('wrk_getHwPlatform() /proc/cpu string',$arch);
 				switch($arch) {
 					
 					// RaspberryPi
@@ -1162,6 +1458,7 @@ sysCmd('chmod a+x /var/www/command/orion_optimize.sh');
 sysCmd('chmod 777 /run');
 sysCmd('chmod 777 /run/sess*');
 sysCmd('chmod a+rw /etc/mpd.conf');
+sysCmd('chmod a+rw /etc/mpdscribble.conf');
 }
 
 function wrk_sysEnvCheck($arch,$install) {
@@ -1270,6 +1567,46 @@ function wrk_sysEnvCheck($arch,$install) {
 	}	
 }
 
+function wrk_NTPsync($db,$newserver) {
+$dbh = cfgdb_connect($db);
+// update NTP server in SQLite datastore
+	if (!empty($newserver)){
+			$key = 'server';
+			$value['value'] = $newserver ;
+			$value['plugin_name'] = 'ntp';
+			cfgdb_update('cfg_plugins',$dbh,$key,$value);
+	}
+$param['plugin_name'] = 'ntp';
+$param['plugin_param'] = 'server'; 
+$ntp = cfgdb_read('cfg_plugins',$dbh,$param);
+$dbh = null;
+// debug
+runelog('NTP SERVER',$ntp[0]['value']);
+	if (sysCmd('ntpdate '.$ntp[0]['value'])) {
+		return $ntp[0]['value'];
+	} else {
+		return false;
+	}
+}
+
+function wrk_changeHostname($db,$newhostname) {
+// change system hostname
+sysCmd('hostnamectl set-hostname '.$newhostname);
+// restart avahi-daemon
+sysCmd('systemctl restart avahi-daemon');
+// reconfigure MPD
+sysCmd('systemctl stop mpd');
+$dbh = cfgdb_connect($db);
+cfgdb_update('cfg_mpd',$dbh,'zeroconf_name',$newhostname);
+$dbh = null;
+wrk_mpdconf('/etc',$db);
+// restart MPD
+sysCmd('systemctl start mpd');
+// restart SAMBA << TODO: use systemd!!!
+sysCmd('killall -HUP smbd && killall -HUP nmbd');
+// restart MiniDLNA
+}
+
 function alsa_findHwMixerControl($cardID) {
 $cmd = "amixer -c ".$cardID." |grep \"mixer control\"";
 $str = sysCmd($cmd);
@@ -1301,12 +1638,14 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $output = curl_exec($ch);
 $output = json_decode($output,true);
 curl_close($ch);
-//debug
-//echo $url;
-//echo "<pre>";
-//print_r($output);
-//echo "</pre>";
-//echo "<br>";
+
+// debug
+runelog('lastfm query URL',$url);
+// -- REWORK NEEDED --
+// runelog('lastfm response','');
+// foreach($output as $line) {
+// runelog('',var_dump($line));
+// }
 
 // key [3] == extralarge last.fm image
 // key [4] == mega last.fm image

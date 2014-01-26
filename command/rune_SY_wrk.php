@@ -1,17 +1,17 @@
 #!/usr/bin/php
 <?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,19 +27,25 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: player_wrk.php
- *  version: 1.1
+ *  file: command/rune_SY_wrk.php
+ *  version: 1.2
  *
  */
  
 // common include
-include('/var/www/inc/player_lib.php');
+$start = microtime(true);
 ini_set('display_errors', '1');
-ini_set('error_log','/var/log/php_errors.log');
+ini_set('error_reporting', 1);
+ini_set('error_log','/var/log/runeaudio/rune_SY_wrk.log');
+include('/var/www/inc/player_lib.php');
+// reset worker logfile
+sysCmd('echo "--------------- start: rune_SY_wrk.php ---------------" > /var/log/runeaudio/rune_SY_wrk.log');
+runelog("WORKER rune_SY_wrk.php STARTING...",'');
 $db = 'sqlite:/var/www/db/player.db';
 
-// --- DEMONIZE ---
-	$lock = fopen('/run/player_wrk.pid', 'c+');
+// DEMONIZE --- //
+runelog("DEMONIZE ---",'');
+	$lock = fopen('/run/rune_SY_wrk.pid', 'c+');
 	if (!flock($lock, LOCK_EX | LOCK_NB)) {
 		die('already running');
 	}
@@ -73,9 +79,12 @@ $db = 'sqlite:/var/www/db/player.db';
 	pcntl_signal(SIGTTOU, SIG_IGN);
 	pcntl_signal(SIGTTIN, SIG_IGN);
 	pcntl_signal(SIGHUP, SIG_IGN);
-// --- DEMONIZE --- //
+	
+runelog("--- DEMONIZE",'');
+// --- DEMONIZE //
 
-// --- INITIALIZE ENVIRONMENT --- //
+// INITIALIZE ENVIRONMENT --- //
+runelog("INITIALIZE ENVIRONMENT ---",'');
 // change /run and session files for correct session file locking
 sysCmd('chmod 777 /run');
 
@@ -88,6 +97,9 @@ session_save_path('/run');
 // inpect session
 playerSession('open',$db,'','');
 
+// prime PHP 5.5 Opcache
+wrk_opcache('prime');
+
 // reset session file permissions
 sysCmd('chmod 777 /run/sess*');
 
@@ -99,46 +111,48 @@ wrk_sourcemount($db,'mountall');
 
 // check Architecture
 $arch = wrk_getHwPlatform();
+
 if ($arch != $_SESSION['hwplatformid']) {
-// reset playerID if architectureID not match. This condition "fire" another first-install process
+// reset playerID if architectureID not match. This condition "fire" another first-run process
 playerSession('write',$db,'playerid','');
 }
-// --- INITIALIZE ENVIRONMENT --- //
 
+if (isset($_SESSION['playerid']) && $_SESSION['playerid'] == '') {
+// RUNEAUDIO FIRST RUN PROCESS --- //
+runelog("RUNEAUDIO FIRST RUN PROCESS ---",'');
 
-// --- PLAYER FIRST INSTALLATION PROCESS --- //
-
-	if (isset($_SESSION['playerid']) && $_SESSION['playerid'] == '') {
 	// register HW architectureID and playerID
+	runelog("register HW architectureID and playerID",'');
 	wrk_setHwPlatform($db);
 	// destroy actual session
+	runelog("destroy actual session",'');
 	playerSession('destroy',$db,'','');
 	// reload session data
 	playerSession('open',$db,'','');
+	runelog("reload session data",'');
 	// reset ENV parameters
-	wrk_sysChmod();
+	//runelog("reset ENV parameters",'');
+	//wrk_sysChmod();
 
 	// reset netconf to defaults
-/*
+	runelog("reset netconf to defaults",'');
 	$value = array('ssid' => '', 'encryption' => '', 'password' => '');
 	$dbh = cfgdb_connect($db);
 	cfgdb_update('cfg_wifisec',$dbh,'',$value);
-	$file = '/etc/network/interfaces';
-	$fp = fopen($file, 'w');
-	$netconf = "auto lo\n";
-	$netconf .= "iface lo inet loopback\n";
-	$netconf .= "\n";
-	$netconf .= "auto eth0\n";
-	$netconf .= "iface eth0 inet dhcp\n";
-	$netconf .= "\n";
-	$netconf .= "auto wlan0\n";
-	$netconf .= "iface wlan0 inet dhcp\n";
-	fwrite($fp, $netconf);
-	fclose($fp);
-*/
+	// reset eth0 netctl profile
+	sysCmd('cp /var/www/_OS_SETTINGS/etc/netctl/eth0 /etc/netctl/');
 	// update hash
-//	$hash = md5_file('/etc/network/interfaces');
-//	playerSession('write',$db,'netconfhash',$hash);
+	$hash = md5_file('/etc/netctl/eth0');
+	playerSession('write',$db,'netconfhash',$hash);
+	// update systemd eth0 configuration
+	sysCmd('netctl disable eth0');
+	sysCmd('netctl enable eth0');
+	sysCmd('systemctl disable netctl@eth0');
+	sysCmd('systemctl disable samba');
+	// restart eth0
+	runelog("restart eth0",'');
+	sysCmd('netctl restart eth0');
+
 	// restart wlan0 interface
 /*
 		if (strpos($netconf, 'wlan0') != false) {
@@ -158,57 +172,109 @@ playerSession('write',$db,'playerid','');
 */
 
 	// reset sourcecfg to defaults
+	runelog("reset sourcecfg to defaults",'');
 	wrk_sourcecfg($db,'reset');
 	sendMpdCommand($mpd,'update');
 
 	// reset mpdconf to defaults
+	runelog("reset mpdconf to defaults",'');
 	$mpdconfdefault = cfgdb_read('',$dbh,'mpdconfdefault');
 	foreach($mpdconfdefault as $element) {
 		cfgdb_update('cfg_mpd',$dbh,$element['param'],$element['value_default']);
 	}
-		// tell worker to write new MPD config
+	// tell worker to write new MPD config
 	wrk_mpdconf('/etc',$db);
-		// update hash
+	// update hash
 	$hash = md5_file('/etc/mpd.conf');
 	playerSession('write',$db,'mpdconfhash',$hash);
+	runelog("restart MPD",'');
 	sysCmd('systemctl restart mpd');
+	// restart mpdscribble
+	if ($_SESSION['scrobbling_lastfm'] == 1) {
+	runelog("restart MPDSCRIBBLE",'');
+	sysCmd('systemctl restart mpdscribble');
+	}
+	sleep(1);
+	wrk_setMpdStartOut($arch);
 	$dbh = null;
 
-	// disable minidlna / samba / MPD startup
-	sysCmd("update-rc.d -f minidlna remove");
-	sysCmd("update-rc.d -f ntp remove");
-	sysCmd("update-rc.d -f smbd remove");
-	sysCmd("update-rc.d -f nmbd remove");
-	sysCmd("update-rc.d -f mpd remove");
-	sysCmd("echo 'manual' > /etc/init/minidlna.override");
-	sysCmd("echo 'manual' > /etc/init/ntp.override");
-	sysCmd("echo 'manual' > /etc/init/smbd.override");
-	sysCmd("echo 'manual' > /etc/init/nmbd.override");
-	sysCmd("echo 'manual' > /etc/init/mpd.override");
 	// system ENV files check and replace
-//	wrk_sysEnvCheck($arch,1);
-	// stop services
-	sysCmd('systemctl stop minidlna');
-	sysCmd('systemctl ntp minidlna');
-	sysCmd('systemctl stop samba');
-	sysCmd('systemctl stop mpd');
-	sysCmd('/usr/sbin/smbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb.conf');
-	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb.conf');
-// --- PLAYER FIRST INSTALLATION PROCESS --- //
+	// runelog("system ENV files check and replace",'');
+	//	wrk_sysEnvCheck($arch,1);
 
+runelog("--- RUNEAUDIO FIRST RUN PROCESS",'');
+// invoke rune_SY_wrk.php respawn
+sysCmd('systemctl restart rune_SY_wrk');
+// --- RUNEAUDIO FIRST RUN PROCESS //
 
-// --- NORMAL STARTUP --- //
 } else {
+
+runelog("--- INITIALIZE ENVIRONMENT",'');
+// --- INITIALIZE ENVIRONMENT //
+
+// NORMAL STARTUP --- //
+runelog('NORMAL STARTUP ---','');
+// NTP sync
+$start2 = microtime(true);
+$firstlap = $start2-$start;
+runelog("NTP sync",'');
+$_SESSION['ntpserver'] = wrk_NTPsync($db);
+$start3 = microtime(true);
+// check HOSTNAME << TODO: integrate in wrk_sysEnvCheck >>
+$hn = sysCmd('hostname');
+$_SESSION['hostname'] = $hn[0]; 
+
 	// check ENV files
 	if ($arch != '--') {
 //	wrk_sysOBEnvCheck($arch,0);
 	}
 // start samba
+runelog("service: SAMBA start",'');
 sysCmd('/usr/sbin/smbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb.conf');
 sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb.conf');
 }
 
+// start shairport
+if (isset($_SESSION['airplay']) && $_SESSION['airplay'] == 1) {
+runelog("service: SHAIRPORT start",'');
+sysCmd('systemctl start shairport');
+}
+// start udevil
+if (isset($_SESSION['udevil']) && $_SESSION['udevil'] == 1) {
+runelog("service: UDEVIL start",'');
+sysCmd('systemctl start udevil');
+}
+// start mpdscribble
+if ($_SESSION['scrobbling_lastfm'] == 1) {
+runelog("service: MPDSCRIBBLE start",'');
+sysCmd('systemctl start mpdscribble');
+}
+
+// start rpi volume switch helpers
+if ($_SESSION['hwplatformid'] == '01') {
+runelog("helpers: rune_rpi_oJack/rune_rpi_oHdmi start",'');
+sysCmd('systemctl start rune_rpi_oJack');
+sysCmd('systemctl start rune_rpi_oHdmi');
+// AnalogJack / HDMI selection
+	if ($_SESSION['ao'] == 2 OR $_SESSION['ao'] == 3) {
+		sleep(1);
+		// AnalogJack
+		if ($_SESSION['ao'] == 2) {
+		$aosock = openMpdSocket('127.0.0.1', 13501);
+		} 
+		if ($_SESSION['ao'] == 3) {
+		// HDMI
+		$aosock = openMpdSocket('127.0.0.1', 13502);
+		}
+		sendMpdCommand($aosock,"\n");
+		runelog('selected Rpi jack/hdmi internal switch:',$_SESSION['ao']);
+		fclose($aosock);	
+	}
+}
+
 // inizialize worker session vars
+runelog("env: SETUP SESSION VARS",'');
+
 //if (!isset($_SESSION['w_queue']) OR $_SESSION['w_queue'] == 'workerrestart') { $_SESSION['w_queue'] = ''; }
 $_SESSION['w_queue'] = '';
 $_SESSION['w_queueargs'] = '';
@@ -220,12 +286,6 @@ $_SESSION['w_jobID'] = '';
 $_SESSION['debug'] = 0;
 $_SESSION['debugdata'] = '';
 
-// initialize OrionProfile
-if ($_SESSION['dev'] == 0) {
-// --- REWORK NEEDED ---
-$cmd = "/var/www/command/orion_optimize.sh ".$_SESSION['orionprofile']." startup" ;
-sysCmd($cmd);
-}
 
 // check current eth0 / wlan0 IP Address
 $cmd1 = "ip addr list eth0 |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1";
@@ -290,10 +350,25 @@ if (isset($_SESSION['cmediafix']) && $_SESSION['cmediafix'] == 1) {
 	$mpd = openMpdSocket('localhost', 6600) ;
 	sendMpdCommand($mpd,'cmediafix');
 	closeMpdSocket($mpd);
-} 
-// --- NORMAL STARTUP --- //
+}
 
-// --- WORKER MAIN LOOP --- //
+// initialize OrionProfile
+if ($_SESSION['dev'] == 0 OR empty($_SESSION['dev'])) {
+// --- REWORK NEEDED ---
+runelog("env: SET KERNEL PROFILE",$_SESSION['orionprofile']);
+$cmd = "/var/www/command/orion_optimize.sh ".$_SESSION['orionprofile']." ".$_SESSION['hwplatformid'] ;
+sysCmd($cmd);
+}
+ 
+runelog("--- NORMAL STARTUP",'');
+// --- NORMAL STARTUP //
+
+$start4 = microtime(true);
+$starttime = ($start4-$start3)+$firstlap;
+runelog("WORKER rune_SY_wrk.php STARTED in ".$starttime." seconds.",'');
+
+runelog("WORKER MAIN LOOP ---",'');
+// WORKER MAIN LOOP --- //
 while (1) {
 sleep(7);
 session_start();
@@ -303,6 +378,19 @@ session_start();
 	
 	// switch command queue for predefined jobs
 	switch($_SESSION['w_queue']) {
+	
+		case 'hostname':
+		wrk_changeHostname($db,$_SESSION['w_queueargs']);
+		$hn = sysCmd('hostname');
+		$_SESSION['hostname'] = $hn[0];
+		// update hash
+		$hash = md5_file('/etc/mpd.conf');
+		playerSession('write',$db,'mpdconfhash',$hash);
+		break;
+		
+		case 'ntpserver':
+		$_SESSION['ntpserver'] = wrk_NTPsync($db,$_SESSION['w_queueargs']);
+		break;
 
 		case 'reboot':
 		$cmd = 'systemctl --force reboot';
@@ -322,6 +410,10 @@ session_start();
 		sysCmd('systemctl stop mpd');
 		sleep(1);
 		sysCmd('systemctl start mpd');
+		// restart mpdscribble
+		if ($_SESSION['scrobbling_lastfm'] == 1) {
+		sysCmd('systemctl restart mpdscribble');
+		}
 		break;
 		
 		case 'phprestart':
@@ -330,8 +422,16 @@ session_start();
 		break;
 		
 		case 'workerrestart':
-		$cmd = 'killall player_wrk.php';
+		$cmd = 'systemctl restart rune_SY_wrk';
 		sysCmd($cmd);
+		break;
+		
+		case 'clearimg':
+		// Clean IMG
+		runelog('Clean IMG','');
+		// enable OPcache
+		wrk_opcache('enable');
+		wrk_cleanDistro();
 		break;
 		
 		case 'syschmod':
@@ -355,8 +455,55 @@ session_start();
 		if ($_SESSION['dev'] == 1) {
 		$_SESSION['w_queueargs'] = 'dev';
 		}
+		runelog("env: SET KERNEL PROFILE",$_SESSION['orionprofile']);
 		$cmd = "/var/www/command/orion_optimize.sh ".$_SESSION['w_queueargs'];
 		sysCmd($cmd);
+		break;
+		
+		case 'airplay':
+		if ($_SESSION['w_queueargs'] == 'start') {
+		runelog("service: SHAIRPORT start",'');
+		sysCmd('systemctl start shairport');
+		}
+		if ($_SESSION['w_queueargs'] == 'stop') {
+		runelog("service: SHAIRPORT stop",'');
+		sysCmd('systemctl stop shairport');
+		}
+		break;
+
+		case 'udevil':
+		if ($_SESSION['w_queueargs'] == 'start') {
+		runelog("service: UDEVIL start",'');
+		sysCmd('systemctl start udevil');
+		}
+		if ($_SESSION['w_queueargs'] == 'stop') {
+		runelog("service: UDEVIL stop",'');
+		sysCmd('systemctl stop udevil');
+		}
+		break;
+
+		case 'scrobbling_lastfm':
+		if ($_SESSION['w_queueargs']['action'] == 'start') {
+			if (isset($_SESSION['w_queueargs']['lastfm'])) {
+			// mpdscribble.conf
+			$file = '/etc/mpdscribble.conf';
+			$newArray = wrk_replaceTextLine($file,'','username =','username = '.$_SESSION['w_queueargs']['lastfm']['user'],'last.fm',2);
+			$newArray = wrk_replaceTextLine('',$newArray,'password =','password = '.$_SESSION['w_queueargs']['lastfm']['pass'],'last.fm',3);
+			// Commit changes to /etc/mpdscribble.conf
+			$fp = fopen($file, 'w');
+			fwrite($fp, implode("",$newArray));
+			fclose($fp);
+			// write LastFM auth data to SQLite datastore
+			setLastFMauth($db,$_SESSION['w_queueargs']['lastfm']);
+			}
+		sysCmd('systemctl stop mpdscribble');
+		runelog("service: MPDSCRIBBLE start",'');
+		sysCmd('systemctl start mpdscribble');
+		}
+		if ($_SESSION['w_queueargs']['action'] == 'stop') {
+		runelog("service: MPDSCRIBBLE stop",'');
+		sysCmd('systemctl stop mpdscribble');
+		}
 		break;
 		
 		case 'netcfg':
@@ -398,70 +545,54 @@ session_start();
 		break;
 		
 		case 'mpdcfg':
+		runelog('Stop MPD daemon','');
+		sysCmd('systemctl stop mpd');
+		runelog('Reset MPD configuration','');
 		wrk_mpdconf('/etc',$db);
 		// update hash
 		$hash = md5_file('/etc/mpd.conf');
-		playerSession('write',$db,'mpdconfhash',$hash);
-		sysCmd('systemctl stop mpd');
+		runelog('Start MPD daemon','');
 		sysCmd('systemctl start mpd');
+		playerSession('write',$db,'mpdconfhash',$hash);
+		// restart mpdscribble
+		if ($_SESSION['scrobbling_lastfm'] == 1) {
+		sysCmd('systemctl restart mpdscribble');
+		}
+		runelog('wrk_setMpdStartOut($archID)',$_SESSION['hwplatformid']);
+		sleep(1);
+		wrk_setMpdStartOut($_SESSION['hwplatformid']);
 		break;
 		
 		case 'mpdcfgman':
 		// write mpd.conf file
+		sysCmd('systemctl stop mpd');
 		$fh = fopen('/etc/mpd.conf', 'w');
 		fwrite($fh, $_SESSION['w_queueargs']);
 		fclose($fh);
-		sysCmd('killall mpd');
 		sysCmd('systemctl start mpd');
+		// restart mpdscribble
+		if ($_SESSION['scrobbling_lastfm'] == 1) {
+		sysCmd('systemctl restart mpdscribble');
+		}
 		break;
 		
 		case 'sourcecfg':
 		wrk_sourcecfg($db,$_SESSION['w_queueargs']);
-		// rel 1.0 autoFS
-		// if (sysCmd('service autofs restart')) {
-		// sleep(3);
-		// $mpd = openMpdSocket('localhost', 6600);
-		// sendMpdCommand($mpd,'update');
-		// closeMpdSocket($mpd);
-		// }
 		break;
 		
-		// rel 1.0 autoFS
-		// case 'sourcecfgman':
-		// if ($_SESSION['w_queueargs'] == 'sourcecfgreset') {
-		// wrk_sourcecfg($db,'reset');
-		// } else {
-		// wrk_sourcecfg($db,'manual',$_SESSION['w_queueargs']);
-		// }
-		// if (sysCmd('service autofs restart')) {
-		// sysCmd('service autofs restart');
-		// sleep(3);
-		// $mpd = openMpdSocket('localhost', 6600);
-		// sendMpdCommand($mpd,'update');
-		// closeMpdSocket($mpd);
-		// }
-		// break;
-		
-		case 'enableapc':
-		// apc.ini
-		$file = "/etc/php5/fpm/conf.d/20-apc.ini";
-		$fileData = file($file);
-		$newArray = array();
-		foreach($fileData as $line) {
-		  // find the line that starts with 'presentation_url"
-		  if (substr($line, 0, 8) == 'apc.stat') {
-			// replace apc.stat with selected value
-			$line = "apc.stat = ".$_SESSION['w_queueargs']."\n";
-		  }
-		  $newArray[] = $line;
-		}
-		// Commit changes to /etc/php5/fpm/conf.d/20-apc.ini
-		$fp = fopen($file, 'w');
-		fwrite($fp, implode("",$newArray));
-		fclose($fp);
+		case 'opcache':
 		// Restart PHP service
+		if ($_SESSION['w_queueargs'] == 1) {
+		wrk_opcache('enable');
+		runelog('PHP 5.5 OPcache enabled','');
 		sysCmd('systemctl restart php-fpm');
-		playerSession('write',$db,'enableapc',$_SESSION['w_queueargs']);
+		wrk_opcache('forceprime');
+		} else {
+		wrk_opcache('disable');
+		runelog('PHP 5.5 OPcache disabled','');
+		sysCmd('systemctl restart php-fpm');
+		}
+		playerSession('write',$db,'opcache',$_SESSION['w_queueargs']);
 		break;
 		
 	}
@@ -474,5 +605,6 @@ session_start();
 	}
 session_write_close();
 }
-// --- WORKER MAIN LOOP --- //
+runelog("--- WORKER MAIN LOOP",'');
+// --- WORKER MAIN LOOP //
 ?>

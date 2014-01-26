@@ -1,5 +1,29 @@
 <div class="container">
 	<h1>Settings</h1>
+<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>Environment</legend>
+            <div class="control-group" id="environment">
+				<div class="control-group">
+				<label class="control-label" for="hostname">Player hostname</label>
+					<div class="controls">
+						<input class="input-large" class="input-large" type="text" id="hostname" name="hostname" value="$_hostname" placeholder="runeaudio" autocomplete="off">
+						<span class="help-block">set <i>player HOSTNAME</i></span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="ntpserver">NTP server</label>
+					<div class="controls">
+						<input class="input-large" type="text" id="ntpserver" name="ntpserver" value="$_ntpserver" placeholder="ntp.inrim.it" autocomplete="off">
+						<span class="help-block">set your reference time sync server <i>(NTP server)</i></span>
+					</div>
+				</div>
+            </div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="save" name="save" type="submit">Apply settings</button>
+			</div>
+		</fieldset>
+	</form>
 	<form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>Sound quality tweaks</legend>
@@ -13,15 +37,106 @@
 			<div class="control-group">
 				<label class="control-label">Kernel profile</label>
 				<div class="controls">
-					<select class="input-large" name="orionprofile">
-					
+					<select class="input-large" name="orionprofile">			
 $_system_select[orionprofile]
-
 					</select>
 				</div>
 			</div>
 			<div class="form-actions">
 				<button class="btn btn-primary btn-large" value="save" name="save" type="submit">Apply settings</button>
+			</div>
+		</fieldset>
+	</form>
+	<form class="form-horizontal" data-validate="parsley" action="" method="post">
+        <fieldset>
+            <legend>Features management</legend>
+			<p>
+				Enable/disable optional modules that best suit your needs. Disabling unusued features will free system resources and might improve the overall performance.
+			</p>
+			<div class="control-group">
+				<label class="control-label">AirPlay</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleAirplay2" >ON</label>					
+$_system_select[airplay1]
+						<label class="toggle-radio" for="toggleAirplay1">OFF</label>
+$_system_select[airplay0]									
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">USB Automount</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleUdevil2" >ON</label>				
+$_system_select[udevil1]
+						<label class="toggle-radio" for="toggleUdevil1">OFF</label>
+$_system_select[udevil0]				
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Display album cover</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleCoverart2" >ON</label>
+$_system_select[coverart1]
+						<label class="toggle-radio" for="toggleCoverart1">OFF</label>
+$_system_select[coverart0]				
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Last.FM scrobbling</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleScrobblingLastfm2" >ON</label>
+$_system_select[scrobbling_lastfm1]
+						<label class="toggle-radio" for="toggleScrobblingLastfm1">OFF</label>
+$_system_select[scrobbling_lastfm0]				
+					</div>
+				</div>
+			</div>
+            <div class="control-group $_lastfm_hide" id="lastfmAuth">
+				<div class="control-group">
+					<label class="control-label" for="lastfm-usr">Username</label>
+					<div class="controls">
+						<input class="input-large" type="text" id="lastfm_user" name="lastfm[user]" value="$_lastfm[user]" data-trigger="change" placeholder="user">
+						<span class="help-block">Insert your Last.FM <i>username</i></span>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="lastfm-pasw">Password</label>
+					<div class="controls">
+						<input class="input-large" type="password" id="lastfm_pass" name="lastfm[pass]" value="$_lastfm[pass]" placeholder="pass" autocomplete="off">
+						<span class="help-block">Insert your Last.FM <i>password</i> (case sensitive)</span>
+					</div>
+				</div>
+            </div>
+						<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="save" name="save" type="submit">apply settings</button>
+			</div>
+		</fieldset>
+	</form>
+	<form class="form-horizontal" method="post">
+		<fieldset>
+			<legend>Compatibility fixes</legend>
+			<p>For people suffering problems with some receivers and DACs.</p>
+			<div class="control-group">
+				<label class="control-label">CMedia fix</label>
+				<div class="controls">
+					<div class="toggle">
+						<label class="toggle-radio" for="toggleOption2" >ON</label>
+$_system_select[cmediafix1]
+						<label class="toggle-radio" for="toggleOption1">OFF</label>
+$_system_select[cmediafix0]				
+					</div>
+					<span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
+					A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
+				</div>
+			</div>
+			<div class="form-actions">
+				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Apply fixes</button>
 			</div>
 		</fieldset>
 	</form>
@@ -55,46 +170,7 @@ $_system_select[orionprofile]
 			</div>
 		</fieldset>
 	</form>
-	<form class="form-horizontal" method="post">
-		<fieldset>
-			<legend>Compatibility fixes</legend>
-			<p>For people suffering problems with some receivers and DACs.</p>
-			<div class="control-group">
-				<label class="control-label">CMedia fix</label>
-				<div class="controls">
-					<div class="toggle">
-						<label class="toggle-radio" for="toggleOption2" >ON</label>
-						
-$_system_select[cmediafix1]
-
-						<label class="toggle-radio" for="toggleOption1">OFF</label>
-
-$_system_select[cmediafix0]				
-						
-					</div>
-					<span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
-					A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
-				</div>
-			</div>
-			<div class="form-actions">
-				<button class="btn btn-primary btn-large" value="apply" name="apply" type="submit">Apply fixes</button>
-			</div>
-		</fieldset>
-	</form>
-	<!--
-	<form class="form-horizontal" data-validate="parsley" action="" method="post">
-        <fieldset>
-            <legend>Last.FM scrobbling</legend>
-            <div class="control-group" >
-                <label class="control-label" for="port">Port</label>
-                <div class="controls">
-                    <input class="input-large" class="input-large" type="text" id="lastfm_user" name="lastfm[user]" value="$_lastfm[user]" data-trigger="change">
-					<input class="input-large" class="input-large" type="text" id="lastfm_pass" name="lastfm[pass]" value="$_lastfm[pass]" data-trigger="change">
-                    <span class="help-block">This setting is the TCP port that is desired for the daemon to get assigned to.</span>
-                </div>
-            </div>
-		</fieldset>
-
+<!--
 <form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>Backup / Restore configuration</legend>
@@ -111,15 +187,12 @@ $_system_select[cmediafix0]
 		<fieldset>
 			<div class="control-group" >
 				<label class="control-label" for="port">Configuration file</label>
-
 				<div class="controls">
-			
 			<div class="fileupload fileupload-new" data-provides="fileupload">
 					  <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
 					  <span class="fileupload-preview"></span>
 					  <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
 					</div>
-
 				</div>
 			</div>
 			<div class="form-actions">

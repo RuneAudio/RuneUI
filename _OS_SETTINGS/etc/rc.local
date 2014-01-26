@@ -1,6 +1,18 @@
 #!/bin/sh -e
-
-/var/www/command/player_wdog.sh startup & > /dev/null 2>&1
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+#runuser -l mpd -c 'devmon&'
+#/var/www/command/rune_wdog.sh startup & > /dev/null 2>&1
+#/var/www/command/rune_SY_wrk.php > /dev/null 2>&1
 
 exit 0
 

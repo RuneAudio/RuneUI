@@ -1,16 +1,16 @@
 <?php
 /*
- * Copyright (C) 2013 RuneAudio Team
+ * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013 – Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
  *
  * RuneAudio website and logo
- * copyright (C) 2013 – ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,8 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: connection.php
- *  version: 1.1
+ *  file: inc/connection.php
+ *  version: 1.2
  *
  */
  
@@ -35,6 +35,8 @@ require('config.inc');
 error_reporting(ERRORLEVEL);
 // include player library
 include(ROOTPATH.'inc/player_lib.php');
-// configuro parametri di connessione con demone MPD
+// debug
+runelog('--- [connection.php] >>> OPEN MPD SOCKET --- [connection.php] ---','');
+// connect to MPD daemon
 $mpd = openMpdSocket(DAEMONIP, 6600) ;
 ?>
