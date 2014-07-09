@@ -1,0 +1,6 @@
+Description='encrypted wireless connection'
+Interface=wlan0
+Connection=wireless
+Security=wpa-config
+WPAConfigFile='/etc/wpa_supplicant/wpa_supplicant.conf'
+IP=dhcp

@@ -1,0 +1,137 @@
+/*
+ * CSS TOGGLE SWITCHES
+ * Unlicense
+ *
+ * Ionuț Colceriu - ghinda.net
+ * https://github.com/ghinda/css-toggle-switch
+ *
+ */
+ 
+@white: #fff;
+
+/* Mixins
+*/
+.layout (@position; @top; @right; @left; @display; @width; @zindex) {
+  position: @position;
+  top: @top;
+  right: @right;
+  left: @left;
+  display: @display;
+  width: @width;
+  z-index: @zindex;
+}
+
+.container (@bg-color; @border; @border-radius; @shadow1; @shadow2; @shadow3) {
+  background-color: @bg-color;
+  border: @border;
+  border-radius: @border-radius;
+  .box-shadow (@shadow1; @shadow2; @shadow3);
+}
+
+.box-shadow (@shadow1: 0 0 0 rgba(0, 0, 0, 0); @shadow2: 0 0 0 rgba(0, 0, 0, 0); @shadow3: 0 0 0 rgba(0, 0, 0, 0)) {
+  -webkit-box-shadow: @shadow1, @shadow2, @shadow3;
+  -moz-box-shadow: @shadow1, @shadow2, @shadow3;
+  box-shadow: @shadow1, @shadow2, @shadow3;
+}
+
+.bg-image (@start-color; @end-color) {
+  background-image: -webkit-linear-gradient(top, @start-color, @end-color);
+  background-image: linear-gradient(to bottom, @start-color, @end-color);
+}
+
+.slide-button-transition (@duration: .2s) {
+  -webkit-transition: all @duration ease-out;
+  -moz-transition: all @duration ease-out;
+  transition: all @duration ease-out;
+}
+
+.switch-toggle a, .switch-light span span {
+  display: none; }
+
+/* We can't test for a specific feature,
+ * so we only target browsers with support for media queries.
+ */
+@media only screen {
+  /* Checkbox switch
+   */
+  /* Radio switch
+   */
+  /* Standalone Themes */
+  /* Candy Theme
+   * Based on the "Sort Switches / Toggles (PSD)" by Ormal Clarck
+   * http://www.premiumpixels.com/freebies/sort-switches-toggles-psd/
+   */
+  /* Android Theme
+   */
+  /* iOS Theme
+   */
+     
+  .switch-light {
+    display: block;
+    max-width: 120px;
+	height: 40px;
+    /* Outline the toggles when the inputs are focused
+   */
+    position: relative;
+    overflow: visible;
+    padding: 0;
+	background: @brand-alt;
+    // margin-left: 100px;
+	border-radius: 6px;
+	&:hover {
+      cursor: pointer;
+    }
+    /* Position the label over all the elements, except the slide-button (<a>)
+   * Clicking anywhere on the label will change the switch-state
+   */
+    /* Don't hide the input from screen-readers and keyboard access
+   */ }
+    .switch-light * {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box; }
+    .switch-light a {
+      display: block;
+      .slide-button-transition; }
+    .switch-light label, .switch-light > span {
+      line-height: 40px;
+      vertical-align: middle; }
+    .switch-light input:focus ~ a, .switch-light input:focus + label {
+      outline: 1px dotted #888888; }
+    .switch-light label {
+      .layout (relative; static; static; static; block; 100%; 3); }
+    .switch-light input {
+      .layout (absolute; static; static; static; inherit; auto; 5);
+      opacity: 0; }
+      .switch-light input:checked ~ a {
+        right: 0%; }
+    .switch-light > span {
+      .layout (absolute; static; static; -100px; inherit; 100%; auto);
+      margin: 0;
+      padding-right: 100px;
+      text-align: left; }
+      .switch-light > span span {
+        .layout (absolute; 0; static; 0; block; 50%; 5);
+        margin-left: 100px;
+        text-align: center; }
+        .switch-light > span span:last-child {
+          left: 50%; }
+    .switch-light a {
+      .layout (absolute; 0; 50%; static; block; 50%; 4);
+      height: 100%;
+      padding: 0; }
+}
+
+/* Bugfix for older Webkit, including mobile Webkit. Adapted from
+ * http://css-tricks.com/webkit-sibling-bug/
+ */
+@media only screen and (-webkit-max-device-pixel-ratio: 2) and (max-device-width: 1280px) {
+  .switch-light, .switch-toggle {
+    -webkit-animation: webkitSiblingBugfix infinite 1s; } }
+
+@-webkit-keyframes webkitSiblingBugfix {
+  from {
+    -webkit-transform: translate3d(0, 0, 0); }
+
+  to {
+    -webkit-transform: translate3d(0, 0, 0); } }

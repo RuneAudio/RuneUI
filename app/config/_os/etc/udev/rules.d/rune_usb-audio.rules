@@ -1,0 +1,2 @@
+#KERNEL=="card*", DRIVER=="snd-usb-audio", RUN+="/var/www/command/refresh_ao"
+KERNEL=="card*", SUBSYSTEM=="sound", RUN+="/var/www/command/refresh_ao"

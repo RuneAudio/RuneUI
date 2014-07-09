@@ -1,0 +1,70 @@
+#!/usr/bin/php
+<?php 
+/*
+ * Copyright (C) 2013-2014 RuneAudio Team
+ * http://www.runeaudio.com
+ *
+ * RuneUI
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ *
+ * RuneOS
+ * copyright (C) 2013-2014 - Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
+ *
+ * RuneAudio website and logo
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
+ *
+ * This Program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * This Program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with RuneAudio; see the file COPYING.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.txt>.
+ *
+ *  file: command/usbmount
+ *  version: 1.3
+ *  coder: Simone De Gregori
+ *
+ */
+ 
+// common include
+ini_set('display_errors', '1');
+ini_set('error_reporting', -1);
+ini_set('error_log','/var/log/runeaudio/usbmount.log');
+include('/var/www/app/libs/runeaudio.php');
+// Connect to Redis backend
+$redis = new Redis();
+$redis->connect('127.0.0.1', 6379);
+
+// handle HFS+ mount
+if (strpos(file_get_contents('/proc/mounts'),'/mnt/MPD/USB/EFI vfat')) {
+    sysCmd('devmon --unmount /mnt/MPD/USB/EFI');
+}
+
+// record mount point info in Redis
+$redis->Del('usbmounts');
+// $usbmounts = sysCmd("df -h | grep USB | cut -d ' ' -f 1,23,31,32 | cut -d '/' -f 3,6-7");
+$usbmounts = sysCmd("df -h | grep USB");
+foreach ($usbmounts as $line) {
+$line = array_values(array_filter(explode(' ',trim($line))));
+// debug
+// print_r($line);
+$redis->hSet('usbmounts',$line[0],json_encode(array('device' => $line[0], 'size' => $line[1], 'use' => $line[4], 'name' => substr($line[5], 9))));
+// debug
+runelog('usbmount line: ',$line);
+}
+
+// connect to MPD daemon
+$mpd = openMpdSocket('/run/mpd.sock');
+// update MPD database
+sendMpdCommand($mpd,'update USB');
+// update library panel
+ui_libraryHome($redis,$mpd);
+// close MPD connection
+closeMpdSocket($mpd);

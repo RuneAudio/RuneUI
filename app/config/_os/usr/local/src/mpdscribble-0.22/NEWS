@@ -1,0 +1,186 @@
+mpdscribble 0.22 - 2011-07-09
+  * curl: fix segmentation fault with large response body
+  * curl: fix operation with threaded resolver
+  * receive track ratings over the MPD client-to-client protocol
+
+
+mpdscribble 0.21 - 2011-01-03
+  * require libmpdclient 2.2
+  * better HTTP error messages
+  * curl: check the HTTP response status
+  * file: ignore trailing whitespace
+  * lmc: show real server address in verbose log message
+
+
+mpdscribble 0.20 - 2010-09-22
+  * curl: implement libCURL timeouts
+  * curl: prevent recursive read calls
+  * log: use ISO8601 date format
+  * journal: don't save "(null)" values
+  * scrobbler: submit track numbers
+  * scrobbler: support logging to a file
+  * scrobbler: fix memory leak in as_songchange()
+
+
+mpdscribble 0.19 - 2009-12-26
+  * using libmpdclient 2.0 instead of built-in libmpdclient
+
+
+mpdscribble 0.18.1 - 2009-08-29
+  * soup: explicitly link with libgthread
+  * curl: use curl_escape() on GLib < 2.16
+  * journal: don't warn if journal file is missing
+  * use g_strerror() instead of strerror()
+
+
+mpdscribble 0.18 - 2009-07-08
+  * improved detection of repeated songs
+  * support MPD's new MusicBrainz tags
+  * CURL can be used instead of libsoup at compile time
+  * removed the command line options --cache, --cache-interval, --sleep
+  * support multiple scrobbler services (such as libre.fm)
+  * schedule "now playing" after successful handshake
+  * default to syslog
+  * "cache" renamed to "journal" (optional now)
+  * deprecated the "sleep" option
+
+
+mpdscribble 0.17 - 2009-03-02
+  * secure permissions for mpdscribble.conf
+  * added "daemon_user" configuration option
+  * escape '&'
+  * import AS protocol v1.1 timestamps
+  * support logging to stderr
+  * add win32 support
+
+
+mpdscribble 0.16 - 2009-01-17
+  * support repeating a song
+  * fix MPD 0.13 support (without "idle")
+  * added pidfile support
+  * daemonize mpdscribble by default, added option --no-daemon
+  * moved debugging messages to verbose 3
+  * changed default verbose level to 1
+  * fix default value for "sleep"
+
+
+mpdscribble 0.15 - 2009-01-04
+  * re-enter idle mode if MPD is paused (fixes high CPU usage)
+  * log with local time stamp
+  * allow configuring the cleartext last.fm password
+
+
+mpdscribble 0.14 - 2008-12-25
+  * reformatted the whole source code (indentation with tabs)
+  * support MPD's "idle" command (ignores the "sleep" setting)
+  * resubmit "now playing" after re-handshake
+  * turn off buffering for the log file
+  * logging to syslog
+
+
+mpdscribble 0.13 - 2008-12-19
+  * libmpdclient update from upstream:
+    - suport for Unix domain sockets
+    - try all IP addresses from the resolver, resulting in better IPv6 support
+    - smaller buffers, less memory usage
+  * support the Last.fm Submissions Protocol v1.2
+    - including support for 'now playing'
+    - submit songs when they are finished
+    - ignore seeking
+    - now really support crossfading
+    - support streaming
+  * HTTP proxy support
+  * support for libsoup 2.4
+  * fixed several crash bugs
+  * fixed gcc warnings
+
+
+New in 0.2.12:
+
+  - Just noticed a patch for 0.2.6 by Decklin Foster in my mailbox
+    which i forgot to include in the subsequent releases. Sorry!
+
+    It's included now and is a little bugfix for those who change
+    the --sleep parameter.
+
+New in 0.2.11:
+
+  - a crash and some logfile bugs were fixed by Michal Nazarewicz.
+
+  - openbsd compilation fixes by Eric Gillingham.
+
+  - crossfading should not interfere with song submission anymore.
+
+  - no longer tries to submit more than 10 songs at once (as per spec).
+
+
+New in 0.2.10:
+
+  - Woops, I hadn't noticed David's mbid code only supported .mp3, I 
+    just hacked in .ogg and .flac support in the most dirty fashion.
+
+
+New in 0.2.9:
+
+  - Thanks to David Nicolson mpdscribble now can submit musicbrainz ids. 
+
+
+New in 0.2.8:
+
+    I finally put together 0.2.8 based on suggestions and patches from 
+    several people, so big thank yous for this release go to:
+
+    David Morgan, Michal Nazarewicz, and Andrey Rahmatullin.
+
+Changes:
+
+  - There should be no crashes anymore when mpd is not available for a while.
+
+  - Will submit tracks longer 30 minutes now.
+
+  - Better libsoup and related library detection in ./configure.
+
+  - cosmetic fixes for the logfile (date added, some extra newlines removed).
+
+New in 0.2.5:
+     
+  - just a few minor bug fixes and cosmetic changes, there is no need
+    to upgrade if 0.2.4 is working fine for you.  check the ChangeLog
+    for details.
+
+
+New in 0.2.4:
+
+  - includes manpage written by: Trevor Caira
+
+
+New in 0.2.3:
+
+  - autotools build system, see the README for details.
+
+  - empty album tag segfault bug fix.
+
+
+New in 0.2.2:
+
+  - setting a password as part of MPD_HOST should work now.
+
+New in 0.2.1:
+
+  - easier system-wide install.
+     
+  - please note that the  configuration, log and cache filenames have
+    changed.
+
+
+Things changed in 0.2.0 as opposed to 0.1.x:
+
+  - replaced libcurl with libsoup, _hopefully_ this will eliminate
+    the segfaults many of you were experiencing.
+
+  - tries to reconnect to mpd when the connection is lost.
+
+  - doesn't log sensitive information.
+
+  - some configuration options can be set on the commandline.
+

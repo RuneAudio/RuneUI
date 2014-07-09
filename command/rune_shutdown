@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+#  Copyright (C) 2013-2014 RuneAudio Team
+#  http://www.runeaudio.com
+#
+#  RuneUI
+#  copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+#
+#  RuneOS
+#  copyright (C) 2013-2014 – Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
+#
+#  RuneAudio website and logo
+#  copyright (C) 2013-2014 – ACX webdesign (Andrea Coiutti)
+#
+#  This Program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3, or (at your option)
+#  any later version.
+#
+#  This Program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with RuneAudio; see the file COPYING.  If not, see
+#  <http://www.gnu.org/licenses/gpl-3.0.txt>.
+# 
+#  file: command/rune_shutdown
+#  version: 1.3
+#  coder: Simone De Gregori
+#
+#####################################
+
+# if [ "$1" != "" ]; then
+# mpc stop
+# systemctl stop mpd
+# umount -aft nfs
+# umount -aft cifs
+# fi
+
+# shutdown
+if [ "$1" == "shutdown" ]; then
+echo "Shutdown in progress..."
+mpc stop
+systemctl stop nginx
+sleep 1
+systemctl stop mpd
+sleep 1
+umount -aft nfs
+umount -aft cifs
+poweroff
+fi
+
+# reboot
+if [ "$1" == "reboot" ]; then
+mpc stop
+systemctl stop nginx
+sleep 1
+systemctl stop mpd
+sleep 1
+umount -aft nfs
+umount -aft cifs
+echo "Reboot in progress..."
+reboot
+fi
+
+if [ "$1" == "" ]; then
+echo "RuneAudio Shutdown Script" 
+echo "Usage: $0 {shutdown|reboot}"
+exit 1
+fi

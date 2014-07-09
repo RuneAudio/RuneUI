@@ -1,4 +1,4 @@
-<?php 
+<?php
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -7,7 +7,7 @@
  * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013-2014 - Carmelo San Giovanni (aka Um3ggh1U) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2014 - Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
  *
  * RuneAudio website and logo
  * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
@@ -27,49 +27,123 @@
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
  *  file: index.php
- *  version: 1.2
+ *  version: 1.3
+ *  coder: Simone De Gregori
  *
  */
  
-// common include
-include('inc/connection.php');
-playerSession('open',$db,'',''); 
-playerSession('unlock',$db,'','');
+// load configuration
+include($_SERVER['HOME'].'/app/config/config.php');
+// main include
+include($_SERVER['HOME'].'/app/libs/vendor/autoload.php');
+// open session
+session_start();
+// plates: create new engine
+$engine = new \League\Plates\Engine('/srv/http/app/templates');
+// plates: load asset extension
+$engine->loadExtension(new \League\Plates\Extension\Asset('/srv/http/assets', true));
+// plates: load URI extension
+$engine->loadExtension(new \League\Plates\Extension\URI($_SERVER['REQUEST_URI']));
+// plates: create a new template
+$template = new \League\Plates\Template($engine);
+// set devmode
+$template->dev = $devmode;
+// allowed controllers
+$controllers = array(
+'credits',
+'coverart',
+'coverart2',
+'dev',
+'debug',
+'help',
+'index',
+'login',
+'mpd',
+'network',
+'playback',
+'settings',
+'sources',
+'tun'
+);
 
-// set template
-$tpl = "indextpl.html";
-?>
-<?php
-$sezione = basename(__FILE__, '.php');
-$_section = $sezione;
-include('_header.php'); 
-?>
-<!-- content -->
-<?php
-if ($_SESSION['coverart'] == 1) {
-$_index['colspan'] = '4';
-$_index['coverart'] = "<div class=\"span4 coverart\">\n";
-$_index['coverart'] .= "<img id=\"cover-art\" src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\">\n";
-$_index['coverart'] .= "</div>\n";
+
+
+// check page
+if (in_array($template->uri(1),$controllers) OR empty($template->uri(1))) {
+
+	// decode REQUEST_URL and assing section
+    if (!empty($template->uri(1)) && ($template->uri(1) != 'playback')) {
+			
+			// decode ACTION
+			if (!empty($template->uri(2))) {
+			$template->action = $template->uri(2);
+			
+					// assign SUB-TEMPLATE
+					if ($template->action == 'add') {
+						$subtpl = 'edit';
+					} else {
+						$subtpl = $template->action;
+					}
+
+				// decode ARG
+				if(!empty($template->uri(3))) {
+					$template->arg = $template->uri(3);
+				}
+
+				// assign TEMPLATE
+				$template->content = $template->uri(1).'_'.$subtpl;
+
+			} else {
+
+				// assign TEMPLATE
+				$template->content = $template->uri(1);
+			}
+
+		
+		$template->section = $template->uri(1);
+		// debug
+		//runelog("index: section",$template->section);
+		// debug
+		//runelog("index: selected controller(1)",APP.$template->uri(1));
+		// load selected APP Controller
+		include(APP.$template->uri(1).'_ctl.php');
+		// register current controller in SESSION
+		if ($template->uri(1) !== 'coverart' && $template->uri(1) !== 'coverart2') {
+		$_SESSION['controller'] = $template->uri(1);
+		}
+
+
+    } else {
+	
+	// debug
+	//runelog("index: selected controller(2)",'playback_ctl.php');
+	// load playback APP Controller
+    include(APP.'playback_ctl.php');
+	$template->section = 'index';
+    $template->content = 'playback';
+	// register current controller in SESSION
+	$_SESSION['controller'] = 'playback';
+	
+    }
+	
 } else {
-$_index['colspan'] = '6';
+
+$template->section = 'error';
+$template->content = 'error';
+// register current controller in SESSION
+$_SESSION['controller'] = 'error';
+
 }
-if ($_SESSION['volume'] == 1) {
-$_volume['color'] = '#0095D8';
-$_volume['readonly'] = 'false';
-$_volume['disabled'] = '';
-$_volume['divclass'] = '';
-} else {
-//$_volumeColor = '#002c40';
-$_volume['color'] = '#1A242F';
-$_volume['readonly'] = 'true';
-$_volume['disabled'] = 'disabled="disabled"';
-$_volume['divclass'] = 'nomixer';
+// set devmode
+$template->dev = $devmode;
+// plates: render layout (if you want to output direct, set $tplfile = 0 into controller)
+if ($tplfile !== 0) {
+echo $template->render('default_lo');
 }
-eval("echoTemplate(\"".getTemplate("templates/$tpl")."\");");
-?>
-<!-- content -->
-<?php 
-// debug($_POST);
-?>
-<?php include('_footer.php'); ?>
+
+// close MPD connection
+closeMpdSocket($mpd);
+// close Redis connection
+$redis->close();
+// close session
+session_write_close();

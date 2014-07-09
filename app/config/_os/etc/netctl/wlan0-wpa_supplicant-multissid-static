@@ -1,0 +1,11 @@
+Description='A simple WPA encrypted wireless connection'
+Interface=wlan0
+Connection=wireless
+ForceConnect=yes
+SkipNoCarrier=yes
+Security=wpa-config
+WPAConfigFile='/etc/wpa_supplicant/wpa_supplicant.conf'
+IP=static
+Address=('172.31.2.108/24')
+Gateway='172.31.2.254'
+DNS=('8.8.8.8' '8.8.4.4')

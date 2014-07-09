@@ -1,0 +1,67 @@
+# $Id$
+# Maintainer: Simone De Gregori <orion@runeaudio.com>
+
+pkgname=mpd-rune
+pkgver=0.18.10
+pkgrel=2
+pkgdesc='RuneAudio MPD optimized version'
+url='http://www.musicpd.org/'
+license=('GPL')
+arch=('armv6h')
+depends=('audiofile' 'mpg123' 'curl' 'faad2' 'sqlite' 'libmms' 'libid3tag' 'libmpdclient')
+makedepends=('doxygen')
+provides=("mpd=$pkgver")
+conflicts=('mpd')
+replaces=('mpd')
+source=("http://www.musicpd.org/download/mpd/${pkgver%.*}/mpd-${pkgver}.tar.xz"
+        'tmpfiles.d'
+        'mpd.conf')
+sha1sums=('0923318cfda033bb4f89c219e6effa9d5b330c1d'
+          'f4d5922abb69abb739542d8e93f4dfd748acdad7'
+          'a69ada755254881e3f49a2a99347d2e22870daa1')
+backup=('etc/mpd.conf')
+#install=install
+
+build() {
+	cd "${srcdir}/mpd-${pkgver}"
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--disable-ao \
+		--disable-pulse \
+		--disable-shout \
+		--disable-sidplay \
+		--disable-modplug \
+		--disable-soundcloud \
+		--disable-wavpack \
+		--disable-opus \
+		--disable-lame-encoder \
+		--disable-ipv6 \
+		--disable-recorder-output \
+		--disable-iso9660 \
+		--disable-zzip \
+		--disable-wildmidi \
+		--disable-oss \
+		--disable-fluidsynth \
+		--disable-bzip2 \
+		--disable-gme \
+		--enable-mad \
+		--enable-libmpdclient \
+		--enable-jack \
+		--enable-pipe-output \
+		--enable-mpg123 \
+		--with-zeroconf=avahi \
+		--with-systemdsystemunitdir=/usr/lib/systemd/system
+	make
+}
+
+package() {
+	cd "${srcdir}/mpd-${pkgver}"
+	make DESTDIR="${pkgdir}" install
+	install -Dm644 ../mpd.conf "${pkgdir}"/etc/mpd.conf
+	install -Dm644 ../tmpfiles.d "${pkgdir}"/usr/lib/tmpfiles.d/mpd.conf
+	install -d -g 45 -o 45 "${pkgdir}"/var/lib/mpd/playlists
+
+	install -Dm644 "${pkgdir}"/usr/lib/systemd/{system,user}/mpd.service
+	sed '/WantedBy=/c WantedBy=default.target' -i "${pkgdir}"/usr/lib/systemd/user/mpd.service
+}

@@ -1,0 +1,15 @@
+*** Makefile.lnx.orig	2011-01-24 14:09:57.000000000 +1000
+--- Makefile.lnx	2011-01-24 14:10:41.000000000 +1000
+***************
+*** 1,5 ****
+  CC := gcc
+! CFLAGS += -I$(PWD)/include -DDEBUG_BUILD=0 -D_FILE_OFFSET_BITS=64 -D LINUX=1 -D BSD=1
+  SUBDIRS := newfs_hfs.tproj fsck_hfs.tproj
+  
+  all clean:
+--- 1,5 ----
+  CC := gcc
+! CFLAGS += `pkg-config --cflags libbsd` -I$(PWD)/include -DDEBUG_BUILD=0 -D_FILE_OFFSET_BITS=64 -D LINUX=1 -D BSD=1
+  SUBDIRS := newfs_hfs.tproj fsck_hfs.tproj
+  
+  all clean:

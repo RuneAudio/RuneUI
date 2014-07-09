@@ -1,0 +1,41 @@
+{
+  "name": "runeaudio-runeui",
+  "version": "0.3.0",
+  "author": "RuneAudio team <info@runeaudio.com>",
+  "homepage": "http://www.runeaudio.com",
+  "description": "RuneUI - RuneAudio web interface (MPD client and system configurator)",
+  "contributors": [
+    {
+      "name": "Andrea Coiutti (ACX)",
+      "email": "acx@runeaudio.com"
+    },
+    {
+      "name": "Simone De Gregori (Orion)",
+      "email": "orion@runeaudio.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RuneAudio/RuneUI"
+  },
+  "bugs": {
+    "url": "https://github.com/RuneAudio/RuneUI/issues"
+  },
+  "licenses": [
+    {
+      "type": "GPL-3.0",
+      "url": "http://opensource.org/licenses/GPL-3.0"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-jshint": "~0.9.0",
+    "grunt-contrib-uglify": "0.4.0",
+    "grunt-contrib-watch": "~0.6.0",
+    "grunt-contrib-less": "^0.11.0"
+  }
+}

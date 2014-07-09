@@ -1,0 +1,13 @@
+[Unit]
+Description=RuneAudio Playback Worker
+After=network.target
+
+[Service]
+#Type=forking
+Type=daemon
+ExecStart=/var/www/command/rune_PL_wrk
+TimeoutSec=0
+#Restart=always
+
+[Install]
+WantedBy=multi-user.target

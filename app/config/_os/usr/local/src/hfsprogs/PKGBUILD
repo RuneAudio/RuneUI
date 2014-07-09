@@ -1,0 +1,55 @@
+# Maintainer: Rustam Tsurik <rustam.tsurik@gmail.com>
+# Previous Maintainers: 
+#    Prashant Vaibhav <mercurysquad+arch@gmail.com>
+#    Alessio 'mOLOk' Bolognino <themolok@gmail.com>
+# Contributor: Rubin Simons <rubin@xs4all.nl>
+
+pkgname=hfsprogs
+pkgver=332.25
+pkgrel=10
+pkgdesc="HFS/HFS+ user space utils" 
+arch=('armv6h')
+depends=('libbsd' 'openssl')
+license=('custom:APSL')
+url="http://www.opensource.apple.com/"
+source=(http://ftp.de.debian.org/debian/pool/main/h/hfsprogs/hfsprogs_332.25.orig.tar.gz \
+        http://ftp.de.debian.org/debian/pool/main/h/hfsprogs/hfsprogs_332.25-11.debian.tar.gz \
+        license
+        makefile.patch)
+sha256sums=('74c9aeca899ed7f4bf155c65fc45bf0f250c0f6d57360ea953b1d536d9aa45e6'
+            '62d9b8599c66ebffbc57ce5d776e20b41341130d9b27341d63bda08460ebde7c'
+            '3bce072b604e0e9baa2151bff91b40915253bfb6d9d9e37445080f526ad486e2'
+            'faaf8c08c6020fe7347354b85c57d43a00d6cd547075139c466fb0a787411fc7')
+build() {
+  cd $srcdir/diskdev_cmds-${pkgver}
+  patch -Np1 -i $srcdir/debian/patches/0001-Create-short-Makefiles-for-Debian.patch
+  patch -Np1 -i $srcdir/debian/patches/0002-Add-exclude-Darwin-specific-code.patch
+  patch -Np1 -i $srcdir/debian/patches/0003-Add-helper-include-files-absent-from-the-upstream-pa.patch
+  patch -Np1 -i $srcdir/debian/patches/0004-Fix-compilation-on-64-bit-arches.patch
+  patch -Np1 -i $srcdir/debian/patches/0005-Remove-Apple-specific-p-from-strings.patch
+  patch -Np1 -i $srcdir/debian/patches/0006-Adjust-types-for-printing.patch
+  patch -Np1 -i $srcdir/debian/patches/0007-Fix-path-for-HFS-wrapper-block.patch
+  patch -Np1 -i $srcdir/debian/patches/0008-Provide-command-line-option-a.patch
+  patch -Np1 -i $srcdir/debian/patches/0009-Rename-dprintf-to-dbg_printf.patch
+  patch -Np1 -i $srcdir/debian/patches/0010-Rename-custom-macro-nil-with-NULL.patch
+  patch -Np1 -i $srcdir/debian/patches/0011-Fix-types.patch
+  patch -Np1 -i $srcdir/debian/patches/0012-Fix-mkfs-not-creating-UUIDs-for-new-filesystems.patch
+  patch -Np1 -i $srcdir/debian/patches/0013-Fix-manpages.patch
+
+  patch -Np0 -i "${srcdir}/makefile.patch" || return 1
+  make -f Makefile.lnx
+}
+
+package() {
+  cd $srcdir/diskdev_cmds-${pkgver}
+  install -d -m 755 "$pkgdir/usr/share/hfsprogs"
+  install -m 644 newfs_hfs.tproj/hfsbootdata.img "$pkgdir/usr/share/hfsprogs/hfsbootdata"
+  install -D -m755 newfs_hfs.tproj/newfs_hfs "$pkgdir/usr/bin/mkfs.hfsplus"
+  install -D -m755 fsck_hfs.tproj/fsck_hfs "$pkgdir/usr/bin/fsck.hfsplus"
+  install -D -m644 "$srcdir/license" "$pkgdir/usr/share/licenses/hfsprogs/APSL"
+  install -d -m 755 "$pkgdir/usr/share/man/man8/"
+  install -m 644 newfs_hfs.tproj/newfs_hfs.8 "$pkgdir/usr/share/man/man8/mkfs.hfsplus.8"
+  install -m 644 fsck_hfs.tproj/fsck_hfs.8 "$pkgdir/usr/share/man/man8/fsck.hfsplus.8"
+  # clean up the src dir, so it allows to re-build the package;
+  cd $srcdir/; rm -rf diskdev_cmds-${pkgver}
+}

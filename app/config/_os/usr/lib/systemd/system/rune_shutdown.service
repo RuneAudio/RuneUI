@@ -1,0 +1,12 @@
+[Unit]
+Description=RuneAudio shutdown script
+ConditionFileIsExecutable=/var/www/command/rune_shutdown
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
+
+[Service]
+Type=oneshot
+ExecStop=/var/www/command/rune_shutdown
+
+[Install]
+WantedBy=multi-user.target

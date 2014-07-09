@@ -1,0 +1,8 @@
+# /etc/fstab: static file system information.
+#
+#/dev/mmcblk0p3 /               ext4    noatime,discard,data=writeback,journal_async_commit,nouser_xattr,barrier=0,errors=remount-ro 0       1
+/dev/mmcblk0p3 /               ext4    noatime,nouser_xattr,errors=remount-ro 0       1
+/dev/mmcblk0p1  /boot        vfat    utf8            0       0
+Ramdisk   /run/shm        tmpfs   defaults,size=256M,noexec,nodev,nosuid        0       0
+logs   /var/log         tmpfs   nodev,nosuid,noatime,mode=1777,size=5M          0  0
+rune-logs   /var/log/runeaudio         tmpfs   nodev,nosuid,noatime,mode=1777,size=20M          0  0

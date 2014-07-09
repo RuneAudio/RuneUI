@@ -1,0 +1,7 @@
+Description='dhcp ethernet connection'
+Interface=eth0
+Connection=ethernet
+AutoWired=yes
+IP=dhcp
+DHCPReleaseOnStop=yes
+ExecUpPost='/usr/bin/ntpd -gq || true'

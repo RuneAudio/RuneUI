@@ -1,0 +1,33 @@
+The current mpdscribble development team
+========================================
+
+Avuton Olrich <avuton@gmail.com>
+	release manager
+
+Max Kellermann <max@duempel.org>
+	lead developer
+
+Slava Semushin <php-coder@altlinux.ru>
+	miscellaneous fixes
+
+Stephen Paul Weber <singpolyma@singpolyma.net>
+	multi-scrobbler support
+
+Christoph Leuzinger <christoph.leuzinger@westworks.ch>
+	protocol 1.2
+
+
+Former mpdscribble developers
+=============================
+
+mpdscribble was written by Kuno Woudt <kuno@frob.nl>
+-> http://www.audioscrobbler.com/user/warp/
+
+Manpage written by Trevor Caira <trevor.caira@gmail.com>
+-> http://www.audioscrobbler.com/user/TrevorCaira/
+
+Some helpful patches submitted by Nikki.
+-> http://www.audioscrobbler.com/user/cikkolata/
+
+The name 'mpdscribble' was coined by honey in #audioscrobbler.
+-> http://www.audioscrobbler.com/user/honeypea/

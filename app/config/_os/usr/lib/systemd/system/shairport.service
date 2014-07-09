@@ -1,0 +1,12 @@
+[Unit]
+Description=Shairport AirTunes receiver
+After=sound.target
+Requires=avahi-daemon.service
+After=avahi-daemon.service
+
+[Service]
+ExecStart=/usr/local/bin/shairport -w --on-start=/var/www/command/airplay.sh --on-stop=/var/www/command/airplay.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

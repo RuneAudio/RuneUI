@@ -1,0 +1,44 @@
+{
+    "name": "react/react",
+    "description": "Nuclear Reactor written in PHP.",
+    "keywords": ["event-loop", "reactor"],
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/reactphp/react/issues",
+        "irc": "irc://irc.freenode.org/reactphp"
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "evenement/evenement": "~2.0",
+        "guzzle/parser": "~3.0",
+        "react/promise": "~2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "replace": {
+        "react/event-loop": "self.version",
+        "react/cache": "self.version",
+        "react/stream": "self.version",
+        "react/socket": "self.version",
+        "react/socket-client": "self.version",
+        "react/http": "self.version",
+        "react/http-client": "self.version",
+        "react/dns": "self.version"
+    },
+    "suggest": {
+        "ext-libevent": "Allows for use of a more performant event-loop implementation.",
+        "ext-libev": "Allows for use of a more performant event-loop implementation.",
+        "ext-event": "Allows for use of a more performant event-loop implementation."
+    },
+    "autoload": {
+        "psr-4": {
+            "React\\": "src"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.5-dev"
+        }
+    }
+}

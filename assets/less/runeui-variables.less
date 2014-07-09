@@ -1,0 +1,133 @@
+// Brand colors
+// -------------------------
+@brand-primary:         #0095D8;
+@brand-alt:				#34495E;
+
+// @brand-primary:         #16a085;
+// @brand-alt:				#2c3e50;
+
+
+// Scaffolding
+// -------------------------
+@body-bg:               #000;
+@text-color:            lighten(@brand-alt, 62%);
+
+
+// Typography
+// -------------------------
+@font-family-sans-serif:  "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+@font-size-large:         ceil((@font-size-base * 1.10)); // ~16px
+
+// Components
+// -------------------------
+// Based on 14px font-size and 1.428 line-height (~20px to start)
+
+@padding-btn-vertical:         11px;
+@padding-btn-horizontal:       19px;
+
+@border-radius-base:        6px;
+
+
+// Buttons
+// -------------------------
+@btn-default-color:              @text-color;
+@btn-default-bg:                 @brand-alt;
+@btn-default-border:             #ccc;
+
+@btn-primary-color:              @text-color;
+@btn-primary-bg:                 @brand-primary;
+@btn-primary-border:             darken(@btn-primary-bg, 5%);
+
+@btn-success-color:              @text-color;
+@btn-success-bg:                 @brand-success;
+@btn-success-border:             darken(@btn-success-bg, 5%);
+
+@btn-warning-color:              @text-color;
+@btn-warning-bg:                 @brand-warning;
+@btn-warning-border:             darken(@btn-warning-bg, 5%);
+
+@btn-danger-color:               @text-color;
+@btn-danger-bg:                  @brand-danger;
+@btn-danger-border:              darken(@btn-danger-bg, 5%);
+
+@btn-info-color:                 @text-color;
+@btn-info-bg:                    @brand-info;
+@btn-info-border:                darken(@btn-info-bg, 5%);
+
+@btn-link-disabled-color:        @gray-light;
+
+
+// Forms
+// -------------------------
+@input-bg:                       darken(@brand-alt, 20%); // #11181F;
+@input-bg-disabled:              darken(@input-bg, 10%);
+
+@input-color:                    @text-color;
+@input-border:                   @brand-alt;
+@input-border-radius:            @border-radius-base;
+@input-border-focus:             #66afe9;
+
+//** Large `.form-control` height
+@input-height-large:             (ceil(@font-size-base * @line-height-large) + (@padding-large-vertical * 2) + 2);
+
+@legend-color:                   @text-color;
+@legend-border-color:            @brand-alt;
+
+
+// Dropdowns
+// -------------------------
+@dropdown-bg:                    #fff;
+@dropdown-border:                rgba(0,0,0,.15);
+@dropdown-fallback-border:       #ccc;
+@dropdown-divider-bg:            #e5e5e5;
+
+@dropdown-link-color:            @gray-dark;
+@dropdown-link-hover-color:      darken(@gray-dark, 5%);
+@dropdown-link-hover-bg:         #f5f5f5;
+
+@dropdown-link-active-color:     @component-active-color;
+@dropdown-link-active-bg:        @component-active-bg;
+
+@dropdown-link-disabled-color:   @gray-light;
+
+@dropdown-header-color:          @gray-light;
+
+// Tooltips
+// -------------------------
+@tooltip-bg:                     @brand-alt;
+
+// Modals
+// -------------------------
+@modal-content-bg:                             darken(@brand-alt, 20%);
+@modal-content-border-color:                   @brand-alt;
+@modal-content-fallback-border-color:          darken(@brand-alt, 5%);
+
+@modal-backdrop-bg:           #000;
+@modal-header-border-color:   darken(@brand-alt, 20%);
+@modal-footer-border-color:   darken(@brand-alt, 20%);
+
+
+// Code
+// ------------------------
+@code-bg:                     @brand-alt;
+@code-color:                  #c7254e;
+
+@pre-bg:                      lighten(@body-bg, 10%);
+@pre-color:                   lighten(@brand-alt, 30%);
+@pre-border-color:            darken(@brand-alt, 20%);
+@pre-scrollable-max-height:   340px;
+
+
+// Form states and alerts
+// -------------------------
+
+@state-info-text:				@text-color;
+@state-info-bg:					darken(@brand-alt, 20%);
+@state-info-border:				darken(spin(@state-info-bg, -10), 7%);
+
+
+// Progress bars
+// -------------------------
+
+@progress-bg:					@brand-alt;

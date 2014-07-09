@@ -1,0 +1,3 @@
+#KERNEL=="sd*", SUBSYSTEM="usb", RUN+="/var/www/command/ui_notify.php 'Usb Storage' event simplemessage"
+KERNEL=="sd?1", ACTION=="add", RUN+="/var/www/command/ui_notify.php 'Usb Storage' connected simplemessage"
+KERNEL=="sd?1", ACTION=="remove", RUN+="/var/www/command/ui_notify.php 'Usb Storage' disconnected simplemessage"

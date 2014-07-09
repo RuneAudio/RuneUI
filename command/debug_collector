@@ -1,0 +1,236 @@
+#!/usr/bin/php
+<?php 
+/*
+ * Copyright (C) 2013-2014 RuneAudio Team
+ * http://www.runeaudio.com
+ *
+ * RuneUI
+ * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ *
+ * RuneOS
+ * copyright (C) 2013-2014 - Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
+ *
+ * RuneAudio website and logo
+ * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
+ *
+ * This Program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ *
+ * This Program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with RuneAudio; see the file COPYING.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.txt>.
+ *
+ *  file: command/debug_collector
+ *  version: 1.3
+ *  coder: Simone De Gregori
+ *
+ */
+ 
+// common include
+ini_set('display_errors', '1');
+ini_set('error_reporting', -1);
+ini_set('error_log','/var/log/runeaudio/debug_collector.log');
+include('/var/www/app/libs/runeaudio.php');
+// Connect to Redis backend
+$redis = new Redis();
+$redis->connect('127.0.0.1', 6379);
+
+function debug_data($redis) {
+		$acards = sysCmd("cat /proc/asound/cards | grep : | cut -d ' ' -f 2");
+		$output = "\n";
+		$output .= "###### System info ######\n";
+		$output .=  file_get_contents('/proc/version');
+		$output .= "\n";
+		$output .=  "system time:\t".implode('\n',sysCmd('date'));
+		$output .= "\n";
+		$output .= "\n";
+		$output .=  "system load:\t".file_get_contents('/proc/loadavg');
+		$output .= "\n";
+		$output .= "HW platform:\t".$redis->get('hwplatform')." (".$redis->get('hwplatformid').")\n";
+		$output .= "\n";
+		$output .= "playerID:\t".$redis->get('playerid')."\n";
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "###### System load statistics (procinfo -H) ######\n";
+		$command = sysCmd('procinfo -H');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Active processes (pstree) ######\n";
+		$command = sysCmd('pstree');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);		
+		$output .= "###### Audio backend ######\n";
+		$output .=  file_get_contents('/proc/asound/version');
+		$output .= "\n";
+		$output .= "Card list: (/proc/asound/cards)\n";
+		$output .= "--------------------------------------------------\n";
+		$output .=  file_get_contents('/proc/asound/cards');
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "PLAYBACK devices: (aplay -l)\n";
+		$output .= "--------------------------------------------------\n";
+		$output .= implode("\n",sysCmd('aplay -l'));
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "PCM devices: (aplay -L)\n";
+		$output .= "--------------------------------------------------\n";
+		$output .= implode("\n",sysCmd('aplay -L'));
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "Simple mixer controls: (amixer scontrols)\n";
+		$output .= "--------------------------------------------------\n";
+		foreach ($acards as $card) {
+			$output .= "card ".$card.":\n";
+			$command = implode("\n",sysCmd('amixer -c '.$card.' scontrols'));
+			if (!empty($command)) { $output .= $command; } else { $output .= 'no mixer scontrols'; }
+			unset($command);
+			$output .= "\n\n";
+		}
+		$output .= "\n";
+		$output .= "Mixer controls: (amixer controls)\n";
+		$output .= "--------------------------------------------------\n";
+		foreach ($acards as $card) {
+			$output .= "card ".$card.":\n";
+			$command = implode("\n",sysCmd('amixer -c '.$card.' controls')); 
+			if (!empty($command)) { $output .= $command; } else { $output .= 'no mixer controls'; }
+			unset($command);
+			$output .= "\n\n";
+		}
+		// TODO: better collect stream info
+		// $output .= "ALSA interface #0: (/proc/asound/card0/pcm0p/info)\n";
+		// $output .= "--------------------------------------------------\n";
+		// $output .=  file_get_contents('/proc/asound/card0/pcm0p/info');
+		// $output .= "\n";
+		// $output .= "ALSA interface #1: (/proc/asound/card1/pcm0p/info)\n";
+		// $output .= "--------------------------------------------------\n";
+		// $output .=  file_get_contents('/proc/asound/card1/pcm0p/info');
+		// $output .= "\n";
+		// $output .= "interface #0 stream status: (/proc/asound/card0/stream0)\n";
+		// $output .= "--------------------------------------------------------\n";
+		// $streaminfo = file_get_contents('/proc/asound/card0/stream0');
+		// if (empty($streaminfo)) {
+		// $output .= "no stream present\n";
+		// } else {
+		// $output .= $streaminfo;
+		// }
+		// $output .= "\n";
+		// $output .= "interface #1 stream status: (/proc/asound/card1/stream0)\n";
+		// $output .= "--------------------------------------------------------\n";
+		// $streaminfo = file_get_contents('/proc/asound/card1/stream0');
+		// if (empty($streaminfo)) {
+		// $output .= "no stream present\n";
+		// } else {
+		// $output .= $streaminfo;
+		// }
+		$output .= "\n";
+		$output .= "###### mpd.conf ######\n";
+		$output .= file_get_contents('/etc/mpd.conf');
+		$output .= "\n";
+		$output .= "###### Kernel optimization parameters ######\n";
+		$output .= "hardware platform:\t".$redis->get('hwplatform')."\n";
+		$output .= "current orionprofile:\t".$redis->get('orionprofile')."\n";
+		$output .= "\n\n";
+		// 		$output .=  "kernel scheduler for mmcblk0:\t\t".((empty(file_get_contents('/sys/block/mmcblk0/queue/scheduler'))) ? "\n" : file_get_contents('/sys/block/mmcblk0/queue/scheduler'));
+		$output .=  "kernel scheduler for mmcblk0:\t\t\t".file_get_contents('/sys/block/mmcblk0/queue/scheduler');
+		$output .=  "/proc/sys/vm/swappiness:\t\t\t".file_get_contents('/proc/sys/vm/swappiness');
+		$output .=  "/proc/sys/kernel/sched_latency_ns:\t\t".file_get_contents('/proc/sys/kernel/sched_latency_ns');
+		$output .=  "/proc/sys/kernel/sched_rt_period_us:\t\t".file_get_contents('/proc/sys/kernel/sched_rt_period_us');
+		$output .=  "/proc/sys/kernel/sched_rt_runtime_us:\t\t".file_get_contents('/proc/sys/kernel/sched_rt_runtime_us');
+		$output .=  "/proc/sys/kernel/sched_autogroup_enabled:\t".file_get_contents('/proc/sys/kernel/sched_autogroup_enabled');
+		$output .=  "/proc/sys/kernel/sched_rr_timeslice_ms:\t\t".file_get_contents('/proc/sys/kernel/sched_rr_timeslice_ms');
+		$output .=  "/proc/sys/kernel/sched_min_granularity_ns:\t".file_get_contents('/proc/sys/kernel/sched_min_granularity_ns');
+		$output .=  "/proc/sys/kernel/sched_wakeup_granularity_ns:\t".file_get_contents('/proc/sys/kernel/sched_wakeup_granularity_ns');
+		$output .= "\n";
+		$output .= "\n";
+		$output .= "###### Kernel module snd_usb_audio settings ######\n";
+		$command = sysCmd('systool -v -m snd_usb_audio');
+		$output .= implode("\n",$command)."\n\n";
+		unset($command);
+		$output .= "###### Systemd active startup scripts (ls -lah /etc/systemd/system/multi-user.target.wants/) ######\n";
+		$command = sysCmd('ls -lah /etc/systemd/system/multi-user.target.wants/');
+		$output .= implode("\n",$command)."\n\n\n";
+		$output .= "###### Filesystem mounts ######\n";
+		$output .=  file_get_contents('/proc/mounts')."\n\n";
+		$output .= "###### Filesystem mounts - free space (df -h) ######\n";
+		$command = sysCmd('df -h');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Loaded kernel modules ######\n";
+		$command = sysCmd('lsmod');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Network listening sockets (netstat -lnp) ######\n";
+		$command = sysCmd('netstat -lnp');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Network established sockets (netstat -np) ######\n";
+		$command = sysCmd('netstat -np');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Network interfaces (ip addr) ######\n";
+		$command = sysCmd('ip addr');
+		$output .= implode("\n",$command)."\n\n\n";
+		unset($command);
+		$output .= "###### Network interfaces (ifconfig) ######\n";
+		$command = sysCmd('ifconfig');
+		$output .= implode("\n",$command)."\n\n";
+		unset($command);
+		$output .= "###### Network netctl profiles (netctl list) ######\n";
+		$command = sysCmd('netctl list');
+		$output .= implode("\n",$command)."\n\n";
+		unset($command);
+		$command = sysCmd("netctl list | cut -d ' ' -f 2,3");
+		foreach ($command as $interface) {
+			$command = sysCmd('netctl status '.trim($interface));
+			$output .= $interface." netctl status\n";
+			$output .= "--------------------------------------------------------\n";
+			$output .= implode("\n",$command)."\n\n";
+			$output .= $interface." netctl profile\n";
+			$output .= "--------------------------------------------------------\n";
+			$command = sysCmd('cat /etc/netctl/'.trim($interface));
+			$output .= implode("\n",$command)."\n\n";
+		}
+		$output .= "\n";
+		$output .= "###### Network wifi status (iwconfig) ######\n";
+		$command = sysCmd('iwconfig');
+		$output .= implode("\n",$command)."\n\n";
+		unset($command);
+		// $output .= "###### Network wifi site-scan (iwlist scan) ######\n";
+		// $command = sysCmd('iwlist scan');
+		// $output .= implode("\n",$command)."\n\n";
+		// unset($command);
+		$output .= "###### Kernel status (dmesg) ######\n";
+		$command = sysCmd('dmesg');
+		$output .= implode("\n",$command)."\n\n";
+		unset($command);
+		$output .= "###### PHP backend ######\n";
+		$output .= "php version:\t".phpVer()."\n";
+		$output .= "debug level:\t".$redis->get('debug')."\n";
+		$output .= "\n";
+		$output .= "\n";
+		// $output .= "###### SESSION ######\n";
+		// $output .= "\n";
+		// $output .= "STATUS:\t\t".session_status()."\n";
+		// $output .= "ID:\t\t".session_id()."\n"; 
+		// $output .= "SAVE PATH:\t".session_save_path()."\n";
+		// $output .= "\n";
+		// $output .= "\n";
+		// $output .= "###### SESSION DATA ######\n";
+		// $output .= "\n";
+		// $output .= print_r($_SESSION);	
+		$output .= "Debug data collected in ".round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']),3)." seconds. ";
+		// $output .= "\n";
+		// $output .= "\n";
+return $output;
+}
+
+$redis->set('debugdata',debug_data($redis));
