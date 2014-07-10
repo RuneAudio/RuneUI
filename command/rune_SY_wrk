@@ -155,11 +155,11 @@ $redis->set('hostname',$hn[0]);
 	// start samba services
 	if ($redis->get('dev') > 0) {
 	runelog("service: SAMBA start (DEV-Mode ON)",'');
-	sysCmd('/usr/sbin/smbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb-dev.conf');
-	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb-dev.conf');
+	sysCmd('/usr/sbin/smbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-dev.conf');
+	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-dev.conf');
 	} else {
 	runelog("service: NMBD start",'');
-	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/_OS_SETTINGS/etc/samba/smb-prod.conf');
+	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-prod.conf');
 	}
 }
 

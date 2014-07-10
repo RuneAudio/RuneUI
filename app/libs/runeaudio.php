@@ -1550,7 +1550,10 @@ $header .= "\n";
 				if ($param === 'mixer_type') {
 					if ($value === 'software' OR $value === 'hardware') {
 						$redis->set('volume', 1);
-						if ($value === 'hardware') break;
+						if ($value === 'hardware') {
+							$hwmixer = 1;
+							break;
+						}
 					} else {
 						$redis->set('volume', 0);
 					}
@@ -1649,8 +1652,11 @@ $header .= "\n";
 					$output .="name \t\t\"".$card->name."\"\n";
 					$output .="type \t\t\"".$card->type."\"\n";
 					$output .="device \t\t\"".$card->device."\"\n";
-					if (isset($card->mixer_device)) $output .="mixer_device \t\"".$card->mixer_device."\"\n";
-					if (isset($card->mixer_control)) $output .="mixer_control \t\"".$card->mixer_control."\"\n";
+					if (isset($hwmixer)) {
+						$output .="mixer_type \t\"hardware\"\n";
+						if (isset($card->mixer_device)) $output .="mixer_device \t\"".$card->mixer_device."\"\n";
+						if (isset($card->mixer_control)) $output .="mixer_control \t\"".$card->mixer_control."\"\n";
+					}
 					if ($mpdcfg['dsd_usb'] === 'yes') $output .="dsd_usb \t\"yes\"\n";
 					$output .="auto_resample \t\"no\"\n";
 					$output .="auto_format \t\"no\"\n";
