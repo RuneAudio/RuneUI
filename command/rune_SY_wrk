@@ -91,7 +91,7 @@ if ($playerid_db === '') {
 // RUNEAUDIO FIRST RUN PROCESS --- //
 runelog('>>>>>>RUNEAUDIO FIRST RUN PROCESS ---');
 // reset Redis datatore to defaults
-redisDatastore($redis,'reset');
+// redisDatastore($redis,'reset');
 
 	// reset critical file permissions to default
 	runelog('reset critical file permissions to default');
@@ -102,24 +102,24 @@ redisDatastore($redis,'reset');
 	wrk_setHwPlatform($redis);
 
 	// reset netconf to defaults
-	runelog('reset netconf to defaults');
+	// runelog('reset netconf to defaults');
 
 	// read system network interfaces details
-	wrk_netconfig($redis,'reset');
+	// wrk_netconfig($redis,'reset');
 
 	// reset sourcecfg to defaults
-	runelog('reset sourcecfg to defaults');
-	wrk_sourcecfg($redis,'reset');
-	sendMpdCommand($mpd,'update');
+	// runelog('reset sourcecfg to defaults');
+	// wrk_sourcecfg($redis,'reset');
+	// sendMpdCommand($mpd,'update');
 
 	// reset mpdconf to defaults
-	runelog('reset mpdconf to defaults');
-	wrk_mpdconf($redis,'reset');
+	// runelog('reset mpdconf to defaults');
+	// wrk_mpdconf($redis,'reset');
 	
 	// tell worker to write new MPD config
-	wrk_mpdconf('/etc',$redis);
+	// wrk_mpdconf('/etc',$redis);
 	
-	usleep(500000);
+	// usleep(500000);
 	// system ENV files check and replace
 	// runelog("system ENV files check and replace",'');
 	//	wrk_sysEnvCheck($arch,1);
@@ -189,9 +189,9 @@ sysCmd('systemctl start mpdscribble');
 // read system network interfaces details
 // wrk_netconfig($redis,'setnics');
 // check /etc/network/interfaces integrity
-hashCFG('check_net',$redis);
+// hashCFG('check_net',$redis);
 // check /etc/mpd.conf integrity
-hashCFG('check_mpd',$redis);
+// hashCFG('check_mpd',$redis);
 // Cmediafix startup check
 if ($redis->get('cmediafix') === '1') {
 	$mpd = openMpdSocket('/run/mpd.sock');

@@ -478,126 +478,6 @@ function netMounts($redis, $action ,$data = null) {
 return $mp;
 }
 
-function redisDatastore($redis,$action) {
-
-	switch ($action) {
-			
-			case 'reset':
-			// kernel profile
-			$redis->set('orionprofile', 'RuneAudio');
-
-			// player features
-			$redis->set('hostname', 'runeaudio');
-			$redis->set('ntpserver', 'pool.ntp.org');
-			$redis->hSet('airplay','enable', 1);
-			$redis->hSet('airplay','name', 'runeaudio');
-			$redis->set('udevil', 1);
-			$redis->set('coverart', 1);
-			$redis->set('playmod', 0);
-			$redis->set('ramplay', 0);
-			$redis->set('scrobbling_lastfm', 0);
-			$redis->set('cmediafix', 0);
-			$redis->set('globalrandom', 0);
-			$redis->set('globalrandom_lock', 0);
-
-			// plugins api-keys
-			$redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
-			$redis->hSet('jamendo', 'clientid', '5f3ed86c');
-			$redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
-			$redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
-
-			// internal config hash control
-			$redis->set('mpdconfhash', '');
-			$redis->set('netconfhash', '');
-			$redis->set('mpdconf_advanced', 0);
-			$redis->set('netconf_advanced', 0);
-
-			// developer parameters
-			$redis->set('dev', 0);
-			$redis->set('debug', 0);
-			$redis->set('opcache', 1);
-
-			// HW platform data
-			$redis->set('playerid', '');
-			$redis->set('hwplatform', '');
-			$redis->set('hwplatformid', '');
-
-			// player control
-			$redis->set('ao', 1);
-			$redis->set('volume', 0);
-			$redis->set('pl_length', 0);
-			$redis->set('nextsongid', 0);
-			$redis->set('lastsongid', 0);
-			
-			// acards_details database
-			$redis->hSet('acards_details','snd_rpi_iqaudio_dac','{"sysname":"snd_rpi_iqaudio_dac","extlabel":"IQaudIO Pi-DAC &#8722; I&#178;S","mixer_numid":"1","mixer_control":"Playback Digital","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','berrynosmini','{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS mini &#8722; I&#178;S","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','berrynos','{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS 1543 &#8722; I&#178;S","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','snd_rpi_hifiberry_dac','{"sysname":"snd_rpi_hifiberry_dac","extlabel":"HiFiBerry DAC &#8722; I&#178;S","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','snd_rpi_hifiberry_digi','{"sysname":"snd_rpi_hifiberry_digi","extlabel":"HiFiBerry Digi &#8722; I&#178;S","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','raspi2splay3','{"sysname":"snd_rpi_hifiberry_dac","extlabel":"RaspI2SPlay3 &#8722; I&#178;S","hwplatformid":"01","type":"i2s"}');
-			$redis->hSet('acards_details','XMOS USB Audio 2.0','{"sysname":"XMOS USB Audio 2.0","extlabel":"XMOS AK4399 USB-Audio DAC","mixer_numid":"3","mixer_control":"XMOS Clock Selector","type":"usb"}');
-			$redis->hSet('acards_details','wm8731-audio','{"sysname":"wm8731-audio","extlabel":"Utilite Analog Out","mixer_numid":"1","mixer_control":"Master","hwplatformid":"05","type":"integrated"}');
-			$redis->hSet('acards_details','imx-spdif','{"sysname":"imx-spdif","extlabel":"Utilite Coax SPDIF Out","hwplatformid":"05","type":"integrated"}');
-			$redis->hSet('acards_details','imx-hdmi-soc','{"sysname":"imx-hdmi-soc","extlabel":"Utilite HDMI Out","hwplatformid":"05","type":"integrated"}');
-			$redis->hSet('acards_details','bcm2835 ALSA','{"sysname":"bcm2835 ALSA","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
-			$redis->sAdd('bcm2835 ALSA','{"id:"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
-			$redis->sAdd('bcm2835 ALSA','{"id:"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}');
-			break;
-			
-			case 'check':
-			// kernel profile
-			$redis->get('orionprofile') || $redis->set('orionprofile', 'RuneAudio');
-
-			// player features
-			$redis->get('hostname') || $redis->set('hostname', 'runeaudio');
-			$redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
-				// TODO: remove this line // check old control value
-				if ($redis->get('airplay')) $redis->del('airplay');
-			$redis->hGet('airplay','enable') || $redis->hSet('airplay','enable', 1);
-			$redis->hGet('airplay','name') || $redis->hSet('airplay','name', 'runeaudio');
-			$redis->get('udevil') || $redis->set('udevil', 1);
-			$redis->get('coverart') || $redis->set('coverart', 1);
-			$redis->get('playmod') || $redis->set('playmod', 0);
-			$redis->get('ramplay') || $redis->set('ramplay', 0);
-			$redis->get('scrobbling_lastfm') || $redis->set('scrobbling_lastfm', 0);
-			$redis->get('cmediafix') || $redis->set('cmediafix', 0);
-			$redis->get('globalrandom') || $redis->set('globalrandom', 0);
-			$redis->get('globalrandom_lock') || $redis->set('globalrandom_lock', 0);
-
-			// plugins api-keys
-			$redis->get('lastfm_apikey') || $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
-			$redis->hGet('jamendo', 'clientid') || $redis->hSet('jamendo', 'clientid', '5f3ed86c');
-			$redis->hGet('jamendo', 'secret') || $redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
-			$redis->hGet('dirble','apikey') || $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
-
-			// internal config hash control
-			$redis->get('mpdconfhash') || $redis->set('mpdconfhash', '');
-			$redis->get('netconfhash') || $redis->set('netconfhash', '');
-			$redis->get('mpdconf_advanced') || $redis->set('mpdconf_advanced', 0);
-			$redis->get('netconf_advanced') || $redis->set('netconf_advanced', 0);
-
-			// developer parameters
-			$redis->get('dev') || $redis->set('dev', 0);
-			$redis->get('debug') || $redis->set('debug', 0);
-			$redis->get('opcache') || $redis->set('opcache', 1);
-
-			// HW platform data
-			$redis->get('playerid') || $redis->set('playerid', '');
-			$redis->get('hwplatform') || $redis->set('hwplatform', '');
-			$redis->get('hwplatformid') || $redis->set('hwplatformid', '');
-
-			// player control
-			$redis->get('ao') || $redis->set('ao', 1);
-			$redis->get('volume') || $redis->set('volume', 0);
-			$redis->get('pl_length') || $redis->set('pl_length', 0);
-			$redis->get('nextsongid') || $redis->set('nextsongid', 0);
-			$redis->get('lastsongid') || $redis->set('lastsongid', 0);	
-			break;
-	}
-	
-}
-
 // Ramplay functions
 function rp_checkPLid($id,$mpd) {
 $_SESSION['DEBUG'] .= "rp_checkPLid:$id |";
@@ -2006,7 +1886,7 @@ return $playerid;
 }
 
 function wrk_sysAcl() {
-sysCmd('chmod a+x /var/www/command/orion_optimize.sh');
+sysCmd('chmod -R a+x /var/www/command');
 sysCmd('chmod 777 /run');
 sysCmd('chmod a+rw /etc/mpd.conf');
 sysCmd('chmod a+rw /etc/mpdscribble.conf');

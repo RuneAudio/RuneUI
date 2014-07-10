@@ -66,8 +66,6 @@ $controllers = array(
 'tun'
 );
 
-
-
 // check page
 if (in_array($template->uri(1),$controllers) OR empty($template->uri(1))) {
 

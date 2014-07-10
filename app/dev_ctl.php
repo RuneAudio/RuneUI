@@ -65,21 +65,21 @@ if (isset($_POST)) {
 	}
 	if (isset($_POST['syscmd'])) {
 			// ----- BLANK PLAYERID -----
-			if (isset($_POST['syscmd']['blankplayerid'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'blankplayerid' ));
+			if ($_POST['syscmd'] === 'blankplayerid') $redis->set('playerid','');
 			// ----- CLEARIMG -----
-			if (isset($_POST['syscmd']['clearimg'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
+			if ($_POST['syscmd'] === 'clearimg') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
 			// ----- CHECK FS PERMISSIONS -----
-			if (isset($_POST['syscmd']['syschmod'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'syschmod' ));
+			if ($_POST['syscmd'] === 'syschmod') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'syschmod' ));
 			// ----- RESTART MPD -----
-			if (isset($_POST['syscmd']['mpdrestart'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdrestart' ));
+			if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdrestart' ));
 			// ----- RESET NET CONFIG -----
-			if (isset($_POST['syscmd']['netconfreset'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
+			if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
 			// ----- RESET MPD CONFIG -----
-			if (isset($_POST['syscmd']['netconfreset'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
+			if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
 			// ----- RESTART PHP-FPM -----
-			if (isset($_POST['syscmd']['phprestart'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
+			if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
 			// ----- RESTART WORKERS -----
-			if (isset($_POST['syscmd']['wrkrestart'])) $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart'] ));
+			if ($_POST['syscmd'] === 'wrkrestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart'] ));
 	}
 }
 waitSyWrk($redis,$jobID);
