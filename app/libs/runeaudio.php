@@ -2286,7 +2286,7 @@ return $response;
 }
 
 function countDirs($basepath) {
-$count = count(glob($basepath."/*",GLOB_ONLYDIR)); 
+$count = count(glob($basepath."/",GLOB_ONLYDIR)); 
 return $count; 
 }
 
