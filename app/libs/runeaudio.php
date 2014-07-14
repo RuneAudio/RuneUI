@@ -2160,35 +2160,20 @@ function ui_libraryHome($redis,$mpd) {
 // Network mounts
 $networkmounts = countDirs('/mnt/MPD/NAS');
 // runelog('networkmounts: ',$networkmounts);
+
 // USB mounts
 $usbmounts = countDirs('/mnt/MPD/USB');
 // runelog('usbmounts: ',$usbmounts);
-// ---------------------------------------------------------
-		/*
-		// Webradios
-		sendMpdCommand($mpd,'listall Webradio');
-		$resp = readMpdResponse($mpd);
-		$line = strtok($resp,"\n");
-		$webradios = 0;
-		while ( $line ) {
-			list ( $element, $value ) = explode(': ',$line );
-			if ( $element === 'playlist' ) {
-				$webradios++;
-			}
-			$line = strtok("\n");
-		} 
-		*/
-// ---------------------------------------------------------
-// runelog('webradios: ',$webradios);
+
 // Webradios 
 $webradios = count($redis->hKeys('webradios'));
+// runelog('webradios: ',$webradios);
+
 // Dirble
 $proxy = $redis->hGetall('proxy');
 $dirblecfg = $redis->hGetAll('dirble');
 $dirble = json_decode(curlGet($dirblecfg['baseurl'].'amountStation/apikey/'.$dirblecfg['apikey'],$proxy));
-//__ runelog('dirble: ',$dirble);
-//__ Bookmarks
-//__ $bookmarks = $redis->hGetAll('bookmarks');
+// runelog('dirble: ',$dirble);
 
 // Bookmarks
 $redis_bookmarks = $redis->hGetAll('bookmarks');
@@ -2198,13 +2183,12 @@ foreach ($redis_bookmarks as $key => $data) {
 	runelog('bookmark details', $data);
 	$bookmarks[] = array('bookmark' => $key,'name' => $bookmark->name, 'path' => $bookmark->path);
 }
-$jsonHome = json_encode(array_merge($bookmarks,array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount))));
 // runelog('bookmarks: ',$bookmarks);
+
+$jsonHome = json_encode(array_merge($bookmarks,array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount))));
 // Encode UI response
-//__ $jsonHome = json_encode(array('bookmarks' => array('count' => count($bookmarks),'data' => $bookmarks),'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'Dirble' => $dirble->amount));
 runelog('libraryHome JSON: ', $jsonHome);
 ui_render('library',$jsonHome);
-// echo json_encode(array('bookmarks' => array('count' => count($bookmarks),'data' => $bookmarks),'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'Dirble' => $dirble->amount));
 }
 
 function ui_lastFM_coverart($artist,$album,$lastfm_apikey,$proxy) {

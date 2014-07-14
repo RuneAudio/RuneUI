@@ -67,7 +67,7 @@ return $response;
 if (isset($argv[2]) && !isset($argv[3])) {
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('/tmp/redis.sock');
 	if (!($redis->sIsMember('w_lock', $argv[2]))) {
 			usleep(800000);
 	} else {
@@ -86,3 +86,5 @@ if (isset($argv[3]) && $argv[3] === 'simplemessage') {
 } else {
 	ui_render('notify', $argv[1]);
 }
+// close Redis connection
+$redis->close();

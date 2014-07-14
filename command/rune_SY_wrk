@@ -44,7 +44,7 @@ include('/srv/http/app/libs/runeaudio.php');
 
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('127.0.0.1');
 
 // prime PHP 5.5 Opcache
 //if ($redis->get('dev') === '0') {
@@ -53,7 +53,7 @@ $redis->connect('127.0.0.1', 6379);
 //}
 
 // check configuration datastore
-redisDatastore($redis,'check');
+//redisDatastore($redis,'check');
 
 // read registered HW architecture
 $arch_db = $redis->get('hwplatformid');
@@ -218,9 +218,14 @@ $starttime = ($start4-$start3)+$firstlap;
 runelog('WORKER rune_SY_wrk.php STARTED in '.$starttime.' seconds.');
 ui_notify_async('system worker','rune_SY_wrk started in '.$starttime.' seconds.');
 
+// close startup Redis connection
+$redis->close();
 runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
 while (1) {
+// Connect to Redis backend
+// $redis->pconnect('127.0.0.1');
+$redis->pconnect('/tmp/redis.sock');
 // runelog('[wrk] loop marker ',microtime(true));
 	// monitor loop
 	if (!empty($redis->hGetAll('w_queue'))) {
@@ -616,3 +621,5 @@ while (1) {
 usleep(500000);
 } // endwhile loop
 // --- WORKER MAIN LOOP //
+// close Redis connection
+$redis->close();

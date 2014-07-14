@@ -142,6 +142,6 @@ echo $template->render('default_lo');
 // close MPD connection
 closeMpdSocket($mpd);
 // close Redis connection
-$redis->close();
+// $redis->close();
 // close session
 session_write_close();

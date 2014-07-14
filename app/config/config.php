@@ -31,18 +31,17 @@
  *  coder: Simone De Gregori
  *
  */
- 
 // Environment vars
 define('APP',$_SERVER['HOME'].'/app/');
-// Connect to Redis backend
-$redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
-$devmode = $redis->get('dev');
 // extend include path for Vendor Libs
 $libs = APP.'libs/vendor';
 set_include_path(get_include_path() . PATH_SEPARATOR . $libs);
 // RuneAudio Library include
 include(APP.'libs/runeaudio.php');
+// Connect to Redis backend
+$redis = new Redis(); 
+$redis->pconnect('127.0.0.1');
+$devmode = $redis->get('dev');
 // LogSettings
 if ($redis->get('debug') > 0 ) {
 $activeLog=1;

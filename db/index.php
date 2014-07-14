@@ -217,3 +217,5 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
   echo 'hosted on runeaudio.local:81';
   
 }
+// close Redis connection
+$redis->close();

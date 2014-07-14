@@ -39,7 +39,7 @@ ini_set('error_reporting', -1);
 ini_set('error_log','/var/log/runeaudio/refresh_ao.log');
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('/tmp/redis.sock');
 include('/var/www/app/libs/runeaudio.php');
 // startup
 runelog('--------------------------- start Audio Outputs refresh ---------------------------');
@@ -48,7 +48,7 @@ if ($redis->get('lock_refresh_ao') === '0') {
 $redis->set('lock_refresh_ao', '1');
 $redis->save();
 wrk_mpdconf($redis,'refresh');
-ui_notify('USB-Audio', 'interface connected');
+ui_notify('Audio Output', 'configuration changed.');
 $redis->set('lock_refresh_ao', '0');
 $redis->save();
 } else {
@@ -56,3 +56,5 @@ echo "LOCKED!";
 }
 // startup
 runelog('-------------------------- #finish Audio Outputs refresh# --------------------------');
+// close Redis connection
+$redis->close();

@@ -39,7 +39,7 @@ ini_set('display_errors', '1');
 ini_set('error_log','/var/log/runeaudio/refresh_nics.log');
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('/tmp/redis.sock');
 include('/var/www/app/libs/runeaudio.php');
 include '/var/www/app/libs/vendor/ziegler/iwlist-parser.class.php';
 
@@ -203,3 +203,5 @@ if (!empty($removed_nics)) {
 // end - unlock the scan system
 runelog('--------------------------- unlock the scan system ---------------------------');
 $redis->Set('lock_wifiscan',0);
+// colse Redis connection
+$redis->close();

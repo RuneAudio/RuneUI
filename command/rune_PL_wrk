@@ -37,9 +37,6 @@
 ini_set('display_errors', '1');
 ini_set('error_reporting', -1);
 ini_set('error_log','/var/log/runeaudio/rune_PL_wrk.log');
-// Connect to Redis backend
-$redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
 include('/var/www/app/libs/runeaudio.php');
 // reset worker logfile
 sysCmd('echo "--------------- start: rune_PL_wrk ---------------" > /var/log/runeaudio/rune_PL_wrk.log');
@@ -48,6 +45,10 @@ runelog("WORKER rune_PL_wrk START",'');
 $forceupdate = 1;
 // --- WORKER MAIN LOOP --- //
 while (1) {
+// Connect to Redis backend
+$redis = new Redis();
+$redis->pconnect('/tmp/redis.sock');
+// $redis->pconnect('/tmp/redis.sock');
 runelog("rune_PL_wrk: open MPD local UNIX socket",'');
 $mpd = openMpdSocket('/run/mpd.sock') ;
 if (!$mpd) {
@@ -134,8 +135,11 @@ $status = monitorMpdState($mpd);
 // JSON response for GUI
 runelog("rune_PL_wrk: ui_render() response",json_encode($status));
 ui_render('playback',json_encode($status));
+// close Redis connection
+$redis->close();
 runelog("rune_PL_wrk: close MPD local UNIX socket",'');
 closeMpdSocket($mpd);
 }
 // --- WORKER MAIN LOOP --- //
 }
+

@@ -40,7 +40,8 @@ ini_set('error_log','/var/log/runeaudio/usbmount.log');
 include('/var/www/app/libs/runeaudio.php');
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('/tmp/redis.sock');
+//$redis->connect('127.0.0.1', 6379);
 
 // handle HFS+ mount
 if (strpos(file_get_contents('/proc/mounts'),'/mnt/MPD/USB/EFI vfat')) {
@@ -68,3 +69,5 @@ sendMpdCommand($mpd,'update USB');
 ui_libraryHome($redis,$mpd);
 // close MPD connection
 closeMpdSocket($mpd);
+// close Redis connection
+$redis->close();

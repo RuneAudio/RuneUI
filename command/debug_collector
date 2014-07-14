@@ -40,7 +40,7 @@ ini_set('error_log','/var/log/runeaudio/debug_collector.log');
 include('/var/www/app/libs/runeaudio.php');
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('127.0.0.1', 6379);
+$redis->connect('/tmp/redis.sock');
 
 function debug_data($redis) {
 		$acards = sysCmd("cat /proc/asound/cards | grep : | cut -d ' ' -f 2");
@@ -234,3 +234,4 @@ return $output;
 }
 
 $redis->set('debugdata',debug_data($redis));
+$redis->close();

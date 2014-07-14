@@ -89,6 +89,7 @@ function redisDatastore($redis,$action) {
 			$redis->set('pl_length', 0);
 			$redis->set('nextsongid', 0);
 			$redis->set('lastsongid', 0);
+			$redis->set('lock_refresh_ao', 0);
 			break;
 			
 			case 'check':
@@ -138,6 +139,7 @@ function redisDatastore($redis,$action) {
 			$redis->get('pl_length') || $redis->set('pl_length', 0);
 			$redis->get('nextsongid') || $redis->set('nextsongid', 0);
 			$redis->get('lastsongid') || $redis->set('lastsongid', 0);	
+			$redis->get('lock_refresh_ao') || $redis->set('lock_refresh_ao', 0);
 			break;
 	}
 	
