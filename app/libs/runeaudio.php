@@ -197,6 +197,7 @@ $fileext = parseFileStr($path,'.');
 	}
 }
 
+/*
 class globalRandom extends Thread {
 	// mpd status
 	public $status;
@@ -221,6 +222,7 @@ class globalRandom extends Thread {
 		closeMpdSocket($mpd);
     }
 }
+*/
 
 function randomSelect($sock) {
 $songs = searchDB($sock,'globalrandom');
@@ -2122,6 +2124,7 @@ function ui_notify_async($title, $text, $jobID = null, $icon = null, $opacity = 
 	sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
 }
 
+/*
 class ui_renderQueue extends Thread {
 	
     public function __construct($socket){
@@ -2133,6 +2136,7 @@ class ui_renderQueue extends Thread {
 		ui_render('queue',json_encode($queue));
     }
 }
+*/
 
 function ui_status($mpd,$status) {
 	$curTrack = getTrackInfo($mpd,$status['song']);

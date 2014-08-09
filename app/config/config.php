@@ -41,6 +41,7 @@ include(APP.'libs/runeaudio.php');
 // Connect to Redis backend
 $redis = new Redis(); 
 $redis->pconnect('127.0.0.1');
+//$redis->pconnect('/tmp/redis.sock');
 $devmode = $redis->get('dev');
 // LogSettings
 if ($redis->get('debug') > 0 ) {

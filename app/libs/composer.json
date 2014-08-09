@@ -1,6 +1,5 @@
 {
     "require": {
         "league/plates": "1.1.*",
-		"react/react": "0.4.*"
     }
 }

@@ -52,8 +52,10 @@ usleep($sleep);
 runelog('random delay: ',$sleep);
 // startup - collect system data
 runelog('--------------------------- collect system data ---------------------------');
+$excluded_nics = array('ifb0','ifb1');
 $active_nics = sysCmd("ifconfig | grep UP | cut -d ':' -f 1");
 $detected_nics = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
+$detected_nics = array_diff($detected_nics,$excluded_nics);
 $inactive_nics = array_diff($detected_nics,$active_nics);
 $configured_nics = array_map("trim", sysCmd("netctl list | cut -d ' ' -f 2,3"));
 $removed_nics = array_diff($configured_nics,$detected_nics);
@@ -61,6 +63,8 @@ $removed_nics = array_diff($configured_nics,$detected_nics);
 // debug
 runelog('########### active_nics ########### ', $active_nics);
 // print_r($active_nics);
+// print_r($excluded_nics);
+runelog('########### excluded_nics ########### ', $excluded_nics);
 // print_r($detected_nics);
 runelog('########### detected_nics ########### ', $detected_nics);
 // print_r(array_diff($detected_nics,$active_nics));
