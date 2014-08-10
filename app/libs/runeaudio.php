@@ -783,10 +783,13 @@ function wrk_netconfig($redis,$action,$args = null,$configonly = null) {
 $updateh = 0;
 	switch ($action) {
 		case 'setnics':
+			// nics blacklist
+			$excluded_nics = array('ifb0','ifb1');
 			// flush nics Redis hash table
 			$transaction = $redis->multi();
 			$transaction->del('nics');
 			$interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
+			$interfaces = array_diff($interfaces,$excluded_nics);
 			foreach ($interfaces as $interface) {
 				$ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
 				$netmask = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f2");
@@ -863,6 +866,18 @@ $updateh = 0;
 					$nic .= "DNS=('".$args->dns1."')\n";
 				}
 			}
+			// ntp sync after connect
+			$nic .= "ExecUpPost='/usr/bin/ntpd -gq || true'\n";
+			
+			// set advanced DNS options
+			$newArray = wrk_replaceTextLine('/etc/resolvconf.conf','','resolv_conf_options=',"resolv_conf_options=('timeout:".$redis->hGet('resolvconf', 'timeout')." attempts:".$redis->hGet('resolvconf', 'attempts')."')",'#name_servers=127.0.0.1',1);
+			// Commit changes to /etc/resolvconf.conf
+			$fp = fopen('/etc/resolvconf.conf', 'w');
+			fwrite($fp, implode("",$newArray));
+			fclose($fp);
+			// tell the system to update /etc/resolv.conf
+			sysCmd('resolvconf -u');
+			
 			// write current network config
 			$redis->set($args->name,json_encode($args));
 			$fp = fopen('/etc/netctl/'.$args->name, 'w');
@@ -900,7 +915,7 @@ $updateh = 0;
 		// dhcp configuration
 			if ($args->wireless !== '1') {
 				// $cmd = 'systemctl enable ifplugd@'.$args->name;
-				$cmd = "ln -s '/usr/lib/systemd/system/ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/ifplugd@".$args->name.".service'";
+				$cmd = "ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
 				sysCmd($cmd);
 			}
 			sysCmd('systemctl daemon-reload');
@@ -908,7 +923,7 @@ $updateh = 0;
 		// static configuration
 			if ($args->wireless !== '1') {
 				// $cmd = 'systemctl disable ifplugd@'.$args->name;
-				$cmd = "rm '/etc/systemd/system/multi-user.target.wants/ifplugd@".$args->name.".service'";
+				$cmd = "rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
 				sysCmd($cmd);
 				sysCmd('systemctl daemon-reload');
 				// kill ifplugd
@@ -1402,8 +1417,8 @@ $header .= "\n";
 				$redis->hSet('mpdconf','filesystem_charset','UTF-8');
 				$redis->hSet('mpdconf','id3v1_encoding','UTF-8');
 				$redis->hSet('mpdconf','volume_normalization','no');
-				$redis->hSet('mpdconf','audio_buffer_size','1024');
-				$redis->hSet('mpdconf','buffer_before_play','0%');
+				$redis->hSet('mpdconf','audio_buffer_size','2048');
+				$redis->hSet('mpdconf','buffer_before_play','10%');
 				$redis->hSet('mpdconf','gapless_mp3_playback','yes');
 				$redis->hSet('mpdconf','mixer_type','software');
 				$redis->hSet('mpdconf','curl','yes');
@@ -2227,15 +2242,15 @@ function ui_lastFM_coverart($artist,$album,$lastfm_apikey,$proxy) {
 
 // push UI update to NGiNX channel
 function ui_render($channel,$data) {
-curlPost('http://127.0.0.1/pub?id='.$channel,$data);
+	curlPost('http://127.0.0.1/pub?id='.$channel,$data);
 }
 
 function ui_update($redis,$mpd) {
 ui_libraryHome($redis,$mpd);
 	if ($redis->get('pl_length') !== '0') {
-	sendMpdCommand($mpd,'swap 0 0');
+		sendMpdCommand($mpd,'swap 0 0');
 	} else {
-	sendMpdCommand($mpd,'clear');
+		sendMpdCommand($mpd,'clear');
 	}
 }
 
@@ -2252,19 +2267,24 @@ echo $response;
 
 function curlPost($url,$data,$proxy = null) {
 $ch = curl_init($url);
+@curl_setopt($curl, CURLOPT_HTTPHEADER, array("Connection: close"));
+@curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+@curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+
 if (isset($proxy)) {
-$proxy['user'] === '' || curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
-curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
+$proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
+@curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
 //runelog('cURL proxy HOST: ',$proxy['host']);
 //runelog('cURL proxy USER: ',$proxy['user']);
 //runelog('cURL proxy PASS: ',$proxy['pass']);
 }
- curl_setopt($ch, CURLOPT_TIMEOUT, 2);
- curl_setopt($ch, CURLOPT_POST, 1);
- curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
- curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
- curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
- curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
+ @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 400);
+ @curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+ @curl_setopt($ch, CURLOPT_POST, 1);
+ @curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+ @curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+ @curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
+ @curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
  $response = curl_exec($ch);
  curl_close($ch);
 return $response;
@@ -2272,26 +2292,31 @@ return $response;
 
 function curlGet($url,$proxy = null) {
 $ch = curl_init($url);
+@curl_setopt($curl, CURLOPT_HTTPHEADER, array("Connection: close"));
+@curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+@curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 if (!empty($proxy)) {
 	if ($proxy['enable'] === '1') {
-	$proxy['user'] === '' || curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
-	curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
+	$proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
+	@curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
 	// runelog('cURL proxy HOST: ',$proxy['host']);
 	// runelog('cURL proxy USER: ',$proxy['user']);
 	// runelog('cURL proxy PASS: ',$proxy['pass']);
 	}
 }
-curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-curl_setopt($ch, CURLOPT_HEADER, 0);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+@curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 400);
+@curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+@curl_setopt($ch, CURLOPT_HEADER, 0);
+@curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 $response = curl_exec($ch);
 curl_close($ch);
 return $response;
 }
 
 function countDirs($basepath) {
-$count = count(glob($basepath."/",GLOB_ONLYDIR)); 
-return $count; 
+$scandir = scandir($basepath."/",SCANDIR_SORT_NONE);
+$count = count(array_diff($scandir, array('..', '.')));
+return $count;
 }
 
 function netmask($bitcount) {

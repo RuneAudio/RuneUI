@@ -90,6 +90,10 @@ function redisDatastore($redis,$action) {
 			$redis->set('nextsongid', 0);
 			$redis->set('lastsongid', 0);
 			$redis->set('lock_refresh_ao', 0);
+			
+			// network parameters
+			$redis->hSet('resolvconf', 'timeout', '0.3');
+			$redis->hSet('resolvconf', 'attempts', '1');
 			break;
 			
 			case 'check':
@@ -140,6 +144,10 @@ function redisDatastore($redis,$action) {
 			$redis->get('nextsongid') || $redis->set('nextsongid', 0);
 			$redis->get('lastsongid') || $redis->set('lastsongid', 0);	
 			$redis->get('lock_refresh_ao') || $redis->set('lock_refresh_ao', 0);
+			
+			// network parameters
+			$redis->hGet('resolvconf', 'timeout') || $redis->hSet('resolvconf', 'timeout', '0.3');
+			$redis->hGet('resolvconf', 'attempts') || $redis->hSet('resolvconf', 'attempts', '1');
 			break;
 	}
 	

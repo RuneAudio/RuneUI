@@ -3,7 +3,7 @@
 	<div class="row">
 		<div class="col-md-8">
 			<div class="alert alert-info">
-				release version: <strong id="release-version">0.3-alpha</strong> (<a href="http://www.runeaudio.com/changelog/" target="_blank">see changelog</a>)
+				release version: <strong id="release-version">0.3</strong> (<a href="http://www.runeaudio.com/changelog/" target="_blank">build: <?=$this->buildversion ?></a>)
 			</div>
 			<h2>RuneAudio team</h2>
 			<div class="alert alert-info">

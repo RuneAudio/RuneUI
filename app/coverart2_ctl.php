@@ -54,9 +54,7 @@ runelog("MPD current path",$currentpath);
 
 //Extract info from current file
 $au = new AudioInfo();
-$bufferinfo = new finfo(FILEINFO_MIME);
 $auinfo =  $au->Info($currentpath);
-
 
 if (!empty($auinfo['comments']['picture'][0]['data'])) {
 
@@ -67,7 +65,6 @@ if (!empty($auinfo['comments']['picture'][0]['data'])) {
 
 } else {
 	
-	
 	$cover_url = ui_lastFM_coverart($status['currentartist'],$status['currentalbum'],$lastfm_apikey,$proxy);
 	// debug
 	runelog("coverart match: lastfm (query 1) coverURL=",$cover_url);
@@ -77,6 +74,7 @@ if (!empty($auinfo['comments']['picture'][0]['data'])) {
 	// $lastfm_img = curl_exec($ch);
 	// curl_close($ch);
 	$lastfm_img = curlGet($cover_url,$proxy);
+	$bufferinfo = new finfo(FILEINFO_MIME);
 	$lastfm_img_mime = $bufferinfo->buffer($lastfm_img);
 
 	if (empty($cover_url)) {

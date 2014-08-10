@@ -129,7 +129,6 @@ runelog('--- RUNEAUDIO FIRST RUN PROCESS');
 sysCmd('systemctl restart rune_SY_wrk');
 
 // --- RUNEAUDIO FIRST RUN PROCESS //
-
 } else {
 
 runelog('--- INITIALIZE ENVIRONMENT');
@@ -155,11 +154,17 @@ $redis->set('hostname',$hn[0]);
 	// start samba services
 	if ($redis->get('dev') > 0) {
 	runelog("service: SAMBA start (DEV-Mode ON)",'');
-	sysCmd('/usr/sbin/smbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-dev.conf');
-	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-dev.conf');
+	// switch smb.conf (development)
+	sysCmd('rm /etc/samba/smb.conf');
+	sysCmd('ln -s /etc/samba/smb-dev.conf /etc/samba/smb.conf');
+	sysCmd('systemctl start nmbd');
+	sysCmd('systemctl start smbd');
 	} else {
 	runelog("service: NMBD start",'');
-	sysCmd('/usr/sbin/nmbd -D --configfile=/var/www/app/config/_os/etc/samba/smb-prod.conf');
+	// switch smb.conf (production)
+	sysCmd('rm /etc/samba/smb.conf');
+	sysCmd('ln -s /etc/samba/smb-prod.conf /etc/samba/smb.conf');
+	sysCmd('systemctl start nmbd');
 	}
 }
 

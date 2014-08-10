@@ -31,3 +31,6 @@
  *  coder: Simone De Gregori
  *
  */
+
+ $template->buildversion = $redis->get('buildversion');
+ 
