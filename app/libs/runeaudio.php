@@ -31,7 +31,7 @@
  *  coder: Simone De Gregori
  *
  */
- 
+
 // Predefined MPD Response messages
 define("MPD_GREETING", "OK MPD 0.18.0\n");
 
@@ -66,7 +66,7 @@ function sendMpdCommand($sock, $cmd)
         socket_write($sock, 'pause\n', strlen('pause\n'));
     } else {
         $cmd = $cmd."\n";
-        socket_write($sock, $cmd, strlen($cmd));        
+        socket_write($sock, $cmd, strlen($cmd));
     }
     runelog("MPD COMMAND: (socket=".$sock.")", $cmd);
     //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
@@ -85,8 +85,8 @@ function readMpdResponse($sock)
 
 function sendMpdIdle($sock)
 {
-    //sendMpdCommand($sock,"idle player,playlist"); 
-    sendMpdCommand($sock,'idle'); 
+    //sendMpdCommand($sock,"idle player,playlist");
+    sendMpdCommand($sock,'idle');
     $response = readMpdResponse($sock);
     $response = array_map('trim',explode(":", $response));
     return $response;
@@ -116,7 +116,7 @@ function getPlayQueue($sock)
     sendMpdCommand($sock, 'playlistinfo');
     $playqueue = readMpdResponse($sock);
     //return _parseFileListResponse($playqueue);
-    return $playqueue; 
+    return $playqueue;
 }
 
 function getTemplate($template)
@@ -166,7 +166,7 @@ function searchDB($sock, $querytype, $query)
 {
     switch ($querytype) {
     case "filepath":
-        if (isset($query) && !empty($query)){
+        if (isset($query) && !empty($query)) {
             sendMpdCommand($sock,"lsinfo \"".html_entity_decode($query)."\"");
             break;
         } else {
@@ -221,12 +221,12 @@ class globalRandom extends Thread
 {
     // mpd status
     public $status;
-    
+
     public function __construct($status)
     {
         $this->status = $status;
     }
-    
+
     public function run()
     {
         $mpd = openMpdSocket('/run/mpd.sock');
@@ -279,7 +279,7 @@ function songTime($sec)
 function phpVer()
 {
     $version = phpversion();
-    // return substr($version, 0, 3); 
+    // return substr($version, 0, 3);
     return $version;
 }
 
@@ -339,7 +339,7 @@ function _parseFileListResponse($resp)
                 $plistArray[$plCounter]['Time2'] = songTime($plistArray[$plCounter]['Time']);
             }
             $plistLine = strtok("\n");
-        } 
+        }
     }
     return $plistArray;
 }
@@ -358,11 +358,11 @@ function _parseStatusResponse($resp)
             list ($element, $value) = explode(": ", $plistLine);
             $plistArray[$element] = $value;
             $plistLine = strtok("\n");
-        } 
+        }
         // "elapsed time song_percent" added to output array
          $time = explode(":", $plistArray['time']);
          if ($time[0] != 0) {
-         $percent = round(($time[0]*100)/$time[1]);    
+         $percent = round(($time[0]*100)/$time[1]);
          } else {
             $percent = 0;
          }
@@ -412,7 +412,7 @@ function _parseOutputsResponse($input, $active)
         foreach($response as $line) {
             if ($linenum % 3 == 0) {
                 $i++;
-            } 
+            }
         if (!empty($line)) {
         $value = explode(':', $line);
         $outputs[$i][$value[0]] = trim($value[1]);
@@ -435,17 +435,17 @@ function _parseOutputsResponse($input, $active)
 }
 
 // get file extension
-function parseFileStr($strFile, $delimiter, $negative = null) 
+function parseFileStr($strFile, $delimiter, $negative = null)
 {
     // runelog("parseFileStr($strFile,$delimiter)");
     $pos = strrpos($strFile, $delimiter);
-    // runelog('parseFileStr (position of delimiter)',$pos); 
+    // runelog('parseFileStr (position of delimiter)',$pos);
     if (isset($negative)) {
         $str = substr($strFile, 0, -4);
     } else {
         $str = substr($strFile, $pos+1);
     }
-    // runelog('parseFileStr (string)',$str); 
+    // runelog('parseFileStr (string)',$str);
     return $str;
 }
 
@@ -591,7 +591,7 @@ function rp_addPlay($path, $mpd, $pos)
     sendMpdCommand($mpd, 'play '.$pos);
 }
 
-function rp_clean() 
+function rp_clean()
 {
     $_SESSION['DEBUG'] .= "rp_clean: |";
     recursiveDelete('/dev/shm/');
@@ -599,19 +599,19 @@ function rp_clean()
 
 function recursiveDelete($str)
 {
-    if(is_file($str)){
+    if(is_file($str)) {
         return @unlink($str);
         // TODO: add search path in playlist and remove from playlist
     }
-    elseif(is_dir($str)){
+    elseif(is_dir($str)) {
         $scan = glob(rtrim($str, '/').'/*');
-        foreach($scan as $index=>$path){
+        foreach($scan as $index=>$path) {
             recursiveDelete($path);
         }
     }
 }
 
-function pushFile($filepath) 
+function pushFile($filepath)
 {
     if (file_exists($filepath)) {
         header('Content-Description: File Transfer');
@@ -653,8 +653,8 @@ function hashCFG($action, $redis)
             } else {
                 $redis->set('mpdconf_advanced', 0);
             }
-            break;        
-    } 
+            break;
+    }
     return true;
 }
 
@@ -679,9 +679,9 @@ function runelog($title, $data = null)
     $store->close();
 }
 
-function waitSyWrk($redis, $jobID) 
+function waitSyWrk($redis, $jobID)
 {
-    if (is_array($jobID)){    
+    if (is_array($jobID)) {
         foreach ($jobID as $job) {
             do {
                 usleep(650000);
@@ -696,19 +696,19 @@ function waitSyWrk($redis, $jobID)
 
 function wrk_control($redis, $action, $data)
 {
-    // accept $data['action'] $data['args'] from controller 
+    // accept $data['action'] $data['args'] from controller
     switch ($action) {
         case 'newjob':
             // generate random jobid
             $jobID = wrk_jobID();
-            $wjob = array( 
+            $wjob = array(
                 'wrkcmd' => $data['wrkcmd'],
                 'action' => $data['action'],
                 'args' => $data['args']
             );
             $redis->hSet('w_queue', $jobID, json_encode($wjob));
             runelog('wrk_control data:', $redis->hGet('w_queue', $jobID));
-            break;    
+            break;
     }
     // debug
     runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID);
@@ -888,7 +888,7 @@ $updateh = 0;
             } else {
                 // Wired configuration
                 $nic .= "Connection=ethernet\n";
-            }        
+            }
             if ($args->dhcp === '1') {
                 // DHCP configuration
                 $nic .= "IP=dhcp\n";
@@ -917,7 +917,7 @@ $updateh = 0;
             fclose($fp);
             // tell the system to update /etc/resolv.conf
             sysCmd('resolvconf -u');
-            
+
             // write current network config
             $redis->set($args->name, json_encode($args));
             $fp = fopen('/etc/netctl/'.$args->name, 'w');
@@ -1053,7 +1053,7 @@ function wrk_wpa_cli($action, $args = null, $redis = null)
             if (wrk_wpa_cli('store', $args, $redis)) {
                 if ($connect) wrk_wpa_cli('connect');
                 $return = 1;
-            }    
+            }
             break;
         case 'store':
             // set default set password command
@@ -1064,7 +1064,7 @@ function wrk_wpa_cli($action, $args = null, $redis = null)
                     // select correct change password command
                     $cmd_pass = "wpa_cli new_password ".$args->id." '\"".$args->key."\"'";
                 } else {
-                    // remove and 
+                    // remove and
                     if (wrk_wpa_cli('delete', $args)) {
                     unset($args->edit);
                     wrk_wpa_cli('add', $args);
@@ -1084,7 +1084,7 @@ function wrk_wpa_cli($action, $args = null, $redis = null)
                 if ($args->encryption === 'wpa') {
                     $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt WPA-PSK');
                     // store the encryption key
-                    $wpa_cli_response = sysCmd($cmd_pass);            
+                    $wpa_cli_response = sysCmd($cmd_pass);
                 }
                 if ($args->encryption === 'wep') {
                     $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
@@ -1222,7 +1222,7 @@ function wrk_audioOutput($redis, $action, $args = null)
             // check if i2smodule is enabled and read card details
             if ($i2smodule !== 'none') {
                 $i2smodule_details = $redis->hGet('acards_details', $i2smodule);
-            } 
+            }
             runelog('/proc/asound/cards', $acards);
             foreach ($acards as $card) {
                 unset($sub_interfaces);
@@ -1283,7 +1283,7 @@ function wrk_audioOutput($redis, $action, $args = null)
                                 runelog('::::::sub interface record array:::::: ',$sub_int_details);
                                 $redis->hSet('acards', $card.'_'.$sub_int_details->id, json_encode($sub_int_details));
                             }
-                        } 
+                        }
                         // if ($details->extlabel !== 'none') $data['extlabel'] = $details->extlabel;
                         if (isset($details->extlabel) && $details->extlabel !== 'none') {
                             runelog('::::::acard extlabel:::::: ', $details->extlabel);
@@ -1292,7 +1292,7 @@ function wrk_audioOutput($redis, $action, $args = null)
                     }
                     // debug
                     runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
-                } 
+                }
                 if (!isset($sub_interfaces)) {
                 $data['name'] = $card;
                 $data['type'] = 'alsa';
@@ -1334,35 +1334,35 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;        
+            break;
         case 'berrynosmini':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;    
+            break;
         case 'hifiberrydac':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;    
+            break;
         case 'hifiberrydigi':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_digi');
-            break;    
+            break;
         case 'iqaudiopidac':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
             sysCmd('modprobe snd_soc_iqaudio_dac');
-            break;    
+            break;
         case 'raspi2splay3':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
@@ -1456,7 +1456,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             break;
         case 'writecfg':
             $mpdcfg = $redis->hGetAll('mpdconf');
-            $current_out = $redis->Get('ao'); 
+            $current_out = $redis->Get('ao');
             if (!$redis->hExists('acards', $current_out)) {
                 $stored_acards = $redis->hKeys('acards');
                 // debug
@@ -1467,7 +1467,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             }
             $output = null;
             // --- general settings ---
-            foreach ($mpdcfg as $param => $value) {    
+            foreach ($mpdcfg as $param => $value) {
                 if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
                     continue;
                 }
@@ -1489,14 +1489,14 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 if ($param === 'log_level' && $value !== 'none') {
                     $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
                     $redis->save();
-                }                    
+                }
                 if ($param === 'state_file' && $value === 'no') {
                     $redis->hDel('mpdconf', 'state_file');
                     continue;
                 }
                 if ($param === 'state_file' && $value !== 'no') {
                     $value = '/var/lib/mpd/mpdstate';
-                }    
+                }
                 if ($param === 'user' && $value === 'mpd') {
                     $output .= $param." \t\"".$value."\"\n";
                     $output .= "group \t\"audio\"\n";
@@ -1506,10 +1506,10 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     $output .= $param." \t\"".$value."\"\n";
                     $output .= "group \t\"root\"\n";
                     continue;
-                } 
+                }
                 if ($param === 'bind_to_address') {
                     $output .= "bind_to_address \"/run/mpd.sock\"\n";
-                } 
+                }
                 if ($param === 'ffmpeg') {
                     // --- decoder plugin ---
                     $output .="\n";
@@ -1518,7 +1518,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     $output .="enabled \"".$value."\"\n";
                     $output .="}\n";
                 continue;
-                } 
+                }
                 if ($param === 'curl') {
                 // --- input plugin ---
                 $output .="\n";
@@ -1527,8 +1527,8 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     if ($redis->hget('proxy','enable') === '1') {
                         $output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
                         if ($redis->hget('proxy','user') !== '') {
-                            $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n"; 
-                            $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n"; 
+                            $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n";
+                            $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n";
                         }
                     }
                 $output .="}\n";
@@ -1536,7 +1536,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 }
                 $output .= $param." \t\"".$value."\"\n";
             }
-            $output = $header.$output;    
+            $output = $header.$output;
             // --- audio output ---
             $acards = $redis->hGetAll('acards');
             $ao = $redis->Get('ao');
@@ -1646,7 +1646,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             wrk_audioOutput($redis, 'refresh');
             wrk_mpdconf($redis, 'writecfg');
             wrk_mpdconf($redis, 'restart');
-            break;        
+            break;
         case 'start':
             sysCmd('systemctl start mpd');
             if ($redis->get('mpd_playback_status') === 'playing') {
@@ -1725,7 +1725,7 @@ function wrk_sourcemount($redis, $action, $id)
                 // nfs mount
                 $mountstr = "mount -t nfs -o soft,retry=0,actimeo=1,retrans=2,timeo=50,nofsc,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
                 // $mountstr = "mount -t nfs -o soft,retry=1,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
-            } 
+            }
             // debug
             runelog('mount string', $mountstr);
             $sysoutput = sysCmd($mountstr);
@@ -1742,7 +1742,7 @@ function wrk_sourcemount($redis, $action, $id)
                 $mp['error'] = implode("\n", $sysoutput);
                 $redis->hMSet('mount_'.$id, $mp);
                 $return = 0;
-            }    
+            }
             break;
         case 'mountall':
             $mounts = $redis->keys('mount_*');
@@ -1791,7 +1791,7 @@ function wrk_sourcecfg($redis, $action, $args)
             if (!empty($mp['name'])) sysCmd("rmdir \"/mnt/MPD/NAS/".$mp['name']."\"");
             $return = $redis->del('mount_'.$args->id);
             break;
-        case 'reset': 
+        case 'reset':
             $source = $redis->keys('mount_*');
             sysCmd('mpc stop');
             usleep(500000);
@@ -1807,7 +1807,7 @@ function wrk_sourcecfg($redis, $action, $args)
             break;
         case 'mountall':
             $return = wrk_sourcemount($redis, 'mountall');
-            break;        
+            break;
         case 'umountusb':
             $return = sysCmd('udevil umount '.$args);
             break;
@@ -2009,7 +2009,7 @@ function wrk_sysEnvCheck($arch, $install)
         if (isset($reboot) && $reboot == 1) {
             sysCmd('reboot');
         }
-    }    
+    }
 }
 
 function wrk_NTPsync($ntpserver)
@@ -2149,8 +2149,8 @@ class ui_renderQueue extends Thread
     public function __construct($socket)
     {
         $this->socket = $socket;
-    }    
-    public function run() 
+    }
+    public function run()
     {
         $queue = getPlayQueue($this->socket);
         ui_render('queue', json_encode($queue));
@@ -2171,7 +2171,7 @@ function ui_status($mpd, $status)
         $status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
         $status['currentartist'] = "";
         // $status['currentsong'] = $song;
-        if (!empty($path)){
+        if (!empty($path)) {
             $status['currentalbum'] = $path;
         } else {
             $status['currentalbum'] = '';
@@ -2189,7 +2189,7 @@ function ui_libraryHome($redis, $mpd)
     // USB mounts
     $usbmounts = countDirs('/mnt/MPD/USB');
     // runelog('usbmounts: ',$usbmounts);
-    // Webradios 
+    // Webradios
     $webradios = count($redis->hKeys('webradios'));
     // runelog('webradios: ',$webradios);
     // Dirble
