@@ -45,15 +45,13 @@ $redis->pconnect('127.0.0.1');
 $devmode = $redis->get('dev');
 // LogSettings
 if ($redis->get('debug') > 0 ) {
-$activeLog=1;
+    $activeLog=1;
 } else {
-$activeLog=0;
+    $activeLog=0;
 }
-ini_set("log_errors" , $activeLog);
-ini_set("error_log" , "/var/log/runeaudio/runeui.log");
-ini_set("display_errors" , $activeLog);
-// datastore SQLite
-$db = 'sqlite:'.$_SERVER['HOME'].'/db/player.db';
+ini_set('log_errors', $activeLog);
+ini_set('error_log', '/var/log/runeaudio/runeui.log');
+ini_set('display_errors', $activeLog);
 // debug
 runelog('--- [connection.php] >>> OPEN MPD SOCKET --- [connection.php] ---','');
 // connect to MPD daemon

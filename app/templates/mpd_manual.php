@@ -12,7 +12,7 @@
 		</div>
 		<form name="mpdconf_editor" id="mpdconf_editor" class="hide" method="post">
 			<label>Edit /etc/mpd.conf</label></td></tr>
-			<textarea id="mpdconf" class="form-control" name="mpdconf" rows="40"><?=$this->mpdconf?></textarea>
+			<textarea id="mpdconf" class="form-control" name="mpdconf" rows="40"><?=$this->mpdconf ?></textarea>
 			<br>
 			<a class="btn btn-default btn-lg" href="/mpd/">Cancel</a>
 			<button type="submit" class="btn btn-primary btn-lg" name="save" value="save">Save changes</button>

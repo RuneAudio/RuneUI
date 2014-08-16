@@ -50,13 +50,13 @@
 	<div class="dropdown">
 		<a id="menu-settings" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="#">MENU <i class="fa fa-th-list dx"></i></a>
 		<ul class="dropdown-menu" role="menu" aria-labelledby="menu-settings">
-			<li class="<?=$this->uri(1,'','active')?>"><a href="/"><i class="fa fa-play"></i> Playback</a></li>
-			<li class="<?=$this->uri(1,'sources','active')?>"><a href="/sources/"><i class="fa fa-folder-open"></i> Sources</a></li>
-			<li class="<?=$this->uri(1,'mpd','active')?>"><a href="/mpd/"><i class="fa fa-cogs"></i> MPD</a></li>
-			<li class="<?=$this->uri(1,'settings','active')?>"><a href="/settings/"><i class="fa fa-wrench"></i> Settings</a></li>
-			<li class="<?=$this->uri(1,'network','active')?>"><a href="/network/"><i class="fa fa-sitemap"></i> Network</a></li>
-			<li class="<?=$this->uri(1,'debug','active')?>"><a href="/debug/"><i class="fa fa-bug"></i> Debug</a></li>
-			<li class="<?=$this->uri(1,'credits','active')?>"><a href="/credits/"><i class="fa fa-trophy"></i> Credits</a></li>
+			<li class="<?=$this->uri(1, '', 'active')?>"><a href="/"><i class="fa fa-play"></i> Playback</a></li>
+			<li class="<?=$this->uri(1, 'sources', 'active')?>"><a href="/sources/"><i class="fa fa-folder-open"></i> Sources</a></li>
+			<li class="<?=$this->uri(1, 'mpd', 'active')?>"><a href="/mpd/"><i class="fa fa-cogs"></i> MPD</a></li>
+			<li class="<?=$this->uri(1, 'settings', 'active')?>"><a href="/settings/"><i class="fa fa-wrench"></i> Settings</a></li>
+			<li class="<?=$this->uri(1, 'network', 'active')?>"><a href="/network/"><i class="fa fa-sitemap"></i> Network</a></li>
+			<li class="<?=$this->uri(1, 'debug', 'active')?>"><a href="/debug/"><i class="fa fa-bug"></i> Debug</a></li>
+			<li class="<?=$this->uri(1, 'credits', 'active')?>"><a href="/credits/"><i class="fa fa-trophy"></i> Credits</a></li>
 			<li><a href="#poweroff-modal" data-toggle="modal"><i class="fa fa-power-off"></i> Turn off</a></li>
 		</ul>
 	</div>
@@ -70,8 +70,8 @@
 </div>
 <div id="menu-bottom">
 	<ul>
-		<li id="open-panel-sx"><a href="/#panel-sx"<?=$this->uri(1,'',' class="open-panel-sx" data-toggle="tab"')?>><i class="fa fa-music"></i> Library</a></li>
-		<li id="open-playback"<?=$this->uri(1,'',' class="active"')?>><a href="/#playback"<?=$this->uri(1,'',' data-toggle="tab"')?>><i class="fa fa-play"></i> Playback</a></li>
-		<li id="open-panel-dx"><a href="/#panel-dx"<?=$this->uri(1,'',' class="open-panel-dx" data-toggle="tab"')?>><i class="fa fa-list"></i> Queue</a></li>
+		<li id="open-panel-sx"><a href="/#panel-sx"<?=$this->uri(1, '', ' class="open-panel-sx" data-toggle="tab"')?>><i class="fa fa-music"></i> Library</a></li>
+		<li id="open-playback"<?=$this->uri(1, '', ' class="active"')?>><a href="/#playback"<?=$this->uri(1, '', ' data-toggle="tab"')?>><i class="fa fa-play"></i> Playback</a></li>
+		<li id="open-panel-dx"><a href="/#panel-dx"<?=$this->uri(1, '', ' class="open-panel-dx" data-toggle="tab"')?>><i class="fa fa-list"></i> Queue</a></li>
 	</ul>
 </div>

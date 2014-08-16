@@ -31,71 +31,62 @@
  *  coder: Simone De Gregori
  *
  */
- 
 require_once('Zend/Media/Flac.php');
 // direct output bypass template system
 $lastfm_apikey = $redis->get('lastfm_apikey');
 $tplfile = 0;
 // fetch MPD status
 $status = _parseStatusResponse(MpdStatus($mpd));
-$curTrack = getTrackInfo($mpd,$status['song']);
+$curTrack = getTrackInfo($mpd, $status['song']);
 if (isset($curTrack[0]['Title'])) {
-$status['currentartist'] = $curTrack[0]['Artist'];
-$status['currentsong'] = $curTrack[0]['Title'];
-$status['currentalbum'] = $curTrack[0]['Album'];
-$status['fileext'] = parseFileStr($curTrack[0]['file'],'.');
+    $status['currentartist'] = $curTrack[0]['Artist'];
+    $status['currentsong'] = $curTrack[0]['Title'];
+    $status['currentalbum'] = $curTrack[0]['Album'];
+    $status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
 }
-$currentpath = "/mnt/MPD/".findPLposPath($status['song'],$mpd);
-
+$currentpath = "/mnt/MPD/".findPLposPath($status['song'], $mpd);
 // debug
 runelog("MPD current path",$currentpath);
-
 $flac = new Zend_Media_Flac($currentpath);
-
-function getLastFMCover($status,$lastfm_apikey) {
-$cover_url = ui_lastFM_coverart($status['currentartist'],$status['currentalbum'],$lastfm_apikey);
-$ch = curl_init($cover_url);
-curl_setopt($ch, CURLOPT_HEADER, 0);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-$image = curl_exec($ch);
-curl_close($ch);
-if (!empty($image)) {
- return $image;
-} else {
- return false;
-}
+function getLastFMCover($status, $lastfm_apikey)
+{
+    $cover_url = ui_lastFM_coverart($status['currentartist'], $status['currentalbum'], $lastfm_apikey);
+    $ch = curl_init($cover_url);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $image = curl_exec($ch);
+    curl_close($ch);
+    if (!empty($image)) {
+        return $image;
+    } else {
+        return false;
+    }
 }
 
 if ($flac->hasMetadataBlock(Zend_Media_Flac::PICTURE)) {
-		
-		// debug
-		runelog("coverart match: embedded",'');
-		//Extract picture from file
-		header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-		header('Pragma: no-cache'); // HTTP 1.0.
-		header('Expires: 0'); // Proxies.
-		header('Content-Type: ' . $flac->getPicture()->getMimeType());
-		echo $flac->getPicture()->getData();
-
-
-    } else if ($image = getLastFMCover($status,$lastfm_apikey)) {
-		// debug
-		runelog("coverart match: lastfm",'');
-		header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-		header('Pragma: no-cache'); // HTTP 1.0.
-		header('Expires: 0'); // Proxies.
-		// header('Content-Type: ' .mime_content_type($image));
-		echo $image;
-
-	} else {
-    
+    // debug
+    runelog("coverart match: embedded");
+    //Extract picture from file
+    header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+    header('Pragma: no-cache'); // HTTP 1.0.
+    header('Expires: 0'); // Proxies.
+    header('Content-Type: '.$flac->getPicture()->getMimeType());
+    echo $flac->getPicture()->getData();
+} elseif ($image = getLastFMCover($status, $lastfm_apikey)) {
+    // debug
+    runelog("coverart match: lastfm");
+    header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+    header('Pragma: no-cache'); // HTTP 1.0.
+    header('Expires: 0'); // Proxies.
+    // header('Content-Type: ' .mime_content_type($image));
+    echo $image;
+} else {
 	// debug
-	runelog("coverart match: cover-default",'');
+	runelog("coverart match: cover-default");
 	$image = '/var/www/assets/img/cover-default.png';
     header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
 	header('Pragma: no-cache'); // HTTP 1.0.
 	header('Expires: 0'); // Proxies.
-	header('Content-Type: ' .mime_content_type($image));
+	header('Content-Type: '.mime_content_type($image));
     readfile($image);
-	
 }

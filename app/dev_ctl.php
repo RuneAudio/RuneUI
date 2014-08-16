@@ -31,7 +31,6 @@
  *  coder: Simone De Gregori
  *
  */
-
 // inspect POST
 if (isset($_POST)) {
 	// ----- DEV MODE -----
@@ -57,32 +56,32 @@ if (isset($_POST)) {
 	if (isset($_POST['opcache'])) {
 		if ($_POST['opcache']['enable'] == 1) {
 			// create worker job (enable php opcache)
-			$redis->get('opcache') == 1 || $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'opcache', 'action' => 'enable' ));
+			$redis->get('opcache') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'enable'));
 		} else {
 			// create worker job (disable php opcache)
-			$redis->get('opcache') == 0 || $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'opcache', 'action' => 'disable' ));
+			$redis->get('opcache') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'disable'));
 		}	
 	}
 	if (isset($_POST['syscmd'])) {
-			// ----- BLANK PLAYERID -----
-			if ($_POST['syscmd'] === 'blankplayerid') $redis->set('playerid','');
-			// ----- CLEARIMG -----
-			if ($_POST['syscmd'] === 'clearimg') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
-			// ----- CHECK FS PERMISSIONS -----
-			if ($_POST['syscmd'] === 'syschmod') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'syschmod' ));
-			// ----- RESTART MPD -----
-			if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdrestart' ));
-			// ----- RESET NET CONFIG -----
-			if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
-			// ----- RESET MPD CONFIG -----
-			if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'netconfreset' ));
-			// ----- RESTART PHP-FPM -----
-			if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'clearimg' ));
-			// ----- RESTART WORKERS -----
-			if ($_POST['syscmd'] === 'wrkrestart') $jobID[] = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart'] ));
+        // ----- BLANK PLAYERID -----
+        if ($_POST['syscmd'] === 'blankplayerid') $redis->set('playerid','');
+        // ----- CLEARIMG -----
+        if ($_POST['syscmd'] === 'clearimg') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'clearimg'));
+        // ----- CHECK FS PERMISSIONS -----
+        if ($_POST['syscmd'] === 'syschmod') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'syschmod'));
+        // ----- RESTART MPD -----
+        if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
+        // ----- RESET NET CONFIG -----
+        if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netconfreset'));
+        // ----- RESET MPD CONFIG -----
+        if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netconfreset'));
+        // ----- RESTART PHP-FPM -----
+        if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'clearimg'));
+        // ----- RESTART WORKERS -----
+        if ($_POST['syscmd'] === 'wrkrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart']));
 	}
 }
-waitSyWrk($redis,$jobID);
+waitSyWrk($redis, $jobID);
 $template->debug = $redis->get('debug');
 $template->playerid = $redis->get('playerid');
 $template->opcache = $redis->get('opcache');

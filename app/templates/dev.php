@@ -168,7 +168,7 @@
 					<div class="fileupload fileupload-new" data-provides="fileupload">
 					  <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
 					  <span class="fileupload-preview"></span>
-					  <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
+					  <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">Ã—</a>
 					</div>			
 				</div>
 			</div>

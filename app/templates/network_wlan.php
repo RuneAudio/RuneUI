@@ -28,7 +28,7 @@
 							</td>
 							<?php endif; ?>
 						</tr>
-						<tr><th>Encryption:</th><td><?php if ($this->{$this->uri(4)}->{'Encryption key'} === 'on' && $this->{$this->uri(4)}->{'Group Cipher'} != null && strpos($this->{$this->uri(4)}->IE,'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wpa'): ?><i class="fa fa-lock sx"></i>WPA / WPA2 - PSK <?php if ($this->{$this->uri(4)}->{'Group Cipher'} === 'CCMP'): ?>(AES)<?php else: ?><?=$this->{$this->uri(4)}->{'Group Cipher'} ?><?php  endif; ?><?php elseif ($this->{$this->uri(4)}->{'Encryption key'} === 'on' OR $this->profile_{$this->uri(4)}->encryption === 'wep'): ?><i class="fa fa-lock sx"></i>WEP<?php else: ?><i class="fa fa-unlock-alt sx"></i>none (Open Network)<?php endif; ?></td></tr>
+						<tr><th>Encryption:</th><td><?php if ($this->{$this->uri(4)}->{'Encryption key'} === 'on' && $this->{$this->uri(4)}->{'Group Cipher'} != null && strpos($this->{$this->uri(4)}->IE, 'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wpa'): ?><i class="fa fa-lock sx"></i>WPA / WPA2 - PSK <?php if ($this->{$this->uri(4)}->{'Group Cipher'} === 'CCMP'): ?>(AES)<?php else: ?><?=$this->{$this->uri(4)}->{'Group Cipher'} ?><?php  endif; ?><?php elseif ($this->{$this->uri(4)}->{'Encryption key'} === 'on' OR $this->profile_{$this->uri(4)}->encryption === 'wep'): ?><i class="fa fa-lock sx"></i>WEP<?php else: ?><i class="fa fa-unlock-alt sx"></i>none (Open Network)<?php endif; ?></td></tr>
 					</tbody>
 					<!--
 					<tfoot>
@@ -64,9 +64,9 @@
 				<label class="col-sm-2 control-label" for="wifiprofile[encryption]">Security</label>
 				<div class="col-sm-10">
 					<select id="wifi-security" name="wifiprofile[encryption]" class="selectpicker" data-style="btn-default btn-lg">
-						<option value="open" <?php if($this->uri(4) !== null && strpos($this->{$this->uri(4)}->{'Encryption key'},'off') OR $this->profile_{$this->uri(4)}->encryption === 'open'): ?>selected<?php endif; ?>>none (Open network)</option>
-						<option value="wpa" <?php if($this->uri(4) !== null && strpos($this->{$this->uri(4)}->IE,'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wpa' ): ?>selected<?php endif; ?>>WPA/WPA2 PSK</option>
-						<option value="wep" <?php if($this->uri(4) !== null && $this->{$this->uri(4)}->{'Encryption key'} === 'on' && !strpos($this->{$this->uri(4)}->IE,'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wep'): ?>selected<?php endif; ?>>WEP</option>
+						<option value="open" <?php if($this->uri(4) !== null && strpos($this->{$this->uri(4)}->{'Encryption key'}, 'off') OR $this->profile_{$this->uri(4)}->encryption === 'open'): ?>selected<?php endif; ?>>none (Open network)</option>
+						<option value="wpa" <?php if($this->uri(4) !== null && strpos($this->{$this->uri(4)}->IE, 'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wpa' ): ?>selected<?php endif; ?>>WPA/WPA2 PSK</option>
+						<option value="wep" <?php if($this->uri(4) !== null && $this->{$this->uri(4)}->{'Encryption key'} === 'on' && !strpos($this->{$this->uri(4)}->IE, 'WPA') OR $this->profile_{$this->uri(4)}->encryption === 'wep'): ?>selected<?php endif; ?>>WEP</option>
 					</select>
 					<span class="help-block">Choose the security type of the Wi-Fi you want to connect.</span>
 				</div>
