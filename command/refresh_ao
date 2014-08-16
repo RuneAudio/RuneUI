@@ -1,5 +1,5 @@
 #!/usr/bin/php
-<?php 
+<?php
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -32,11 +32,10 @@
  *  coder: Simone De Gregori
  *
  */
-
 // common include
 ini_set('display_errors', '1');
 ini_set('error_reporting', -1);
-ini_set('error_log','/var/log/runeaudio/refresh_ao.log');
+ini_set('error_log', '/var/log/runeaudio/refresh_ao.log');
 // Connect to Redis backend
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
@@ -45,14 +44,14 @@ include('/var/www/app/libs/runeaudio.php');
 runelog('--------------------------- start Audio Outputs refresh ---------------------------');
 // refesh audio hardware status (soundcards and MPD config)
 if ($redis->get('lock_refresh_ao') === '0') {
-$redis->set('lock_refresh_ao', '1');
-$redis->save();
-wrk_mpdconf($redis,'refresh');
-ui_notify('Audio Output', 'configuration changed.');
-$redis->set('lock_refresh_ao', '0');
-$redis->save();
+    $redis->set('lock_refresh_ao', '1');
+    $redis->save();
+    wrk_mpdconf($redis, 'refresh');
+    ui_notify('Audio Output', 'configuration changed.');
+    $redis->set('lock_refresh_ao', '0');
+    $redis->save();
 } else {
-echo "LOCKED!";
+    echo "LOCKED!";
 }
 // startup
 runelog('-------------------------- #finish Audio Outputs refresh# --------------------------');

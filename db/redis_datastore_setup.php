@@ -31,141 +31,116 @@
  *  coder: Simone De Gregori
  *
  */
- 
 // common include
 include($_SERVER['HOME'].'/app/config/config.php');
 // ini_set('display_errors',1);
 // error_reporting('E_ALL');
-
 function redisDatastore($redis,$action) {
-
-	switch ($action) {
-			
-			case 'reset':
-			// kernel profile
-			$redis->set('orionprofile', 'RuneAudio');
-
-			// player features
-			$redis->set('hostname', 'runeaudio');
-			$redis->set('ntpserver', 'pool.ntp.org');
-			$redis->set('airplay', 1);
-			$redis->set('udevil', 1);
-			$redis->set('coverart', 1);
-			$redis->set('playmod', 0);
-			$redis->set('ramplay', 0);
-			$redis->set('scrobbling_lastfm', 0);
-			$redis->set('cmediafix', 0);
-			$redis->set('globalrandom', 0);
-			$redis->set('globalrandom_lock', 0);
-			$redis->set('mpd_playback_status', '');
-
-			// plugins api-keys
-			$redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
-			$redis->hSet('jamendo', 'clientid', '5f3ed86c');
-			$redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
-			$redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
-
-			// internal config hash control
-			// $redis->set('mpdconfhash', '');
-			// $redis->set('netconfhash', '');
-			$redis->set('mpdconfhash', '12eed229f02c52816ed997cbce4b9f32');
-			$redis->set('netconfhash', '643f8967af551f683b3cfd493950c550');
-			$redis->set('mpdconf_advanced', 0);
-			$redis->set('netconf_advanced', 0);
-
-			// developer parameters
-			$redis->set('dev', 0);
-			$redis->set('debug', 0);
-			$redis->set('opcache', 1);
-
-			// HW platform data
-			$redis->set('playerid', '');
-			$redis->set('hwplatform', '');
-			$redis->set('hwplatformid', '');
-
-			// player control
-			$redis->set('ao', 1);
-			$redis->set('volume', 0);
-			$redis->set('pl_length', 0);
-			$redis->set('nextsongid', 0);
-			$redis->set('lastsongid', 0);
-			$redis->set('lock_refresh_ao', 0);
-			
-			// network parameters
-			$redis->hSet('resolvconf', 'timeout', '0.3');
-			$redis->hSet('resolvconf', 'attempts', '1');
-			break;
-			
-			case 'check':
-			// kernel profile
-			$redis->get('orionprofile') || $redis->set('orionprofile', 'RuneAudio');
-
-			// player features
-			$redis->get('hostname') || $redis->set('hostname', 'runeaudio');
-			$redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
-			$redis->hGet('airplay','enable') || $redis->hSet('airplay','enable', 1);
-			$redis->hGet('airplay','name') || $redis->hSet('airplay','name', 'runeaudio');
-			$redis->get('udevil') || $redis->set('udevil', 1);
-			$redis->get('coverart') || $redis->set('coverart', 1);
-			$redis->get('playmod') || $redis->set('playmod', 0);
-			$redis->get('ramplay') || $redis->set('ramplay', 0);
-			$redis->get('scrobbling_lastfm') || $redis->set('scrobbling_lastfm', 0);
-			$redis->get('cmediafix') || $redis->set('cmediafix', 0);
-			$redis->get('globalrandom') || $redis->set('globalrandom', 0);
-			$redis->get('globalrandom_lock') || $redis->set('globalrandom_lock', 0);
-			$redis->get('mpd_playback_status') || $redis->set('mpd_playback_status', '');
-
-			// plugins api-keys
-			$redis->get('lastfm_apikey') || $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
-			$redis->hGet('jamendo', 'clientid') || $redis->hSet('jamendo', 'clientid', '5f3ed86c');
-			$redis->hGet('jamendo', 'secret') || $redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
-			$redis->hGet('dirble','apikey') || $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
-
-			// internal config hash control
-			$redis->get('mpdconfhash') || $redis->set('mpdconfhash', '');
-			$redis->get('netconfhash') || $redis->set('netconfhash', '');
-			$redis->get('mpdconf_advanced') || $redis->set('mpdconf_advanced', 0);
-			$redis->get('netconf_advanced') || $redis->set('netconf_advanced', 0);
-
-			// developer parameters
-			$redis->get('dev') || $redis->set('dev', 0);
-			$redis->get('debug') || $redis->set('debug', 0);
-			$redis->get('opcache') || $redis->set('opcache', 1);
-
-			// HW platform data
-			$redis->get('playerid') || $redis->set('playerid', '');
-			$redis->get('hwplatform') || $redis->set('hwplatform', '');
-			$redis->get('hwplatformid') || $redis->set('hwplatformid', '');
-
-			// player control
-			$redis->get('ao') || $redis->set('ao', 1);
-			$redis->get('volume') || $redis->set('volume', 0);
-			$redis->get('pl_length') || $redis->set('pl_length', 0);
-			$redis->get('nextsongid') || $redis->set('nextsongid', 0);
-			$redis->get('lastsongid') || $redis->set('lastsongid', 0);	
-			$redis->get('lock_refresh_ao') || $redis->set('lock_refresh_ao', 0);
-			
-			// network parameters
-			$redis->hGet('resolvconf', 'timeout') || $redis->hSet('resolvconf', 'timeout', '0.3');
-			$redis->hGet('resolvconf', 'attempts') || $redis->hSet('resolvconf', 'attempts', '1');
-			break;
-	}
-	
+    switch ($action) {
+        case 'reset':
+            // kernel profile
+            $redis->set('orionprofile', 'RuneAudio');
+            // player features
+            $redis->set('hostname', 'runeaudio');
+            $redis->set('ntpserver', 'pool.ntp.org');
+            $redis->set('airplay', 1);
+            $redis->set('udevil', 1);
+            $redis->set('coverart', 1);
+            $redis->set('playmod', 0);
+            $redis->set('ramplay', 0);
+            $redis->set('scrobbling_lastfm', 0);
+            $redis->set('cmediafix', 0);
+            $redis->set('globalrandom', 0);
+            $redis->set('globalrandom_lock', 0);
+            $redis->set('mpd_playback_status', '');
+            // plugins api-keys
+            $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
+            $redis->hSet('jamendo', 'clientid', '5f3ed86c');
+            $redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
+            $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
+            // internal config hash control
+            // $redis->set('mpdconfhash', '');
+            // $redis->set('netconfhash', '');
+            $redis->set('mpdconfhash', '12eed229f02c52816ed997cbce4b9f32');
+            $redis->set('netconfhash', '643f8967af551f683b3cfd493950c550');
+            $redis->set('mpdconf_advanced', 0);
+            $redis->set('netconf_advanced', 0);
+            // developer parameters
+            $redis->set('dev', 0);
+            $redis->set('debug', 0);
+            $redis->set('opcache', 1);
+            // HW platform data
+            $redis->set('playerid', '');
+            $redis->set('hwplatform', '');
+            $redis->set('hwplatformid', '');
+            // player control
+            $redis->set('ao', 1);
+            $redis->set('volume', 0);
+            $redis->set('pl_length', 0);
+            $redis->set('nextsongid', 0);
+            $redis->set('lastsongid', 0);
+            $redis->set('lock_refresh_ao', 0);
+            // network parameters
+            $redis->hSet('resolvconf', 'timeout', '0.3');
+            $redis->hSet('resolvconf', 'attempts', '1');
+            break;
+        case 'check':
+            // kernel profile
+            $redis->get('orionprofile') || $redis->set('orionprofile', 'RuneAudio');
+            // player features
+            $redis->get('hostname') || $redis->set('hostname', 'runeaudio');
+            $redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
+            $redis->hGet('airplay', 'enable') || $redis->hSet('airplay', 'enable', 1);
+            $redis->hGet('airplay', 'name') || $redis->hSet('airplay', 'name', 'runeaudio');
+            $redis->get('udevil') || $redis->set('udevil', 1);
+            $redis->get('coverart') || $redis->set('coverart', 1);
+            $redis->get('playmod') || $redis->set('playmod', 0);
+            $redis->get('ramplay') || $redis->set('ramplay', 0);
+            $redis->get('scrobbling_lastfm') || $redis->set('scrobbling_lastfm', 0);
+            $redis->get('cmediafix') || $redis->set('cmediafix', 0);
+            $redis->get('globalrandom') || $redis->set('globalrandom', 0);
+            $redis->get('globalrandom_lock') || $redis->set('globalrandom_lock', 0);
+            $redis->get('mpd_playback_status') || $redis->set('mpd_playback_status', '');
+            // plugins api-keys
+            $redis->get('lastfm_apikey') || $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
+            $redis->hGet('jamendo', 'clientid') || $redis->hSet('jamendo', 'clientid', '5f3ed86c');
+            $redis->hGet('jamendo', 'secret') || $redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
+            $redis->hGet('dirble','apikey') || $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
+            // internal config hash control
+            $redis->get('mpdconfhash') || $redis->set('mpdconfhash', '');
+            $redis->get('netconfhash') || $redis->set('netconfhash', '');
+            $redis->get('mpdconf_advanced') || $redis->set('mpdconf_advanced', 0);
+            $redis->get('netconf_advanced') || $redis->set('netconf_advanced', 0);
+            // developer parameters
+            $redis->get('dev') || $redis->set('dev', 0);
+            $redis->get('debug') || $redis->set('debug', 0);
+            $redis->get('opcache') || $redis->set('opcache', 1);
+            // HW platform data
+            $redis->get('playerid') || $redis->set('playerid', '');
+            $redis->get('hwplatform') || $redis->set('hwplatform', '');
+            $redis->get('hwplatformid') || $redis->set('hwplatformid', '');
+            // player control
+            $redis->get('ao') || $redis->set('ao', 1);
+            $redis->get('volume') || $redis->set('volume', 0);
+            $redis->get('pl_length') || $redis->set('pl_length', 0);
+            $redis->get('nextsongid') || $redis->set('nextsongid', 0);
+            $redis->get('lastsongid') || $redis->set('lastsongid', 0);
+            $redis->get('lock_refresh_ao') || $redis->set('lock_refresh_ao', 0);
+            // network parameters
+            $redis->hGet('resolvconf', 'timeout') || $redis->hSet('resolvconf', 'timeout', '0.3');
+            $redis->hGet('resolvconf', 'attempts') || $redis->hSet('resolvconf', 'attempts', '1');
+            break;
+    }
 }
-
-// inspect GET
+// inspect GET['cmd']
 if (isset($_GET['cmd'])) {
-
-	switch ($_GET['cmd']) {
-		
-		case 'reset':
-			redisDatastore($redis,'reset');
-			include($_SERVER['HOME'].'/db/redis_acards_details.php');
-		break;
-		
-		case 'check':
-			redisDatastore($redis,'check');
-		break;
-		
-	}
+    switch ($_GET['cmd']) {
+        case 'reset':
+            redisDatastore($redis,'reset');
+            include($_SERVER['HOME'].'/db/redis_acards_details.php');
+            break;
+        case 'check':
+            redisDatastore($redis,'check');
+            break;
+    }
 }

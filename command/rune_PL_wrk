@@ -32,114 +32,102 @@
  *  coder: Simone De Gregori
  *
  */
- 
 // common include
 ini_set('display_errors', '1');
 ini_set('error_reporting', -1);
-ini_set('error_log','/var/log/runeaudio/rune_PL_wrk.log');
+ini_set('error_log', '/var/log/runeaudio/rune_PL_wrk.log');
 include('/var/www/app/libs/runeaudio.php');
 // reset worker logfile
 sysCmd('echo "--------------- start: rune_PL_wrk ---------------" > /var/log/runeaudio/rune_PL_wrk.log');
-runelog("WORKER rune_PL_wrk START",'');
+runelog('WORKER rune_PL_wrk START');
 // reset forceupdate state
 $forceupdate = 1;
 // --- WORKER MAIN LOOP --- //
 while (1) {
-// Connect to Redis backend
-$redis = new Redis();
-$redis->pconnect('/tmp/redis.sock');
-// $redis->pconnect('/tmp/redis.sock');
-runelog("rune_PL_wrk: open MPD local UNIX socket",'');
-$mpd = openMpdSocket('/run/mpd.sock') ;
+    // Connect to Redis backend
+    $redis = new Redis();
+    $redis->pconnect('/tmp/redis.sock');
+    // $redis->pconnect('/tmp/redis.sock');
+    runelog('rune_PL_wrk: open MPD local UNIX socket');
+    $mpd = openMpdSocket('/run/mpd.sock') ;
 if (!$mpd) {
-// exit script
-// die();
-$forceupdate = 1;
-sleep(1);
-
+    // exit script
+    // die();
+    $forceupdate = 1;
+    sleep(1);
 } else {
-	if ($forceupdate !== 0) {
-		$forceupdate = 0;
-		runelog('----------------------------------- FORCE UPDATE -----------------------------------');
-		ui_update($redis,$mpd);
-	}
-$status = _parseStatusResponse(MpdStatus($mpd));
-
-// store next songid in PHP SESSION
-$redis->set('nextsongid',$status['nextsongid']);
-// store "lastsongid" in PHP SESSION
-$redis->set('lastsongid',$status['songid']);
-		$redis->set('pl_length',$status['playlistlength']);
-		// check for Ramplay
-		// if ($redis->get('ramplay') === '1') {
-			// check ramplay delete
-				// if (!rp_checkPLid($_SESSION['lastsongid'],$mpd)) {
-				// rp_deleteFile($_SESSION['lastsongid'],$mpd);
-				// }
-			// check for CMediaFix
-			// if ($redis->get('cmediafix') === '1') {
-			// $redis->set('lastbitdepth',$status['audio']);
-			// }
-		// }
-		
-// idle LOOP
-runelog("rune_PL_wrk: enter idle loop",'');
-$status = monitorMpdState($mpd);
-// idle LOOP
-		
-		$redis->set('pl_length',$status['playlistlength']);
-		// runelog('---------status data------------',$status);
-		$status = ui_status($mpd,$status);
-		// runelog('---------status data(2)------------',$status);
-		
-			// render Queue (push async)
-			// if ($status['changed'] === 'playlist') {
-			// $queue = new ui_renderQueue($mpd);
-			// $queue->start();
-			// runelog('---------------- PLAYLIST RENDER ----------------');
-			// }
-		
-		// CMediaFix
-		if ($redis->get('cmediafix') === '1' && $status['state'] === 'play' ) {
-			$status['lastbitdepth'] = $redis->get('lastbitdepth');
-				if ($redis->get('lastbitdepth') !== $status['audio']) {
-					sendMpdCommand($mpd,'cmediafix');
-				}
-		}
-		
-		// Ramplay
-		// if ($redis->get('ramplay') === '1') {
-				// set consume mode ON
-				// if ($status['consume'] == 0) {
-				// sendMpdCommand($mpd,'consume 1');
-				// $status['consume'] = 1;
-				// }
-
-			// copy track in /dev/shm
-			// $path = rp_copyFile($status['nextsongid'],$mpd);
-			// exec update mdp locazione ramplay
-			// rp_updateFolder($mpd);
-			// exec addandplay track
-			// rp_addPlay($path,$mpd,$status['playlistlength']);
-		// }
-		
-		// Global Random
-		if (($redis->get('globalrandom') === '1') && ($redis->get('lastsongid') != $status['songid']) && ($redis->get('globalrandom_lock') === '0')) {
-			$addsong = new globalRandom($status);
-			$addsong->start();
-			$redis->set('globalrandom_lock', 1);
-		} else {
-			$redis->set('globalrandom_lock', 0);
-		}
-		
-// JSON response for GUI
-runelog("rune_PL_wrk: ui_render() response",json_encode($status));
-ui_render('playback',json_encode($status));
-// close Redis connection
-$redis->close();
-runelog("rune_PL_wrk: close MPD local UNIX socket",'');
-closeMpdSocket($mpd);
-}
+    if ($forceupdate !== 0) {
+        $forceupdate = 0;
+        runelog('----------------------------------- FORCE UPDATE -----------------------------------');
+        ui_update($redis, $mpd);
+    }
+    $status = _parseStatusResponse(MpdStatus($mpd));
+    // store next songid in PHP SESSION
+    $redis->set('nextsongid', $status['nextsongid']);
+    // store "lastsongid" in PHP SESSION
+    $redis->set('lastsongid', $status['songid']);
+    $redis->set('pl_length', $status['playlistlength']);
+    // check for Ramplay
+    // if ($redis->get('ramplay') === '1') {
+        // check ramplay delete
+            // if (!rp_checkPLid($_SESSION['lastsongid'],$mpd)) {
+            // rp_deleteFile($_SESSION['lastsongid'],$mpd);
+            // }
+        // check for CMediaFix
+        // if ($redis->get('cmediafix') === '1') {
+        // $redis->set('lastbitdepth',$status['audio']);
+        // }
+    // }
+    // idle LOOP
+    runelog('rune_PL_wrk: enter idle loop');
+    $status = monitorMpdState($mpd);
+    // idle LOOP
+    $redis->set('pl_length', $status['playlistlength']);
+    // runelog('---------status data------------',$status);
+    $status = ui_status($mpd, $status);
+    // runelog('---------status data(2)------------',$status);
+    // render Queue (push async)
+    // if ($status['changed'] === 'playlist') {
+    // $queue = new ui_renderQueue($mpd);
+    // $queue->start();
+    // runelog('---------------- PLAYLIST RENDER ----------------');
+    // }
+    // CMediaFix
+    if ($redis->get('cmediafix') === '1' && $status['state'] === 'play' ) {
+        $status['lastbitdepth'] = $redis->get('lastbitdepth');
+            if ($redis->get('lastbitdepth') !== $status['audio']) {
+                sendMpdCommand($mpd, 'cmediafix');
+            }
+    }
+    // Ramplay
+    // if ($redis->get('ramplay') === '1') {
+            // set consume mode ON
+            // if ($status['consume'] == 0) {
+            // sendMpdCommand($mpd,'consume 1');
+            // $status['consume'] = 1;
+            // }
+        // copy track in /dev/shm
+        // $path = rp_copyFile($status['nextsongid'],$mpd);
+        // exec update mdp locazione ramplay
+        // rp_updateFolder($mpd);
+        // exec addandplay track
+        // rp_addPlay($path,$mpd,$status['playlistlength']);
+    // }
+    // Global Random
+    if (($redis->get('globalrandom') === '1') && ($redis->get('lastsongid') != $status['songid']) && ($redis->get('globalrandom_lock') === '0')) {
+        $addsong = new globalRandom($status);
+        $addsong->start();
+        $redis->set('globalrandom_lock', 1);
+    } else {
+        $redis->set('globalrandom_lock', 0);
+    }
+    // JSON response for GUI
+    runelog('rune_PL_wrk: ui_render() response', json_encode($status));
+    ui_render('playback', json_encode($status));
+    // close Redis connection
+    $redis->close();
+    runelog('rune_PL_wrk: close MPD local UNIX socket');
+    closeMpdSocket($mpd);
+    }
 // --- WORKER MAIN LOOP --- //
 }
-

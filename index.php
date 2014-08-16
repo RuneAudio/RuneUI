@@ -31,7 +31,6 @@
  *  coder: Simone De Gregori
  *
  */
- 
 // load configuration
 include($_SERVER['HOME'].'/app/config/config.php');
 // main include
@@ -50,95 +49,77 @@ $template = new \League\Plates\Template($engine);
 $template->dev = $devmode;
 // allowed controllers
 $controllers = array(
-'credits',
-'coverart',
-'coverart2',
-'dev',
-'debug',
-'help',
-'index',
-'login',
-'mpd',
-'network',
-'playback',
-'settings',
-'sources',
-'tun'
+    'credits',
+    'coverart',
+    'coverart2',
+    'dev',
+    'debug',
+    'help',
+    'index',
+    'login',
+    'mpd',
+    'network',
+    'playback',
+    'settings',
+    'sources',
+    'tun'
 );
-
 // check page
-if (in_array($template->uri(1),$controllers) OR empty($template->uri(1))) {
-
-	// decode REQUEST_URL and assing section
+if (in_array($template->uri(1), $controllers) OR empty($template->uri(1))) {
+    // decode REQUEST_URL and assing section
     if (!empty($template->uri(1)) && ($template->uri(1) != 'playback')) {
-			
-			// decode ACTION
-			if (!empty($template->uri(2))) {
-			$template->action = $template->uri(2);
-			
-					// assign SUB-TEMPLATE
-					if ($template->action == 'add') {
-						$subtpl = 'edit';
-					} else {
-						$subtpl = $template->action;
-					}
-
-				// decode ARG
-				if(!empty($template->uri(3))) {
-					$template->arg = $template->uri(3);
-				}
-
-				// assign TEMPLATE
-				$template->content = $template->uri(1).'_'.$subtpl;
-
-			} else {
-
-				// assign TEMPLATE
-				$template->content = $template->uri(1);
-			}
-
-		
-		$template->section = $template->uri(1);
-		// debug
-		//runelog("index: section",$template->section);
-		// debug
-		//runelog("index: selected controller(1)",APP.$template->uri(1));
-		// load selected APP Controller
-		include(APP.$template->uri(1).'_ctl.php');
-		// register current controller in SESSION
-		if ($template->uri(1) !== 'coverart' && $template->uri(1) !== 'coverart2') {
-		$_SESSION['controller'] = $template->uri(1);
-		}
-
-
+        // decode ACTION
+        if (!empty($template->uri(2))) {
+        $template->action = $template->uri(2);
+                // assign SUB-TEMPLATE
+                if ($template->action == 'add') {
+                    $subtpl = 'edit';
+                } else {
+                    $subtpl = $template->action;
+                }
+            // decode ARG
+            if(!empty($template->uri(3))) {
+                $template->arg = $template->uri(3);
+            }
+            // assign TEMPLATE
+            $template->content = $template->uri(1).'_'.$subtpl;
+        } else {
+            // assign TEMPLATE
+            $template->content = $template->uri(1);
+        }
+        $template->section = $template->uri(1);
+        // debug
+        //runelog("index: section",$template->section);
+        // debug
+        //runelog("index: selected controller(1)",APP.$template->uri(1));
+        // load selected APP Controller
+        include(APP.$template->uri(1).'_ctl.php');
+        // register current controller in SESSION
+        if ($template->uri(1) !== 'coverart' && $template->uri(1) !== 'coverart2') {
+        $_SESSION['controller'] = $template->uri(1);
+        }
     } else {
-	
-	// debug
-	//runelog("index: selected controller(2)",'playback_ctl.php');
-	// load playback APP Controller
-    include(APP.'playback_ctl.php');
-	$template->section = 'index';
-    $template->content = 'playback';
-	// register current controller in SESSION
-	$_SESSION['controller'] = 'playback';
-	
+        // debug
+        //runelog("index: selected controller(2)",'playback_ctl.php');
+        // load playback APP Controller
+        include(APP.'playback_ctl.php');
+        $template->section = 'index';
+        $template->content = 'playback';
+        // register current controller in SESSION
+        $_SESSION['controller'] = 'playback';
     }
-	
 } else {
-
-$template->section = 'error';
-$template->content = 'error';
-// register current controller in SESSION
-$_SESSION['controller'] = 'error';
-
+    $template->section = 'error';
+    $template->content = 'error';
+    // register current controller in SESSION
+    $_SESSION['controller'] = 'error';
 }
 // set devmode
 $template->dev = $devmode;
 // plates: render layout (if you want to output direct, set $tplfile = 0 into controller)
 if ($tplfile !== 0) {
-echo $template->render('default_lo');
+    echo $template->render('default_lo');
 }
-
 // close MPD connection
 closeMpdSocket($mpd);
 // close Redis connection

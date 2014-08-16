@@ -1,5 +1,5 @@
 #!/usr/bin/php
-<?php 
+<?php
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -32,7 +32,6 @@
  *  coder: Simone De Gregori
  *
  */
- 
 // common include
 ini_set('display_errors', '1');
 ini_set('error_reporting', -1);
@@ -40,33 +39,30 @@ ini_set('error_log','/var/log/runeaudio/usbmount.log');
 include('/var/www/app/libs/runeaudio.php');
 // Connect to Redis backend
 $redis = new Redis();
-$redis->connect('/tmp/redis.sock');
 //$redis->connect('127.0.0.1', 6379);
-
+$redis->connect('/tmp/redis.sock');
 // handle HFS+ mount
-if (strpos(file_get_contents('/proc/mounts'),'/mnt/MPD/USB/EFI vfat')) {
+if (strpos(file_get_contents('/proc/mounts'), '/mnt/MPD/USB/EFI vfat')) {
     sysCmd('devmon --unmount /mnt/MPD/USB/EFI');
 }
-
 // record mount point info in Redis
 $redis->Del('usbmounts');
 // $usbmounts = sysCmd("df -h | grep USB | cut -d ' ' -f 1,23,31,32 | cut -d '/' -f 3,6-7");
 $usbmounts = sysCmd("df -h | grep USB");
 foreach ($usbmounts as $line) {
-$line = array_values(array_filter(explode(' ',trim($line))));
-// debug
-// print_r($line);
-$redis->hSet('usbmounts',$line[0],json_encode(array('device' => $line[0], 'size' => $line[1], 'use' => $line[4], 'name' => substr($line[5], 9))));
-// debug
-runelog('usbmount line: ',$line);
+    $line = array_values(array_filter(explode(' ', trim($line))));
+    // debug
+    // print_r($line);
+    $redis->hSet('usbmounts', $line[0], json_encode(array('device' => $line[0], 'size' => $line[1], 'use' => $line[4], 'name' => substr($line[5], 9))));
+    // debug
+    runelog('usbmount line: ', $line);
 }
-
 // connect to MPD daemon
 $mpd = openMpdSocket('/run/mpd.sock');
 // update MPD database
-sendMpdCommand($mpd,'update USB');
+sendMpdCommand($mpd, 'update USB');
 // update library panel
-ui_libraryHome($redis,$mpd);
+ui_libraryHome($redis, $mpd);
 // close MPD connection
 closeMpdSocket($mpd);
 // close Redis connection

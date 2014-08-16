@@ -31,43 +31,34 @@
  *  coder: Simone De Gregori
  *
  */
-
 // common include
 include($_SERVER['HOME'].'/app/config/config.php');
 // -- REWORK NEEDED --
 if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
-
-    if ( !$mpd ) {
-	
+    if (!$mpd) {
         echo 'Error Connecting to MPD daemon ';
-		
     } else {
-           
-		// debug
-		// runelog('MPD command: ',$_GET['cmd']);
-		if ($_GET['cmd'] === 'renderui') {
-			ui_update($redis,$mpd);
-		} else if ($_GET['cmd'] === 'wifiscan') {
-			wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'wificfg', 'action' => 'scan' ));
-			echo 'wlan scan queued';
-			die;
-		} else {
-			sendMpdCommand($mpd,$_GET['cmd']);
-		}
-            
+        // debug
+        // runelog('MPD command: ',$_GET['cmd']);
+        if ($_GET['cmd'] === 'renderui') {
+            ui_update($redis, $mpd);
+        } else if ($_GET['cmd'] === 'wifiscan') {
+            wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wificfg', 'action' => 'scan'));
+            echo 'wlan scan queued';
+            die;
+        } else {
+            sendMpdCommand($mpd, $_GET['cmd']);
+        }
         // debug
         // runelog('--- [command/index.php] --- CLOSE MPD SOCKET <<< (1) ---','');
-		$response = readMpdResponse($mpd);
+        $response = readMpdResponse($mpd);
         closeMpdSocket($mpd);
-		echo $response;
-	}
-	
+        echo $response;
+    }
 } else {
-	
-	echo 'MPD COMMAND INTERFACE<br>';
-	echo 'INTERNAL USE ONLY<br>';
-	echo 'hosted on runeaudio.local:82';
-	
+    echo 'MPD COMMAND INTERFACE<br>';
+    echo 'INTERNAL USE ONLY<br>';
+    echo 'hosted on runeaudio.local:82';
 }
 // close Redis connection
 $redis->close();

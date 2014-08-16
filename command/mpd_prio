@@ -31,26 +31,25 @@
 #  coder: Simone De Gregori
 #
 #####################################
-
 mpdprio_nice () {
 count=1
 for pid in $(pgrep -w mpd);
 do
-        if ((count == 3))
-        then
-                echo "### Set priority for: mpd-player thread ###";
-                renice -15 $pid;
-        fi
-        if ((count == 4))
-        then
-                echo "### Set priority for: mpd-output thread ###";
-                renice -18 $pid;
-        fi
-        if ((count == 5))
-        then
-                echo "### Set priority for: mpd-decoder thread ###";
-                renice -16 $pid;
-        fi
+    if ((count == 3))
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice -15 $pid;
+    fi
+    if ((count == 4))
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice -18 $pid;
+    fi
+    if ((count == 5))
+    then
+            echo "### Set priority for: mpd-decoder thread ###";
+            renice -16 $pid;
+    fi
 count=$((count+1))
 done
 }
@@ -59,39 +58,39 @@ mpdprio_default () {
 count=1
 for pid in $(pgrep -w mpd);
 do
-        if ((count == 3))
-        then
-                echo "### Set priority for: mpd-player thread ###";
-                renice 20 $pid;
-        fi
-        if ((count == 4))
-        then
-                echo "### Set priority for: mpd-output thread ###";
-                renice 20 $pid;
-        fi
-        if ((count == 5))
-        then
-                echo "### Set priority for: mpd-decoder thread ###";
-                renice 20 $pid;
-        fi
+    if ((count == 3))
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 4))
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 5))
+    then
+        echo "### Set priority for: mpd-decoder thread ###";
+        renice 20 $pid;
+    fi
 count=$((count+1))
 done
 }
 
 if [ "$1" == "default" ]; then
-echo "set MPD threads, default priority settings"
-mpdprio_default
-exit 0
+    echo "set MPD threads, default priority settings"
+    mpdprio_default
+    exit 0
 fi
 
 if [ "$1" == "nice" ]; then
-echo "set MPD threads, nice priority settings"
-mpdprio_nice
-exit 0
+    echo "set MPD threads, nice priority settings"
+    mpdprio_nice
+    exit 0
 fi
 
 if [ "$1" == "" ]; then
-echo "MPD process priority settings"
-echo "Usage: $0 {default|nice}"
-exit 1
+    echo "MPD process priority settings"
+    echo "Usage: $0 {default|nice}"
+    exit 1
 fi
