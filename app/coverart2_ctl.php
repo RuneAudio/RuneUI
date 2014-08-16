@@ -58,18 +58,18 @@ if (!empty($auinfo['comments']['picture'][0]['data'])) {
     header('Content-Type: ' .$auinfo['comments']['picture'][0]['image_mime']);
     echo $auinfo['comments']['picture'][0]['data'];
 } else {
-	$cover_url = ui_lastFM_coverart($status['currentartist'], $status['currentalbum'], $lastfm_apikey, $proxy);
-	// debug
-	runelog("coverart match: lastfm (query 1) coverURL=", $cover_url);
-	// $ch = curl_init($cover_url);
-	// curl_setopt($ch, CURLOPT_HEADER, 0);
-	// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	// $lastfm_img = curl_exec($ch);
-	// curl_close($ch);
-	$lastfm_img = curlGet($cover_url, $proxy);
-	$bufferinfo = new finfo(FILEINFO_MIME);
-	$lastfm_img_mime = $bufferinfo->buffer($lastfm_img);
-	if (empty($cover_url)) {
+    $cover_url = ui_lastFM_coverart($status['currentartist'], $status['currentalbum'], $lastfm_apikey, $proxy);
+    // debug
+    runelog("coverart match: lastfm (query 1) coverURL=", $cover_url);
+    // $ch = curl_init($cover_url);
+    // curl_setopt($ch, CURLOPT_HEADER, 0);
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // $lastfm_img = curl_exec($ch);
+    // curl_close($ch);
+    $lastfm_img = curlGet($cover_url, $proxy);
+    $bufferinfo = new finfo(FILEINFO_MIME);
+    $lastfm_img_mime = $bufferinfo->buffer($lastfm_img);
+    if (empty($cover_url)) {
         // fetch artist image
         $cover_url = ui_lastFM_coverart($status['currentartist'], '', $lastfm_apikey, $proxy);
         // debug
@@ -81,7 +81,7 @@ if (!empty($auinfo['comments']['picture'][0]['data'])) {
         // $lastfm_img = curl_exec($ch);
         // curl_close($ch);
         $lastfm_img = curlGet($cover_url, $proxy);
-        $lastfm_img_mime = $bufferinfo->buffer($lastfm_img);  
+        $lastfm_img_mime = $bufferinfo->buffer($lastfm_img);
         if (!empty($lastfm_img)) {
             header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
@@ -97,14 +97,14 @@ if (!empty($auinfo['comments']['picture'][0]['data'])) {
             header('Content-Type: ' .mime_content_type($_SERVER['HOME'].'/assets/img/cover-default.png'));
             readfile($_SERVER['HOME'].'/assets/img/cover-default.png');
         }
-	} else {
-			// debug
-			runelog("coverart match: lastfm",'');
-			header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-			header('Pragma: no-cache'); // HTTP 1.0.
-			header('Expires: 0'); // Proxies.
-			header('Content-Type: '.$lastfm_img_mime);
-			echo $lastfm_img;
-	}
-} 
+    } else {
+        // debug
+        runelog("coverart match: lastfm",'');
+        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header('Expires: 0'); // Proxies.
+        header('Content-Type: '.$lastfm_img_mime);
+        echo $lastfm_img;
+    }
+}
 closeMpdSocket($mpd2);

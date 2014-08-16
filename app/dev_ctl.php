@@ -33,36 +33,36 @@
  */
 // inspect POST
 if (isset($_POST)) {
-	// ----- DEV MODE -----
-	if (isset($_POST['mode'])) {
-		if ($_POST['mode']['dev']['enable'] == 1) {
-			// create worker job (start udevil)
-			$redis->get('dev') == 1 || $redis->set('dev', 1);
-			$redis->get('debug') == 1 || $redis->set('debug', 1);
-		} else {
-			// create worker job (stop udevil)
-			$redis->get('dev') == 0 || $redis->set('dev', 0);
-		}
-	// ----- DEBUG -----
-		if ($_POST['mode']['debug']['enable'] == 1) {
-			// create worker job (start udevil)
-			$redis->get('debug') == 1 || $redis->set('debug', 1);
-		} else {
-			// create worker job (stop udevil)
-			$redis->get('debug') == 0 || $redis->set('debug', 0);
-		}
-	}
-	// ----- OPCACHE -----
-	if (isset($_POST['opcache'])) {
-		if ($_POST['opcache']['enable'] == 1) {
-			// create worker job (enable php opcache)
-			$redis->get('opcache') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'enable'));
-		} else {
-			// create worker job (disable php opcache)
-			$redis->get('opcache') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'disable'));
-		}	
-	}
-	if (isset($_POST['syscmd'])) {
+    // ----- DEV MODE -----
+    if (isset($_POST['mode'])) {
+        if ($_POST['mode']['dev']['enable'] == 1) {
+            // create worker job (start udevil)
+            $redis->get('dev') == 1 || $redis->set('dev', 1);
+            $redis->get('debug') == 1 || $redis->set('debug', 1);
+        } else {
+            // create worker job (stop udevil)
+            $redis->get('dev') == 0 || $redis->set('dev', 0);
+        }
+    // ----- DEBUG -----
+        if ($_POST['mode']['debug']['enable'] == 1) {
+            // create worker job (start udevil)
+            $redis->get('debug') == 1 || $redis->set('debug', 1);
+        } else {
+            // create worker job (stop udevil)
+            $redis->get('debug') == 0 || $redis->set('debug', 0);
+        }
+    }
+    // ----- OPCACHE -----
+    if (isset($_POST['opcache'])) {
+        if ($_POST['opcache']['enable'] == 1) {
+            // create worker job (enable php opcache)
+            $redis->get('opcache') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'enable'));
+        } else {
+            // create worker job (disable php opcache)
+            $redis->get('opcache') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'opcache', 'action' => 'disable'));
+        }    
+    }
+    if (isset($_POST['syscmd'])) {
         // ----- BLANK PLAYERID -----
         if ($_POST['syscmd'] === 'blankplayerid') $redis->set('playerid','');
         // ----- CLEARIMG -----
@@ -79,7 +79,7 @@ if (isset($_POST)) {
         if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'clearimg'));
         // ----- RESTART WORKERS -----
         if ($_POST['syscmd'] === 'wrkrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart']));
-	}
+    }
 }
 waitSyWrk($redis, $jobID);
 $template->debug = $redis->get('debug');

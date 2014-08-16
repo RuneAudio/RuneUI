@@ -33,25 +33,25 @@
  */
 // inspect POST
 if (isset($_POST)) {
-	if ($_POST['updatempd'] == 1) sendMpdCommand($mpd, 'update');
-	if ($_POST['mountall'] == 1) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
-	if (isset($_POST['usb-umount'])) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $_POST['usb-umount']));
-	if (!empty($_POST['mount'])) {
-		$_POST['mount']['remotedir'] = str_replace('\\', '/', $_POST['mount']['remotedir']);
-		if ($_POST['mount']['rsize'] == '') $_POST['mount']['rsize'] = 16384;
-		if ($_POST['mount']['wsize'] == '') $_POST['mount']['wsize'] = 17408;
-		if ($_POST['mount']['options'] == '') {
-			if ($_POST['mount']['type'] === 'cifs' OR $_POST['mount']['type'] === 'osx') {
-				$_POST['mount']['options'] = "cache=none,ro";
-			} else {
-				$_POST['mount']['options'] = "nfsvers=3,ro";
-			}
-		}
-		if ($_POST['action'] == 'add') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $_POST['mount']));
-		if ($_POST['action'] == 'edit') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $_POST['mount']));
-		if ($_POST['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $_POST['mount']));
-		if ($_POST['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
-	}
+    if ($_POST['updatempd'] == 1) sendMpdCommand($mpd, 'update');
+    if ($_POST['mountall'] == 1) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
+    if (isset($_POST['usb-umount'])) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $_POST['usb-umount']));
+    if (!empty($_POST['mount'])) {
+        $_POST['mount']['remotedir'] = str_replace('\\', '/', $_POST['mount']['remotedir']);
+        if ($_POST['mount']['rsize'] == '') $_POST['mount']['rsize'] = 16384;
+        if ($_POST['mount']['wsize'] == '') $_POST['mount']['wsize'] = 17408;
+        if ($_POST['mount']['options'] == '') {
+            if ($_POST['mount']['type'] === 'cifs' OR $_POST['mount']['type'] === 'osx') {
+                $_POST['mount']['options'] = "cache=none,ro";
+            } else {
+                $_POST['mount']['options'] = "nfsvers=3,ro";
+            }
+        }
+        if ($_POST['action'] == 'add') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $_POST['mount']));
+        if ($_POST['action'] == 'edit') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $_POST['mount']));
+        if ($_POST['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $_POST['mount']));
+        if ($_POST['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
+    }
 }
 waitSyWrk($redis, $jobID);
 $source = netMounts($redis, 'read');
@@ -71,14 +71,14 @@ foreach ($usbmounts as $usbmount) {
     $template->usbmounts[] = json_decode($usbmount);
 }
 if (isset($template->action)) {
-	if (isset($template->arg)) {
-		foreach ($source as $mp) {
-			if ($mp['id'] == $template->arg) {
-			$template->mount = $mp;
-			}
-		}
+    if (isset($template->arg)) {
+        foreach ($source as $mp) {
+            if ($mp['id'] == $template->arg) {
+            $template->mount = $mp;
+            }
+        }
         $template->title = 'Edit network mount';
-	} else {
+    } else {
         $template->title = 'Add new network mount';
-	}
+    }
 } 

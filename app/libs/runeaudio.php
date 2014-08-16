@@ -42,11 +42,11 @@ $connection = socket_connect($sock, $path);
     if ($connection) {
         runelog("[1][".$sock."]\t>>>>>> OPEN MPD SOCKET <<<<<<\t\t\t",'');
         return $sock;
-	} else {
+    } else {
         runelog("[1][".$sock."]\t>>>>>> MPD SOCKET ERROR: ".socket_last_error($sock)." <<<<<<\t\t\t",'');
         // ui_notify('MPD sock: '.$sock.'','socket error = '.socket_last_error($sock));
         return false;
-	}
+    }
 }
 
 function closeMpdSocket($sock)
@@ -60,14 +60,14 @@ function closeMpdSocket($sock)
 
 function sendMpdCommand($sock, $cmd)
 {
-	if ($cmd == 'cmediafix') {
-		socket_write($sock, 'pause\n', strlen('pause\n'));
-		usleep(500000);
-		socket_write($sock, 'pause\n', strlen('pause\n'));
-	} else {
-		$cmd = $cmd."\n";
-		socket_write($sock, $cmd, strlen($cmd));		
-	}
+    if ($cmd == 'cmediafix') {
+        socket_write($sock, 'pause\n', strlen('pause\n'));
+        usleep(500000);
+        socket_write($sock, 'pause\n', strlen('pause\n'));
+    } else {
+        $cmd = $cmd."\n";
+        socket_write($sock, $cmd, strlen($cmd));        
+    }
     runelog("MPD COMMAND: (socket=".$sock.")", $cmd);
     //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
 }
@@ -94,21 +94,21 @@ function sendMpdIdle($sock)
 
 function monitorMpdState($sock)
 {
-	if ($change = sendMpdIdle($sock)) {
+    if ($change = sendMpdIdle($sock)) {
         $status = _parseStatusResponse(MpdStatus($sock));
         $status['changed'] = substr($change[1], 0, -3);
         // runelog('monitorMpdState()', $status);
         return $status;
-	}
+    }
 }
 
 function getTrackInfo($sock, $songID)
 {
     // set currentsong, currentartis, currentalbum
-	sendMpdCommand($sock, 'playlistinfo '.$songID);
-	$track = readMpdResponse($sock);
-	// runelog('+++++++++++++ getTrackInfo data +++++++++++++++', $track);
-	return _parseFileListResponse($track);
+    sendMpdCommand($sock, 'playlistinfo '.$songID);
+    $track = readMpdResponse($sock);
+    // runelog('+++++++++++++ getTrackInfo data +++++++++++++++', $track);
+    return _parseFileListResponse($track);
 }
 
 function getPlayQueue($sock)
@@ -165,27 +165,27 @@ function deleteBookmark($redis, $id)
 function searchDB($sock, $querytype, $query)
 {
     switch ($querytype) {
-	case "filepath":
-		if (isset($query) && !empty($query)){
+    case "filepath":
+        if (isset($query) && !empty($query)){
             sendMpdCommand($sock,"lsinfo \"".html_entity_decode($query)."\"");
             break;
-		} else {
+        } else {
             sendMpdCommand($sock, 'lsinfo');
             break;
-		}
-	case 'album':
+        }
+    case 'album':
         // no break
     case 'artist':
         // no break
     case 'title':
         // no break
     case 'file':
-		sendMpdCommand($sock, "search ".$querytype." \"".html_entity_decode($query)."\"");
+        sendMpdCommand($sock, "search ".$querytype." \"".html_entity_decode($query)."\"");
         break;
     case 'globalrandom':
-		sendMpdCommand($sock, 'listall');
+        sendMpdCommand($sock, 'listall');
         break;
-	}
+    }
     $response = readMpdResponse($sock);
     return _parseFileListResponse($response);
 }
@@ -201,47 +201,47 @@ function remTrackQueue($sock, $songpos)
 function addQueue($sock, $path, $addplay = null, $pos = null)
 {
     $fileext = parseFileStr($path,'.');
-	if ($fileext == 'm3u' OR $fileext == 'pls') {
-		sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
-	} else {
-		if (isset($addplay)) {
-			$cmdlist = "command_list_begin\n";
-			$cmdlist .= "add \"".html_entity_decode($path)."\"\n";
-			$cmdlist .= "play ".$pos."\n";
-			$cmdlist .= "command_list_end";
-			sendMpdCommand($sock, $cmdlist);
-		} else {
-			sendMpdCommand($sock, "add \"".html_entity_decode($path)."\"");
-		}
-	}
+    if ($fileext == 'm3u' OR $fileext == 'pls') {
+        sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
+    } else {
+        if (isset($addplay)) {
+            $cmdlist = "command_list_begin\n";
+            $cmdlist .= "add \"".html_entity_decode($path)."\"\n";
+            $cmdlist .= "play ".$pos."\n";
+            $cmdlist .= "command_list_end";
+            sendMpdCommand($sock, $cmdlist);
+        } else {
+            sendMpdCommand($sock, "add \"".html_entity_decode($path)."\"");
+        }
+    }
 }
 
 /*
 class globalRandom extends Thread
 {
-	// mpd status
-	public $status;
-	
+    // mpd status
+    public $status;
+    
     public function __construct($status)
     {
-		$this->status = $status;
+        $this->status = $status;
     }
-	
+    
     public function run()
     {
-		$mpd = openMpdSocket('/run/mpd.sock');
-			// if ($this->status['consume'] == 0 OR $this->status['random'] == 0) {
-			if ($this->status['random'] == 0) {
-			// sendMpdCommand($mpd,'consume 1');
+        $mpd = openMpdSocket('/run/mpd.sock');
+            // if ($this->status['consume'] == 0 OR $this->status['random'] == 0) {
+            if ($this->status['random'] == 0) {
+            // sendMpdCommand($mpd,'consume 1');
                 sendMpdCommand($mpd,'random 1');
-			}
-			$path = randomSelect($mpd);
-			if ($path) {
-				addQueue($mpd,$path);
-				runelog("global random call",$path);
-				ui_notify('Global Random Mode', htmlentities($path,ENT_XML1,'UTF-8').' added to current Queue');
-			}
-		closeMpdSocket($mpd);
+            }
+            $path = randomSelect($mpd);
+            if ($path) {
+                addQueue($mpd,$path);
+                runelog("global random call",$path);
+                ui_notify('Global Random Mode', htmlentities($path,ENT_XML1,'UTF-8').' added to current Queue');
+            }
+        closeMpdSocket($mpd);
     }
 }
 */
@@ -312,9 +312,9 @@ function getMpdDaemonDetalis()
 // format Output for "playlist"
 function _parseFileListResponse($resp)
 {
-	if (is_null($resp)) {
-		return null;
-	} else {
+    if (is_null($resp)) {
+        return null;
+    } else {
         $plistArray = array();
         $plistLine = strtok($resp, "\n");
         // $plistFile = "";
@@ -362,7 +362,7 @@ function _parseStatusResponse($resp)
         // "elapsed time song_percent" added to output array
          $time = explode(":", $plistArray['time']);
          if ($time[0] != 0) {
-         $percent = round(($time[0]*100)/$time[1]);	
+         $percent = round(($time[0]*100)/$time[1]);    
          } else {
             $percent = 0;
          }
@@ -427,11 +427,11 @@ function _parseOutputsResponse($input, $active)
             $linenum++;
         }
     }
-	if (isset($active)) {
-		return $active;
-	} else {
-		return $outputs;
-	}
+    if (isset($active)) {
+        return $active;
+    } else {
+        return $outputs;
+    }
 }
 
 // get file extension
@@ -453,27 +453,27 @@ function OpCacheCtl($basepath, $action)
 {
     if ($action === 'prime') $cmd = 'opcache_compile_file';
     if ($action === 'reset') $cmd = 'opcache_invalidate';
-	if (is_file($basepath)) {
-		if (parseFileStr($basepath,'.') === 'php' && $basepath != '/srv/http/command/cachectl.php' ) $cmd ($basepath);
-	}
-	elseif(is_dir($basepath)) {
-		$scan = glob(rtrim($basepath,'/').'/*');
-		foreach($scan as $index=>$path) {
-			OpCacheCtl($path,$action);
-		}
-	}
+    if (is_file($basepath)) {
+        if (parseFileStr($basepath,'.') === 'php' && $basepath != '/srv/http/command/cachectl.php' ) $cmd ($basepath);
+    }
+    elseif(is_dir($basepath)) {
+        $scan = glob(rtrim($basepath,'/').'/*');
+        foreach($scan as $index=>$path) {
+            OpCacheCtl($path,$action);
+        }
+    }
 }
 
 function netMounts($redis, $action, $data = null)
 {
     // mountpoint input format
     // $data = array( 'name' => '', 'type' => '', 'address' => '', 'remotedir' => '', 'username' => '', 'password' => '', 'charset' => '', 'rsize' => '', 'wsize' => '', 'options' => '', 'error' => '' );
-	switch ($action) {
-		case 'list':
-			$mp = $redis->Keys('mount_*');
-			runelog('keys list: ', $mp);
+    switch ($action) {
+        case 'list':
+            $mp = $redis->Keys('mount_*');
+            runelog('keys list: ', $mp);
             break;
-		case 'read':
+        case 'read':
             if (isset($data)) {
                 $mp = $redis->hGetAll($data);
             } else {
@@ -481,10 +481,10 @@ function netMounts($redis, $action, $data = null)
                 $mounts = netMounts($redis, 'list');
                 foreach ($mounts as $mount) {
                     $mp[] = netMounts($redis, 'read', $mount);
-				}
-			}
+                }
+            }
             break;
-		case 'write':
+        case 'write':
             $redis->hSet('mount_'.$data['name'], 'name', $data['name']) || $mp = 0;
             $redis->hSet('mount_'.$data['name'], 'type', $data['type']) || $mp = 0;
             $redis->hSet('mount_'.$data['name'], 'address', $data['address']) || $mp = 0;
@@ -498,18 +498,18 @@ function netMounts($redis, $action, $data = null)
             $redis->hSet('mount_'.$data['name'], 'error', $data['error']) || $mp = 0;
             if (!isset($mp)) {
                 $mp = 1;
-			} else {
-				$redis->Del('mount_'.$data['name']);
-			}
+            } else {
+                $redis->Del('mount_'.$data['name']);
+            }
             break;
-		case 'delete':
+        case 'delete':
             if (isset($data)) {
                 $mp = $redis->Del('mount_'.$data['name']);
             } else {
                 $mp = sysCmd('redis-cli KEYS "mount_*" | xargs redis-cli DEL');
             }
             break;
-	}
+    }
     return $mp;
 }
 
@@ -521,11 +521,11 @@ function rp_checkPLid($id, $mpd)
     $response = readMpdResponse($mpd);
     echo "<br>debug__".$response;
     echo "<br>debug__".stripos($response,'MPD error');
-	if (stripos($response,'OK')) {
+    if (stripos($response,'OK')) {
         return true;
-	} else {
+    } else {
         return false;
-	}
+    }
 }
 
 //<< TODO: join with findPLposPath
@@ -553,11 +553,11 @@ function findPLposPath($songpos, $mpd)
 function rp_deleteFile($id, $mpd)
 {
     $_SESSION['DEBUG'] .= "rp_deleteFile:$id |";
-	if (unlink(rp_findPath($id, $mpd))) {
+    if (unlink(rp_findPath($id, $mpd))) {
         return true;
-	} else {
+    } else {
         return false;
-	}
+    }
 }
 
 function rp_copyFile($id, $mpd)
@@ -571,9 +571,9 @@ function rp_copyFile($id, $mpd)
     if (copy($realpath, $ramplaypath)) {
         $_SESSION['DEBUG'] .= "rp_addPlay:$id $song $path $pos|";
         return $path;
-	} else {
+    } else {
         return false;
-	}
+    }
 }
 
 function rp_updateFolder($mpd)
@@ -599,43 +599,43 @@ function rp_clean()
 
 function recursiveDelete($str)
 {
-	if(is_file($str)){
-		return @unlink($str);
-		// TODO: add search path in playlist and remove from playlist
-	}
-	elseif(is_dir($str)){
-		$scan = glob(rtrim($str, '/').'/*');
-		foreach($scan as $index=>$path){
-			recursiveDelete($path);
-		}
-	}
+    if(is_file($str)){
+        return @unlink($str);
+        // TODO: add search path in playlist and remove from playlist
+    }
+    elseif(is_dir($str)){
+        $scan = glob(rtrim($str, '/').'/*');
+        foreach($scan as $index=>$path){
+            recursiveDelete($path);
+        }
+    }
 }
 
 function pushFile($filepath) 
 {
-	if (file_exists($filepath)) {
-		header('Content-Description: File Transfer');
-		header('Content-Type: application/octet-stream');
-		header('Content-Disposition: attachment; filename='.basename($filepath));
-		header('Content-Transfer-Encoding: binary');
-		header('Expires: 0');
-		header('Cache-Control: must-revalidate');
-		header('Pragma: public');
-		header('Content-Length: '.filesize($filepath));
-		ob_clean();
-		flush();
-		readfile($filepath);
-		return true;
-	} else {
-		return false;
-	}
+    if (file_exists($filepath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename='.basename($filepath));
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: '.filesize($filepath));
+        ob_clean();
+        flush();
+        readfile($filepath);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // check if mpd.conf or interfaces was modified outside
 function hashCFG($action, $redis)
 {
-	switch ($action) {
-		case 'check_net':
+    switch ($action) {
+        case 'check_net':
             // --- CODE REWORK NEEDED ---
             $hash = md5_file('/etc/netctl/eth0');
             if ($redis->get('netconfhash') !== $hash) {
@@ -645,7 +645,7 @@ function hashCFG($action, $redis)
                 $redis->set('netconf_advanced', 0);
             }
             break;
-		case 'check_mpd':
+        case 'check_mpd':
             $hash = md5_file('/etc/mpd.conf');
             if ($redis->get('mpdconfhash') !== $hash) {
                 $redis->set('mpdconf_advanced', 1);
@@ -653,8 +653,8 @@ function hashCFG($action, $redis)
             } else {
                 $redis->set('mpdconf_advanced', 0);
             }
-            break;		
-	} 
+            break;        
+    } 
     return true;
 }
 
@@ -665,51 +665,51 @@ function runelog($title, $data = null)
     $store = new Redis();
     $store->connect('127.0.0.1', 6379);
     $debug_level = $store->get('debug');
-	if ($debug_level !== '0') {
-	    if(is_array($data) OR is_object($data)) {
-			if (is_array($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = array',0);
-			if (is_object($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = object',0);
-			foreach($data as $key => $value) {
+    if ($debug_level !== '0') {
+        if(is_array($data) OR is_object($data)) {
+            if (is_array($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = array',0);
+            if (is_object($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = object',0);
+            foreach($data as $key => $value) {
                 error_log('[debug='.$debug_level.'] ### '.$title.' ###  [\''.$key.'\'] => '.$value,0);
-			}
-	    } else {
-			error_log('[debug='.$debug_level.'] ### '.$title.' ###  '.$data,0);
-	    }
-	}
+            }
+        } else {
+            error_log('[debug='.$debug_level.'] ### '.$title.' ###  '.$data,0);
+        }
+    }
     $store->close();
 }
 
 function waitSyWrk($redis, $jobID) 
 {
-	if (is_array($jobID)){	
-		foreach ($jobID as $job) {
-			do {
-				usleep(650000);
-			} while ($redis->sIsMember('w_lock', $job));
-		}
-	} elseif (!empty($jobID)) {
-		do {
-		usleep(650000);
-		} while ($redis->sIsMember('w_lock', $jobID));
-	}
+    if (is_array($jobID)){    
+        foreach ($jobID as $job) {
+            do {
+                usleep(650000);
+            } while ($redis->sIsMember('w_lock', $job));
+        }
+    } elseif (!empty($jobID)) {
+        do {
+        usleep(650000);
+        } while ($redis->sIsMember('w_lock', $jobID));
+    }
 }
 
 function wrk_control($redis, $action, $data)
 {
     // accept $data['action'] $data['args'] from controller 
-	switch ($action) {
+    switch ($action) {
         case 'newjob':
-			// generate random jobid
-			$jobID = wrk_jobID();
-			$wjob = array( 
-				'wrkcmd' => $data['wrkcmd'],
-				'action' => $data['action'],
-				'args' => $data['args']
-			);
-			$redis->hSet('w_queue', $jobID, json_encode($wjob));
-			runelog('wrk_control data:', $redis->hGet('w_queue', $jobID));
-            break;	
-	}
+            // generate random jobid
+            $jobID = wrk_jobID();
+            $wjob = array( 
+                'wrkcmd' => $data['wrkcmd'],
+                'action' => $data['action'],
+                'args' => $data['args']
+            );
+            $redis->hSet('w_queue', $jobID, json_encode($wjob));
+            runelog('wrk_control data:', $redis->hGet('w_queue', $jobID));
+            break;    
+    }
     // debug
     runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID);
     return $jobID;
@@ -718,23 +718,23 @@ function wrk_control($redis, $action, $data)
 // search a string in a file and replace with another string the whole line.
 function wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel, $lineoffset)
 {
-	runelog('wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel, $lineoffset)','');
-	runelog('wrk_replaceTextLine $file', $file);
-	runelog('wrk_replaceTextLine $strfind', $strfind);
-	runelog('wrk_replaceTextLine $strrepl', $strrepl);
-	runelog('wrk_replaceTextLine $linelabel', $linelabel);
-	runelog('wrk_replaceTextLine $lineoffset', $lineoffset);
-	if (!empty($file)) {
+    runelog('wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel, $lineoffset)','');
+    runelog('wrk_replaceTextLine $file', $file);
+    runelog('wrk_replaceTextLine $strfind', $strfind);
+    runelog('wrk_replaceTextLine $strrepl', $strrepl);
+    runelog('wrk_replaceTextLine $linelabel', $linelabel);
+    runelog('wrk_replaceTextLine $lineoffset', $lineoffset);
+    if (!empty($file)) {
         $fileData = file($file);
-	} else {
+    } else {
         $fileData = $inputArray;
-	}
-	$newArray = array();
-	if (isset($linelabel) && isset($lineoffset)) {
+    }
+    $newArray = array();
+    if (isset($linelabel) && isset($lineoffset)) {
         $linenum = 0;
-	}
-	foreach($fileData as $line) {
-		if (isset($linelabel) && isset($lineoffset)) {
+    }
+    foreach($fileData as $line) {
+        if (isset($linelabel) && isset($lineoffset)) {
             $linenum++;
             if (preg_match('/'.$linelabel.'/', $line)) {
                 $lineindex = $linenum;
@@ -746,27 +746,27 @@ function wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel,
                     runelog('internal loop $line', $line);
                 }
             }
-		} else {
-		  if (preg_match('/'.$strfind.'/', $line)) {
-			$line = $strrepl."\n";
-			runelog('replaceall $line', $line);
-		  }
-		}
-	  $newArray[] = $line;
-	}
-	return $newArray;
+        } else {
+          if (preg_match('/'.$strfind.'/', $line)) {
+            $line = $strrepl."\n";
+            runelog('replaceall $line', $line);
+          }
+        }
+      $newArray[] = $line;
+    }
+    return $newArray;
 }
 
 // make device TOTALBACKUP (with switch DEV copy all /etc)
 function wrk_backup($bktype)
 {
-	if ($bktype === 'dev') {
+    if ($bktype === 'dev') {
         $filepath = "/run/totalbackup_".date('Y-m-d').".tar.gz";
         $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /boot/cmdline.txt /var/www /etc";
-	} else {
+    } else {
         $filepath = "/run/backup_".date('Y-m-d').".tar.gz";
         $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/www/db/player.db";
-	}
+    }
     sysCmd($cmdstring);
     return $filepath;
 }
@@ -774,28 +774,28 @@ function wrk_backup($bktype)
 
 function wrk_opcache($action, $redis)
 {
-	switch ($action) {
+    switch ($action) {
         case 'prime':
-			if ($redis->get('opcache') == 1) {
-			$ch = curl_init('http://localhost/command/cachectl.php?action=prime');
-			curl_exec($ch);
-			curl_close($ch);
-			}
+            if ($redis->get('opcache') == 1) {
+            $ch = curl_init('http://localhost/command/cachectl.php?action=prime');
+            curl_exec($ch);
+            curl_close($ch);
+            }
             runelog('wrk_opcache ', $action);
             break;
-		case 'forceprime':
-			$ch = curl_init('http://localhost/command/cachectl.php?action=prime');
-			curl_exec($ch);
-			curl_close($ch);
+        case 'forceprime':
+            $ch = curl_init('http://localhost/command/cachectl.php?action=prime');
+            curl_exec($ch);
+            curl_close($ch);
             runelog('wrk_opcache ', $action);
             break;
-		case 'reset':
-			$ch = curl_init('http://localhost/command/cachectl.php?action=reset');
-			curl_exec($ch);
-			curl_close($ch);
+        case 'reset':
+            $ch = curl_init('http://localhost/command/cachectl.php?action=reset');
+            curl_exec($ch);
+            curl_close($ch);
             runelog('wrk_opcache ', $action);
             break;
-		case 'enable':
+        case 'enable':
             wrk_opcache('reset');
             // opcache.ini
             $file = '/etc/php/conf.d/opcache.ini';
@@ -806,7 +806,7 @@ function wrk_opcache($action, $redis)
             fclose($fp);
             runelog('wrk_opcache ', $action);
             break;
-		case 'disable':
+        case 'disable':
             wrk_opcache('reset');
             // opcache.ini
             // -- REWORK NEEDED --
@@ -818,166 +818,166 @@ function wrk_opcache($action, $redis)
             fclose($fp);
             runelog('wrk_opcache ', $action);
             break;
-	}
+    }
 }
 
 function wrk_netconfig($redis, $action, $args = null, $configonly = null)
 {
 $updateh = 0;
-	switch ($action) {
-		case 'setnics':
-			// nics blacklist
-			$excluded_nics = array('ifb0', 'ifb1');
-			// flush nics Redis hash table
-			$transaction = $redis->multi();
-			$transaction->del('nics');
-			$interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
-			$interfaces = array_diff($interfaces, $excluded_nics);
-			foreach ($interfaces as $interface) {
-				$ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
-				$netmask = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f2");
-				if (isset($netmask[0])) {
-					$netmask = netmask($netmask[0]);
-				} else {
-					unset($netmask);
-				}
-				$gw = sysCmd("route -n |grep \"0.0.0.0\" |grep \"UG\" |cut -d' ' -f10");
-				$dns = sysCmd("cat /etc/resolv.conf |grep \"nameserver\" |cut -d' ' -f2");
-				$type = sysCmd("iwconfig ".$interface." 2>&1 | grep \"no wireless\"");
-				runelog('interface type', $type[0]);
-				// if (empty(sysCmd("iwlist ".$interface." scan 2>&1 | grep \"Interface doesn't support scanning\""))) {
-				if (empty($type[0])) {
-					$speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d '=' -f 2 | cut -d ' ' -f 1-2");
-					$currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
-					$currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
-					$transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 1, 'currentssid' => $currentSSID[0])));
-					//// $scanwifi = 1;
-				} else {
-					$speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
-					$transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 0)));
-				}
-			}
-			//// if ($scanwifi) sysCmdAsync('/var/www/command/refresh_nics');
-			// check wpa_supplicant auto-start and purge interface list
-			$wpa_supplicant_start = sysCmd("ls -lah /etc/systemd/system/multi-user.target.wants/wpa_supplicant@*.service | cut -d '@' -f 2 | cut -d '.' -f 1");
-			$disable_wpa_supplicant = array_diff($wpa_supplicant_start, $interfaces);
-			if (!empty($disable_wpa_supplicant)) {
-				foreach ($disable_wpa_supplicant as $interface_name) {
-					unlink('/etc/systemd/system/multi-user.target.wants/wpa_supplicant@'.$interface_name.'.service');
-				}
-			}
-			$transaction->exec();
+    switch ($action) {
+        case 'setnics':
+            // nics blacklist
+            $excluded_nics = array('ifb0', 'ifb1');
+            // flush nics Redis hash table
+            $transaction = $redis->multi();
+            $transaction->del('nics');
+            $interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
+            $interfaces = array_diff($interfaces, $excluded_nics);
+            foreach ($interfaces as $interface) {
+                $ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
+                $netmask = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f2");
+                if (isset($netmask[0])) {
+                    $netmask = netmask($netmask[0]);
+                } else {
+                    unset($netmask);
+                }
+                $gw = sysCmd("route -n |grep \"0.0.0.0\" |grep \"UG\" |cut -d' ' -f10");
+                $dns = sysCmd("cat /etc/resolv.conf |grep \"nameserver\" |cut -d' ' -f2");
+                $type = sysCmd("iwconfig ".$interface." 2>&1 | grep \"no wireless\"");
+                runelog('interface type', $type[0]);
+                // if (empty(sysCmd("iwlist ".$interface." scan 2>&1 | grep \"Interface doesn't support scanning\""))) {
+                if (empty($type[0])) {
+                    $speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d '=' -f 2 | cut -d ' ' -f 1-2");
+                    $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
+                    $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
+                    $transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 1, 'currentssid' => $currentSSID[0])));
+                    //// $scanwifi = 1;
+                } else {
+                    $speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
+                    $transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 0)));
+                }
+            }
+            //// if ($scanwifi) sysCmdAsync('/var/www/command/refresh_nics');
+            // check wpa_supplicant auto-start and purge interface list
+            $wpa_supplicant_start = sysCmd("ls -lah /etc/systemd/system/multi-user.target.wants/wpa_supplicant@*.service | cut -d '@' -f 2 | cut -d '.' -f 1");
+            $disable_wpa_supplicant = array_diff($wpa_supplicant_start, $interfaces);
+            if (!empty($disable_wpa_supplicant)) {
+                foreach ($disable_wpa_supplicant as $interface_name) {
+                    unlink('/etc/systemd/system/multi-user.target.wants/wpa_supplicant@'.$interface_name.'.service');
+                }
+            }
+            $transaction->exec();
             break;
-		case 'getnics':
- 			foreach ($redis->hGetAll('nics') as $interface => $details) {
-				$interfaces[$interface] = json_decode($details);
-			}
-			return $interfaces;
+        case 'getnics':
+             foreach ($redis->hGetAll('nics') as $interface => $details) {
+                $interfaces[$interface] = json_decode($details);
+            }
+            return $interfaces;
             break;
-		case 'writecfg':
-			// ArchLinux netctl config for wired ethernet
-				$nic = "Description='".$args->name." connection'\n";
-				$nic .= "Interface=".$args->name."\n";
-				$nic .= "ForceConnect=yes\n";
-				$nic .= "SkipNoCarrier=yes\n";
-			if ($args->wireless === '1') {
-				// Wireless configuration
-				$nic .= "Connection=wireless\n";
-				$nic .= "Security=wpa-config\n";
-				$nic .= "WPAConfigFile='/etc/wpa_supplicant/wpa_supplicant.conf'\n";
-			} else {
-				// Wired configuration
-				$nic .= "Connection=ethernet\n";
-			}		
-			if ($args->dhcp === '1') {
-				// DHCP configuration
-				$nic .= "IP=dhcp\n";
-				// Prepare data object for Redis record
-				$args = array( 'name' => $args->name, 'dhcp' => $args->dhcp );
-				$args = (object) $args;
-			} else {
-				// STATIC configuration
-				$nic .= "AutoWired=yes\n";
-				$nic .= "IP=static\n";
-				$nic .= "Address=('".$args->ip."/".$args->netmask."')\n";
-				$nic .= "Gateway='".$args->gw."'\n";
-				if (!empty($args->dns2)) {
-					$nic .= "DNS=('".$args->dns1."' '".$args->dns2."')\n";
-				} else {
-					$nic .= "DNS=('".$args->dns1."')\n";
-				}
-			}
-			// ntp sync after connect
-			$nic .= "ExecUpPost='/usr/bin/ntpd -gq || true'\n";
-			// set advanced DNS options
-			$newArray = wrk_replaceTextLine('/etc/resolvconf.conf', '', 'resolv_conf_options=', "resolv_conf_options=('timeout:".$redis->hGet('resolvconf', 'timeout')." attempts:".$redis->hGet('resolvconf', 'attempts')."')", '#name_servers=127.0.0.1', 1);
-			// Commit changes to /etc/resolvconf.conf
-			$fp = fopen('/etc/resolvconf.conf', 'w');
-			fwrite($fp, implode("", $newArray));
-			fclose($fp);
-			// tell the system to update /etc/resolv.conf
-			sysCmd('resolvconf -u');
-			
-			// write current network config
-			$redis->set($args->name, json_encode($args));
-			$fp = fopen('/etc/netctl/'.$args->name, 'w');
-			fwrite($fp, $nic);
-			fclose($fp);
-			if (!isset($configonly)) $updateh = 1;
+        case 'writecfg':
+            // ArchLinux netctl config for wired ethernet
+                $nic = "Description='".$args->name." connection'\n";
+                $nic .= "Interface=".$args->name."\n";
+                $nic .= "ForceConnect=yes\n";
+                $nic .= "SkipNoCarrier=yes\n";
+            if ($args->wireless === '1') {
+                // Wireless configuration
+                $nic .= "Connection=wireless\n";
+                $nic .= "Security=wpa-config\n";
+                $nic .= "WPAConfigFile='/etc/wpa_supplicant/wpa_supplicant.conf'\n";
+            } else {
+                // Wired configuration
+                $nic .= "Connection=ethernet\n";
+            }        
+            if ($args->dhcp === '1') {
+                // DHCP configuration
+                $nic .= "IP=dhcp\n";
+                // Prepare data object for Redis record
+                $args = array( 'name' => $args->name, 'dhcp' => $args->dhcp );
+                $args = (object) $args;
+            } else {
+                // STATIC configuration
+                $nic .= "AutoWired=yes\n";
+                $nic .= "IP=static\n";
+                $nic .= "Address=('".$args->ip."/".$args->netmask."')\n";
+                $nic .= "Gateway='".$args->gw."'\n";
+                if (!empty($args->dns2)) {
+                    $nic .= "DNS=('".$args->dns1."' '".$args->dns2."')\n";
+                } else {
+                    $nic .= "DNS=('".$args->dns1."')\n";
+                }
+            }
+            // ntp sync after connect
+            $nic .= "ExecUpPost='/usr/bin/ntpd -gq || true'\n";
+            // set advanced DNS options
+            $newArray = wrk_replaceTextLine('/etc/resolvconf.conf', '', 'resolv_conf_options=', "resolv_conf_options=('timeout:".$redis->hGet('resolvconf', 'timeout')." attempts:".$redis->hGet('resolvconf', 'attempts')."')", '#name_servers=127.0.0.1', 1);
+            // Commit changes to /etc/resolvconf.conf
+            $fp = fopen('/etc/resolvconf.conf', 'w');
+            fwrite($fp, implode("", $newArray));
+            fclose($fp);
+            // tell the system to update /etc/resolv.conf
+            sysCmd('resolvconf -u');
+            
+            // write current network config
+            $redis->set($args->name, json_encode($args));
+            $fp = fopen('/etc/netctl/'.$args->name, 'w');
+            fwrite($fp, $nic);
+            fclose($fp);
+            if (!isset($configonly)) $updateh = 1;
             break;
-		case 'manual':
-			$file = '/etc/netctl/'.$args['name'];
-			$fp = fopen($file, 'w');
-			fwrite($fp, $args['config']);
-			fclose($fp);
-			$updateh = 1;
+        case 'manual':
+            $file = '/etc/netctl/'.$args['name'];
+            $fp = fopen($file, 'w');
+            fwrite($fp, $args['config']);
+            fclose($fp);
+            $updateh = 1;
             break;
-		case 'reset':
-			wrk_netconfig($redis, 'setnics');
-			$args = new stdClass;
-			$args->dhcp = '1';
-			$args->name = 'eth0';
-			wrk_netconfig($redis, 'writecfg', $args);
-			$updateh = 1;
+        case 'reset':
+            wrk_netconfig($redis, 'setnics');
+            $args = new stdClass;
+            $args->dhcp = '1';
+            $args->name = 'eth0';
+            wrk_netconfig($redis, 'writecfg', $args);
+            $updateh = 1;
             break;
-	}
-	if ($updateh === 1) {
-		runelog('wireless NIC?', $args->wireless);
-		// activate configuration (RuneOS)
-		sysCmd('mpc stop');
-		sysCmd('netctl stop '.$args->name);
-		sysCmd('ip addr flush dev '.$args->name);
-		if ($args->dhcp === '1') {
-		// dhcp configuration
-			if ($args->wireless !== '1') {
-				// $cmd = 'systemctl enable ifplugd@'.$args->name;
-				$cmd = "ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
-				sysCmd($cmd);
-			}
-			sysCmd('systemctl daemon-reload');
-		} else {
-		// static configuration
-			if ($args->wireless !== '1') {
-				// $cmd = 'systemctl disable ifplugd@'.$args->name;
-				$cmd = "rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
-				sysCmd($cmd);
-				sysCmd('systemctl daemon-reload');
-				// kill ifplugd
-				sysCmd('killall ifplugd');
-			}
-			// get pids of dhcpcd
-			$pids = sysCmd('pgrep -xf "dhcpcd -4qL -t 30 '.$args->name.'"');
-			foreach ($pids as $pid) {
-				// debug
-				runelog('kill pid:', $pid);
-				// kill dhcpcd
-				sysCmd('kill '.$pid);
-			}
-		}
-		// start netctl profile for wired nics
-		if ($args->wireless !== '1') sysCmd('netctl start '.$args->name);
-		sysCmd('systemctl restart mpd');
-	}
+    }
+    if ($updateh === 1) {
+        runelog('wireless NIC?', $args->wireless);
+        // activate configuration (RuneOS)
+        sysCmd('mpc stop');
+        sysCmd('netctl stop '.$args->name);
+        sysCmd('ip addr flush dev '.$args->name);
+        if ($args->dhcp === '1') {
+        // dhcp configuration
+            if ($args->wireless !== '1') {
+                // $cmd = 'systemctl enable ifplugd@'.$args->name;
+                $cmd = "ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
+                sysCmd($cmd);
+            }
+            sysCmd('systemctl daemon-reload');
+        } else {
+        // static configuration
+            if ($args->wireless !== '1') {
+                // $cmd = 'systemctl disable ifplugd@'.$args->name;
+                $cmd = "rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
+                sysCmd($cmd);
+                sysCmd('systemctl daemon-reload');
+                // kill ifplugd
+                sysCmd('killall ifplugd');
+            }
+            // get pids of dhcpcd
+            $pids = sysCmd('pgrep -xf "dhcpcd -4qL -t 30 '.$args->name.'"');
+            foreach ($pids as $pid) {
+                // debug
+                runelog('kill pid:', $pid);
+                // kill dhcpcd
+                sysCmd('kill '.$pid);
+            }
+        }
+        // start netctl profile for wired nics
+        if ($args->wireless !== '1') sysCmd('netctl start '.$args->name);
+        sysCmd('systemctl restart mpd');
+    }
     // update hash if necessary
     $updateh === 0 || $redis->set($args->name.'_hash', md5_file('/etc/netctl/'.$args->name));
 }
@@ -986,35 +986,35 @@ function wrk_wifiprofile($redis, $action, $args)
 {
     switch ($action) {
         case 'add':
-			$args->id = wrk_wpa_cli('add', $args);
-			if ($args->id !== false) {
-				unset($args->action);
-				$return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
-			}
+            $args->id = wrk_wpa_cli('add', $args);
+            if ($args->id !== false) {
+                unset($args->action);
+                $return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
+            }
             break;
-		case 'edit':
-			if(wrk_wpa_cli('edit', $args, $redis)) {
-				unset($args->action);
-				unset($args->edit);
-				$return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
-			}
+        case 'edit':
+            if(wrk_wpa_cli('edit', $args, $redis)) {
+                unset($args->action);
+                unset($args->edit);
+                $return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
+            }
             break;
-		case 'delete':
-			if (wrk_wpa_cli('delete', $args)) $return = $redis->hDel('wlan_profiles', $args->ssid);
+        case 'delete':
+            if (wrk_wpa_cli('delete', $args)) $return = $redis->hDel('wlan_profiles', $args->ssid);
             break;
-		case 'connect':
-			if (wrk_wpa_cli('connect')) {
-				$redis->Set('wlan_autoconnect', 1);
-				$return = 1;
-			}
+        case 'connect':
+            if (wrk_wpa_cli('connect')) {
+                $redis->Set('wlan_autoconnect', 1);
+                $return = 1;
+            }
             break;
-		case 'disconnect':
-			if (wrk_wpa_cli('disconnect')) {
-				$redis->Set('wlan_autoconnect', 0);
-				$return = 1;
-			}
+        case 'disconnect':
+            if (wrk_wpa_cli('disconnect')) {
+                $redis->Set('wlan_autoconnect', 0);
+                $return = 1;
+            }
             break;
-	}
+    }
     return $return;
 }
 
@@ -1025,106 +1025,106 @@ function wrk_wpa_cli($action, $args = null, $redis = null)
     runelog('**** wrk_wpa_cli() START ****');
     runelog('----- wrk_wpa_cli() args:',$args);
     runelog('----- wrk_wpa_cli() action:',$action);
-	switch ($action) {
-		case 'add':
-			// add wpa entry in the stack
-			$wlanid = sysCmd('wpa_cli add_network');
-			$args->id =  $wlanid[1];
-			// debug
-			runelog('wrk_wpa_cli('.$action.'): assigned wlan ID', $args->id);
-			$wpa_cli_response = wrk_wpa_cli('store', $args);
-			if ($wpa_cli_response) {
-				if (isset($args->connect)) {
-					wrk_wpa_cli('connect');
-				}
-				$return = $args->id;
-			} else {
-				// rollback
-				sysCmd('wpa_cli remove_network '.$args->id);
-				$return = false;
-			}
+    switch ($action) {
+        case 'add':
+            // add wpa entry in the stack
+            $wlanid = sysCmd('wpa_cli add_network');
+            $args->id =  $wlanid[1];
+            // debug
+            runelog('wrk_wpa_cli('.$action.'): assigned wlan ID', $args->id);
+            $wpa_cli_response = wrk_wpa_cli('store', $args);
+            if ($wpa_cli_response) {
+                if (isset($args->connect)) {
+                    wrk_wpa_cli('connect');
+                }
+                $return = $args->id;
+            } else {
+                // rollback
+                sysCmd('wpa_cli remove_network '.$args->id);
+                $return = false;
+            }
             break;
-		case 'edit':
-			$args->edit = 1;
-			if (isset($args->connect)) {
-				unset($args->connect);
-				$connect = 1;
-			}
-			if (wrk_wpa_cli('store', $args, $redis)) {
-				if ($connect) wrk_wpa_cli('connect');
-				$return = 1;
-			}	
+        case 'edit':
+            $args->edit = 1;
+            if (isset($args->connect)) {
+                unset($args->connect);
+                $connect = 1;
+            }
+            if (wrk_wpa_cli('store', $args, $redis)) {
+                if ($connect) wrk_wpa_cli('connect');
+                $return = 1;
+            }    
             break;
-		case 'store':
-			// set default set password command
-			$cmd_pass = "wpa_cli set_network ".$args->id." psk '\"".$args->key."\"'";
-			if (isset($args->edit)) {
-				$stored_profile = json_decode($redis->hGet('wlan_profiles',$args->ssid));
-				if ($stored_profile->encryption === $args->encryption) {
-					// select correct change password command
-					$cmd_pass = "wpa_cli new_password ".$args->id." '\"".$args->key."\"'";
-				} else {
-					// remove and 
-					if (wrk_wpa_cli('delete', $args)) {
-					unset($args->edit);
-					wrk_wpa_cli('add', $args);
-					} else {
-						$return = false;
-						break;
-					}
-				}
-			}
-			// set the SSID
-			$wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." ssid '\"".$args->ssid."\"'");
-			// set the encryption type
-			if ($wpa_cli_response[1] === 'OK') {
-				if ($args->encryption === 'open') {
-					$wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
-				}
-				if ($args->encryption === 'wpa') {
-					$wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt WPA-PSK');
-					// store the encryption key
-					$wpa_cli_response = sysCmd($cmd_pass);			
-				}
-				if ($args->encryption === 'wep') {
-					$wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
-					// store the encryption key
-					if (isset($chpass)) {
-						$wpa_cli_response = sysCmd("wpa_cli new_password ".$args->id." '\"".$args->key."\"'");
-					} else {
-						$wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." wep_key0 '\"".$args->key."\"'");
-					}
-				}
-			}
-			// enable the new network profile
-			if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli enable_network '.$args->id);
-			// save configuration file
-			if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
-			if ($wpa_cli_response[1] === 'OK') {
-				$return = true;
-			} else {
-				$return = false;
-			}
+        case 'store':
+            // set default set password command
+            $cmd_pass = "wpa_cli set_network ".$args->id." psk '\"".$args->key."\"'";
+            if (isset($args->edit)) {
+                $stored_profile = json_decode($redis->hGet('wlan_profiles',$args->ssid));
+                if ($stored_profile->encryption === $args->encryption) {
+                    // select correct change password command
+                    $cmd_pass = "wpa_cli new_password ".$args->id." '\"".$args->key."\"'";
+                } else {
+                    // remove and 
+                    if (wrk_wpa_cli('delete', $args)) {
+                    unset($args->edit);
+                    wrk_wpa_cli('add', $args);
+                    } else {
+                        $return = false;
+                        break;
+                    }
+                }
+            }
+            // set the SSID
+            $wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." ssid '\"".$args->ssid."\"'");
+            // set the encryption type
+            if ($wpa_cli_response[1] === 'OK') {
+                if ($args->encryption === 'open') {
+                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
+                }
+                if ($args->encryption === 'wpa') {
+                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt WPA-PSK');
+                    // store the encryption key
+                    $wpa_cli_response = sysCmd($cmd_pass);            
+                }
+                if ($args->encryption === 'wep') {
+                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
+                    // store the encryption key
+                    if (isset($chpass)) {
+                        $wpa_cli_response = sysCmd("wpa_cli new_password ".$args->id." '\"".$args->key."\"'");
+                    } else {
+                        $wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." wep_key0 '\"".$args->key."\"'");
+                    }
+                }
+            }
+            // enable the new network profile
+            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli enable_network '.$args->id);
+            // save configuration file
+            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
+            if ($wpa_cli_response[1] === 'OK') {
+                $return = true;
+            } else {
+                $return = false;
+            }
             break;
-		case 'delete':
-			$wpa_cli_response = sysCmd('wpa_cli remove_network '.$args->id);
-			if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
-			if ($wpa_cli_response[1] === 'OK') {
-				$return = 1;
-			} else {
-				$return = false;
-			}
+        case 'delete':
+            $wpa_cli_response = sysCmd('wpa_cli remove_network '.$args->id);
+            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
+            if ($wpa_cli_response[1] === 'OK') {
+                $return = 1;
+            } else {
+                $return = false;
+            }
             break;
-		case 'connect':
-			// TODO: enhance, catch the event "CTRL-EVENT-CONNECTED" instead of "OK" response from wpa_cli
-			$wpa_cli_response = sysCmd('wpa_cli reconnect');
-			if ($wpa_cli_response[1] === 'OK') $return = 1;
+        case 'connect':
+            // TODO: enhance, catch the event "CTRL-EVENT-CONNECTED" instead of "OK" response from wpa_cli
+            $wpa_cli_response = sysCmd('wpa_cli reconnect');
+            if ($wpa_cli_response[1] === 'OK') $return = 1;
             break;
-		case 'disconnect':
-			$wpa_cli_response = sysCmd('wpa_cli disconnect');
-			if ($wpa_cli_response[1] === 'OK') $return = 1;
+        case 'disconnect':
+            $wpa_cli_response = sysCmd('wpa_cli disconnect');
+            if ($wpa_cli_response[1] === 'OK') $return = 1;
             break;
-	}
+    }
     // debug
     runelog('----- wrk_wpa_cli() exit status',$return);
     runelog('**** wrk_wpa_cli() STOP ****');
@@ -1135,9 +1135,9 @@ function wrk_restore($backupfile)
 {
     $path = "/run/".$backupfile;
     $cmdstring = "tar xzf ".$path." --overwrite --directory /";
-	if (sysCmd($cmdstring)) {
-		recursiveDelete($path);
-	}
+    if (sysCmd($cmdstring)) {
+        recursiveDelete($path);
+    }
 }
 
 function wrk_jobID()
@@ -1162,9 +1162,9 @@ function wrk_checkMount($mpname)
 {
     $check_mp = sysCmd('cat /proc/mounts | grep "/mnt/MPD/NAS/'.$mpname.'"');
     if (!empty($check_mp)) {
-		return true;
+        return true;
     } else {
-		return false;
+        return false;
     }
 }
 
@@ -1211,105 +1211,105 @@ function wrk_cleanDistro($redis)
 
 function wrk_audioOutput($redis, $action, $args = null)
 {
-	switch ($action) {
-		case 'refresh':
-			$redis->Del('acards');
-			$redis->Save();
-			// $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ']' -f 1");
-			// $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ':' -f 2");
-			$acards = sysCmd("cat /proc/asound/cards | grep : | cut -b 1-3,21-");
-			$i2smodule = $redis->Get('i2smodule');
-			// check if i2smodule is enabled and read card details
-			if ($i2smodule !== 'none') {
-				$i2smodule_details = $redis->hGet('acards_details', $i2smodule);
-			} 
-			runelog('/proc/asound/cards', $acards);
-			foreach ($acards as $card) {
-				unset($sub_interfaces);
-				unset($data);
-				$card_index = explode(' : ', $card);
-				$card_index = trim($card_index[0]);
-				// acards loop
-				runelog('>>--------------------------- card: '.$card.' index: '.$card_index.' (start) --------------------------->>');
-				$card = explode(' - ', $card);
-				$card = trim($card[1]);
-				// $description = sysCmd("cat /proc/asound/cards | grep : | cut -d ':' -f 2 | cut -d ' ' -f 4-20");
-				// debug
-				runelog('wrk_audioOutput card string: ', $card);
-				$description = sysCmd("aplay -l -v | grep \"\[".$card."\]\"");
-				$desc = array();
-				$subdeviceid = explode(':', $description[0]);
-				$subdeviceid = explode(',', trim($subdeviceid[1]));
-				$subdeviceid = explode(' ', trim($subdeviceid[1]));
-				$data['device'] = 'hw:'.$card_index.','.$subdeviceid[1];
-					if ($i2smodule !== 'none' && $i2smodule_details->sysname === $card) {
-						$acards_details = $i2smodule_details;
-					} else {
-						unset($acards_details);
-						$acards_details = $redis->hGet('acards_details', $card);
-					}
-				if ($acards_details !== '') {
-					// debug
-					runelog('wrk_audioOutput: in loop: acards_details for: '.$card, $acards_details);
-					$details = json_decode($acards_details);
-					// debug
-					runelog('wrk_audioOutput: in loop: (decoded) acards_details for: '.$card, $details);
-					if (isset($details->mixer_control)) {
-						$volsteps = sysCmd("amixer -c ".$card_index." get \"".$details->mixer_control."\" | grep Limits | cut -d ':' -f 2 | cut -d ' ' -f 4,6");
-						$volsteps = explode(' ',$volsteps[0]);
-						$data['volmin'] = $volsteps[0];
-						$data['volmax'] = $volsteps[1];
-						$data['mixer_device'] = "hw:".$details->mixer_numid;
-						$data['mixer_control'] = $details->mixer_control;
-					}
-					if ($details->sysname === $card) {
-						if ($details->type === 'integrated_sub') {
-							$sub_interfaces = $redis->sMembers($card);
-							foreach ($sub_interfaces as $int) {
-								$sub_int_details = json_decode($int);
-								$sub_int_details->device = $data['device'];
-								$sub_int_details->name = $card.'_'.$sub_int_details->id;
-								$sub_int_details->type = 'alsa';
-								$sub_int_details->integrated_sub = 1;
-								// prepare data for real_interface record
-								$data['name'] = $card;
-								$data['type'] = 'alsa';
-								$data['system'] = trim($description[0]);
-								// write real_interface json (use this to create the real MPD output)
-								$sub_int_details->real_interface = json_encode($data);
-								// replace index string in route command
-								if (isset($sub_int_details->route_cmd)) $sub_int_details->route_cmd = str_replace("*CARDID*", $card_index, $sub_int_details->route_cmd);
-								// debug
-								runelog('::::::sub interface record array:::::: ',$sub_int_details);
-								$redis->hSet('acards', $card.'_'.$sub_int_details->id, json_encode($sub_int_details));
-							}
-						} 
-						// if ($details->extlabel !== 'none') $data['extlabel'] = $details->extlabel;
-						if (isset($details->extlabel) && $details->extlabel !== 'none') {
-							runelog('::::::acard extlabel:::::: ', $details->extlabel);
-							$data['extlabel'] = $details->extlabel;
-						}
-					}
-					// debug
-					runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
-				} 
-				if (!isset($sub_interfaces)) {
-				$data['name'] = $card;
-				$data['type'] = 'alsa';
-				$data['system'] = trim($description[0]);
-				// debug
-				runelog('::::::acard record array::::::', $data);
-				$redis->hSet('acards', $card, json_encode($data));
-				}
-				// acards loop
-				runelog('<<--------------------------- card: '.$card.' index: '.$card_index.' (finish) ---------------------------<<');
-			}
-			$redis->Save();
+    switch ($action) {
+        case 'refresh':
+            $redis->Del('acards');
+            $redis->Save();
+            // $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ']' -f 1");
+            // $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ':' -f 2");
+            $acards = sysCmd("cat /proc/asound/cards | grep : | cut -b 1-3,21-");
+            $i2smodule = $redis->Get('i2smodule');
+            // check if i2smodule is enabled and read card details
+            if ($i2smodule !== 'none') {
+                $i2smodule_details = $redis->hGet('acards_details', $i2smodule);
+            } 
+            runelog('/proc/asound/cards', $acards);
+            foreach ($acards as $card) {
+                unset($sub_interfaces);
+                unset($data);
+                $card_index = explode(' : ', $card);
+                $card_index = trim($card_index[0]);
+                // acards loop
+                runelog('>>--------------------------- card: '.$card.' index: '.$card_index.' (start) --------------------------->>');
+                $card = explode(' - ', $card);
+                $card = trim($card[1]);
+                // $description = sysCmd("cat /proc/asound/cards | grep : | cut -d ':' -f 2 | cut -d ' ' -f 4-20");
+                // debug
+                runelog('wrk_audioOutput card string: ', $card);
+                $description = sysCmd("aplay -l -v | grep \"\[".$card."\]\"");
+                $desc = array();
+                $subdeviceid = explode(':', $description[0]);
+                $subdeviceid = explode(',', trim($subdeviceid[1]));
+                $subdeviceid = explode(' ', trim($subdeviceid[1]));
+                $data['device'] = 'hw:'.$card_index.','.$subdeviceid[1];
+                    if ($i2smodule !== 'none' && $i2smodule_details->sysname === $card) {
+                        $acards_details = $i2smodule_details;
+                    } else {
+                        unset($acards_details);
+                        $acards_details = $redis->hGet('acards_details', $card);
+                    }
+                if ($acards_details !== '') {
+                    // debug
+                    runelog('wrk_audioOutput: in loop: acards_details for: '.$card, $acards_details);
+                    $details = json_decode($acards_details);
+                    // debug
+                    runelog('wrk_audioOutput: in loop: (decoded) acards_details for: '.$card, $details);
+                    if (isset($details->mixer_control)) {
+                        $volsteps = sysCmd("amixer -c ".$card_index." get \"".$details->mixer_control."\" | grep Limits | cut -d ':' -f 2 | cut -d ' ' -f 4,6");
+                        $volsteps = explode(' ',$volsteps[0]);
+                        $data['volmin'] = $volsteps[0];
+                        $data['volmax'] = $volsteps[1];
+                        $data['mixer_device'] = "hw:".$details->mixer_numid;
+                        $data['mixer_control'] = $details->mixer_control;
+                    }
+                    if ($details->sysname === $card) {
+                        if ($details->type === 'integrated_sub') {
+                            $sub_interfaces = $redis->sMembers($card);
+                            foreach ($sub_interfaces as $int) {
+                                $sub_int_details = json_decode($int);
+                                $sub_int_details->device = $data['device'];
+                                $sub_int_details->name = $card.'_'.$sub_int_details->id;
+                                $sub_int_details->type = 'alsa';
+                                $sub_int_details->integrated_sub = 1;
+                                // prepare data for real_interface record
+                                $data['name'] = $card;
+                                $data['type'] = 'alsa';
+                                $data['system'] = trim($description[0]);
+                                // write real_interface json (use this to create the real MPD output)
+                                $sub_int_details->real_interface = json_encode($data);
+                                // replace index string in route command
+                                if (isset($sub_int_details->route_cmd)) $sub_int_details->route_cmd = str_replace("*CARDID*", $card_index, $sub_int_details->route_cmd);
+                                // debug
+                                runelog('::::::sub interface record array:::::: ',$sub_int_details);
+                                $redis->hSet('acards', $card.'_'.$sub_int_details->id, json_encode($sub_int_details));
+                            }
+                        } 
+                        // if ($details->extlabel !== 'none') $data['extlabel'] = $details->extlabel;
+                        if (isset($details->extlabel) && $details->extlabel !== 'none') {
+                            runelog('::::::acard extlabel:::::: ', $details->extlabel);
+                            $data['extlabel'] = $details->extlabel;
+                        }
+                    }
+                    // debug
+                    runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
+                } 
+                if (!isset($sub_interfaces)) {
+                $data['name'] = $card;
+                $data['type'] = 'alsa';
+                $data['system'] = trim($description[0]);
+                // debug
+                runelog('::::::acard record array::::::', $data);
+                $redis->hSet('acards', $card, json_encode($data));
+                }
+                // acards loop
+                runelog('<<--------------------------- card: '.$card.' index: '.$card_index.' (finish) ---------------------------<<');
+            }
+            $redis->Save();
             break;
-		case 'setdetails':
-			$redis->hSet('acards_details', $args['card'], json_encode($args['details']));
+        case 'setdetails':
+            $redis->hSet('acards_details', $args['card'], json_encode($args['details']));
             break;
-	}
+    }
 }
 
 function wrk_i2smodule($redis, $args)
@@ -1319,98 +1319,98 @@ function wrk_i2smodule($redis, $args)
         sendMpdCommand($mpd, 'kill');
         closeMpdSocket($mpd);
     }
-	switch ($args) {
-		case 'none':
-			sysCmd('rmmod snd_soc_iqaudio_dac').usleep(300000);
-			sysCmd('rmmod snd_soc_hifiberry_digi').usleep(300000);
-			sysCmd('rmmod snd_soc_hifiberry_dac').usleep(300000);
-			sysCmd('rmmod snd_soc_wm8804').usleep(300000);
-			sysCmd('rmmod snd_soc_pcm512x').usleep(300000);
-			sysCmd('rmmod snd_soc_pcm5102a');
+    switch ($args) {
+        case 'none':
+            sysCmd('rmmod snd_soc_iqaudio_dac').usleep(300000);
+            sysCmd('rmmod snd_soc_hifiberry_digi').usleep(300000);
+            sysCmd('rmmod snd_soc_hifiberry_dac').usleep(300000);
+            sysCmd('rmmod snd_soc_wm8804').usleep(300000);
+            sysCmd('rmmod snd_soc_pcm512x').usleep(300000);
+            sysCmd('rmmod snd_soc_pcm5102a');
             break;
-		case 'berrynos':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
-			sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;		
-		case 'berrynosmini':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
-			sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;	
-		case 'hifiberrydac':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
-			sysCmd('modprobe snd_soc_hifiberry_dac');
-            break;	
-		case 'hifiberrydigi':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
-			sysCmd('modprobe snd_soc_hifiberry_digi');
-            break;	
-		case 'iqaudiopidac':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
-			sysCmd('modprobe snd_soc_iqaudio_dac');
-            break;	
-		case 'raspi2splay3':
-			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
-			sysCmd('modprobe snd_soc_wm8804').usleep(300000);
-			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-			sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
-			sysCmd('modprobe snd_soc_hifiberry_dac');
+        case 'berrynos':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dac');
+            break;        
+        case 'berrynosmini':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dac');
+            break;    
+        case 'hifiberrydac':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dac');
+            break;    
+        case 'hifiberrydigi':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_digi');
+            break;    
+        case 'iqaudiopidac':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
+            sysCmd('modprobe snd_soc_iqaudio_dac');
+            break;    
+        case 'raspi2splay3':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dac');
             break;
-	}
+    }
     $redis->set('i2smodule', $args);
     wrk_mpdconf($redis, 'refresh');
 }
 
 function wrk_kernelswitch($redis, $args)
 {
-	switch($args) {
-		case 'linux-rune-3.12.19-2-ARCH':
-			$file = '/boot/config.txt';
-			$newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-			// Commit changes to /boot/config.txt
-			$fp = fopen($file, 'w');
-			$return = fwrite($fp, implode("", $newArray));
-			fclose($fp);
-			$file = '/boot/config.txt';
-			$newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_rune.txt');
-			// Commit changes to /boot/config.txt
-			$fp = fopen($file, 'w');
-			$return = fwrite($fp, implode("", $newArray));
-			fclose($fp);
+    switch($args) {
+        case 'linux-rune-3.12.19-2-ARCH':
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_rune.txt');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
             break;
-		case 'linux-rune-3.12.13-rt21_wosa':
-			$file = '/boot/config.txt';
-			$newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-			// Commit changes to /boot/config.txt
-			$fp = fopen($file, 'w');
-			$return = fwrite($fp, implode("",$newArray));
-			fclose($fp);
-			$file = '/boot/config.txt';
-			$newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_wosa.txt');
-			// Commit changes to /boot/config.txt
-			$fp = fopen($file, 'w');
-			$return = fwrite($fp, implode("", $newArray));
-			fclose($fp);
+        case 'linux-rune-3.12.13-rt21_wosa':
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("",$newArray));
+            fclose($fp);
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_wosa.txt');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
             break;
-	}
-	if ($return) {
-		$redis->set('kernel', $args);
-		$redis->save();
-	}
+    }
+    if ($return) {
+        $redis->set('kernel', $args);
+        $redis->save();
+    }
     return $return;
 }
 
@@ -1423,9 +1423,9 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
     $header .= "# Use RuneUI MPD config section\n";
     $header .= "###################################\n";
     $header .= "\n";
-	switch ($action) {
-		case 'reset':
-			// default MPD config
+    switch ($action) {
+        case 'reset':
+            // default MPD config
             $redis->hSet('mpdconf', 'zeroconf_enabled', 'yes');
             $redis->hSet('mpdconf', 'zeroconf_name', 'runeaudio');
             $redis->hSet('mpdconf', 'log_level', 'none');
@@ -1454,114 +1454,114 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             $redis->hSet('mpdconf', 'ffmpeg', 'yes');
             wrk_mpdconf($redis, 'writecfg');
             break;
-		case 'writecfg':
-			$mpdcfg = $redis->hGetAll('mpdconf');
-			$current_out = $redis->Get('ao'); 
-			if (!$redis->hExists('acards', $current_out)) {
-				$stored_acards = $redis->hKeys('acards');
-				// debug
-				runelog('force audio output', $stored_acards[0]);
-				// force first output available if the current interface does not exists
-				$redis->Set('ao', $stored_acards[0]);
-				$redis->Save();
-			}
-			$output = null;
-			// --- general settings ---
-			foreach ($mpdcfg as $param => $value) {	
-				if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
-					continue;
-				}
-				if ($param === 'mixer_type') {
-					if ($value === 'software' OR $value === 'hardware') {
-						$redis->set('volume', 1);
-						if ($value === 'hardware') {
-							$hwmixer = 1;
-							break;
-						}
-					} else {
-						$redis->set('volume', 0);
-					}
-				}
-				if ($param === 'log_level' && $value === 'none') {
-					$redis->hDel('mpdconf', 'log_file');
-					continue;
-				}
-				if ($param === 'log_level' && $value !== 'none') {
-					$redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
-					$redis->save();
-				}					
-				if ($param === 'state_file' && $value === 'no') {
-					$redis->hDel('mpdconf', 'state_file');
-					continue;
-				}
-				if ($param === 'state_file' && $value !== 'no') {
-					$value = '/var/lib/mpd/mpdstate';
-				}	
-				if ($param === 'user' && $value === 'mpd') {
-					$output .= $param." \t\"".$value."\"\n";
-					$output .= "group \t\"audio\"\n";
-					continue;
-				}
-				if ($param === 'user' && $value === 'root') {
-					$output .= $param." \t\"".$value."\"\n";
-					$output .= "group \t\"root\"\n";
-					continue;
-				} 
-				if ($param === 'bind_to_address') {
-					$output .= "bind_to_address \"/run/mpd.sock\"\n";
-				} 
-				if ($param === 'ffmpeg') {
-					// --- decoder plugin ---
-					$output .="\n";
-					$output .="decoder {\n";
-					$output .="plugin \t\"ffmpeg\"\n";
-					$output .="enabled \"".$value."\"\n";
-					$output .="}\n";
-				continue;
-				} 
-				if ($param === 'curl') {
-				// --- input plugin ---
-				$output .="\n";
-				$output .="input {\n";
-				$output .="plugin \t\"curl\"\n";
-					if ($redis->hget('proxy','enable') === '1') {
-						$output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
-						if ($redis->hget('proxy','user') !== '') {
-							$output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n"; 
-							$output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n"; 
-						}
-					}
-				$output .="}\n";
-				continue;
-				}
-				$output .= $param." \t\"".$value."\"\n";
-			}
-			$output = $header.$output;	
-			// --- audio output ---
-			$acards = $redis->hGetAll('acards');
-			$ao = $redis->Get('ao');
-			$sub_count = 0;
-			runelog('sub_count ----->(0)'.$sub_count);
-			foreach ($acards as $card) {
-				$card= json_decode($card);
-				if ($card->integrated_sub === 1) {
-					// record UI audio output name
-					$current_card = $card->name;
-					if ($sub_count >= 1) continue;
-					$card = json_decode($card->real_interface);
-					runelog('current AO ---->  ', $ao);
-					var_dump($ao);
-					runelog('current card_name ---->  ', $card->name);
-					var_dump($card->name);
-					var_dump(strpos($ao, $card->name));
-					if (strpos($ao,$card->name) === true OR strpos($ao, $card->name) === 0) $sub_interface_selected = 1;
-					// debug
-					runelog('sub_card_selected ? >>>> '.$sub_interface_selected);
-					// debug
-					runelog('this is a sub_interface');
-					$sub_interface = 1;
-					$sub_count++;
-				}
+        case 'writecfg':
+            $mpdcfg = $redis->hGetAll('mpdconf');
+            $current_out = $redis->Get('ao'); 
+            if (!$redis->hExists('acards', $current_out)) {
+                $stored_acards = $redis->hKeys('acards');
+                // debug
+                runelog('force audio output', $stored_acards[0]);
+                // force first output available if the current interface does not exists
+                $redis->Set('ao', $stored_acards[0]);
+                $redis->Save();
+            }
+            $output = null;
+            // --- general settings ---
+            foreach ($mpdcfg as $param => $value) {    
+                if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
+                    continue;
+                }
+                if ($param === 'mixer_type') {
+                    if ($value === 'software' OR $value === 'hardware') {
+                        $redis->set('volume', 1);
+                        if ($value === 'hardware') {
+                            $hwmixer = 1;
+                            break;
+                        }
+                    } else {
+                        $redis->set('volume', 0);
+                    }
+                }
+                if ($param === 'log_level' && $value === 'none') {
+                    $redis->hDel('mpdconf', 'log_file');
+                    continue;
+                }
+                if ($param === 'log_level' && $value !== 'none') {
+                    $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
+                    $redis->save();
+                }                    
+                if ($param === 'state_file' && $value === 'no') {
+                    $redis->hDel('mpdconf', 'state_file');
+                    continue;
+                }
+                if ($param === 'state_file' && $value !== 'no') {
+                    $value = '/var/lib/mpd/mpdstate';
+                }    
+                if ($param === 'user' && $value === 'mpd') {
+                    $output .= $param." \t\"".$value."\"\n";
+                    $output .= "group \t\"audio\"\n";
+                    continue;
+                }
+                if ($param === 'user' && $value === 'root') {
+                    $output .= $param." \t\"".$value."\"\n";
+                    $output .= "group \t\"root\"\n";
+                    continue;
+                } 
+                if ($param === 'bind_to_address') {
+                    $output .= "bind_to_address \"/run/mpd.sock\"\n";
+                } 
+                if ($param === 'ffmpeg') {
+                    // --- decoder plugin ---
+                    $output .="\n";
+                    $output .="decoder {\n";
+                    $output .="plugin \t\"ffmpeg\"\n";
+                    $output .="enabled \"".$value."\"\n";
+                    $output .="}\n";
+                continue;
+                } 
+                if ($param === 'curl') {
+                // --- input plugin ---
+                $output .="\n";
+                $output .="input {\n";
+                $output .="plugin \t\"curl\"\n";
+                    if ($redis->hget('proxy','enable') === '1') {
+                        $output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
+                        if ($redis->hget('proxy','user') !== '') {
+                            $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n"; 
+                            $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n"; 
+                        }
+                    }
+                $output .="}\n";
+                continue;
+                }
+                $output .= $param." \t\"".$value."\"\n";
+            }
+            $output = $header.$output;    
+            // --- audio output ---
+            $acards = $redis->hGetAll('acards');
+            $ao = $redis->Get('ao');
+            $sub_count = 0;
+            runelog('sub_count ----->(0)'.$sub_count);
+            foreach ($acards as $card) {
+                $card= json_decode($card);
+                if ($card->integrated_sub === 1) {
+                    // record UI audio output name
+                    $current_card = $card->name;
+                    if ($sub_count >= 1) continue;
+                    $card = json_decode($card->real_interface);
+                    runelog('current AO ---->  ', $ao);
+                    var_dump($ao);
+                    runelog('current card_name ---->  ', $card->name);
+                    var_dump($card->name);
+                    var_dump(strpos($ao, $card->name));
+                    if (strpos($ao,$card->name) === true OR strpos($ao, $card->name) === 0) $sub_interface_selected = 1;
+                    // debug
+                    runelog('sub_card_selected ? >>>> '.$sub_interface_selected);
+                    // debug
+                    runelog('this is a sub_interface');
+                    $sub_interface = 1;
+                    $sub_count++;
+                }
                 $output .="\n";
                 $output .="audio_output {\n";
                 $output .="name \t\t\"".$card->name."\"\n";
@@ -1586,165 +1586,165 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 unset($current_card);
                 unset($sub_interface);
                 unset($card);
-			}
-			$output .="\n";
-			// debug
-			// runelog($output);
-			// write mpd.conf file
-			$fh = fopen('/etc/mpd.conf', 'w');
-			fwrite($fh, $output);
-			fclose($fh);
-			// update hash
-			$redis->set('mpdconfhash', md5_file('/etc/mpd.conf'));
+            }
+            $output .="\n";
+            // debug
+            // runelog($output);
+            // write mpd.conf file
+            $fh = fopen('/etc/mpd.conf', 'w');
+            fwrite($fh, $output);
+            fclose($fh);
+            // update hash
+            $redis->set('mpdconfhash', md5_file('/etc/mpd.conf'));
             break;
-		case 'update':
-			foreach ($args as $param => $value) {
-				$redis->hSet('mpdconf', $param, $value);
-			}
-			wrk_mpdconf($redis, 'writecfg');
+        case 'update':
+            foreach ($args as $param => $value) {
+                $redis->hSet('mpdconf', $param, $value);
+            }
+            wrk_mpdconf($redis, 'writecfg');
             break;
-		case 'switchao':
-			// record current interface selection
-			$redis->set('ao', $args);
-			$mpdout = $args;
-			// get interface details
-			$interface_details = $redis->hGet('acards', $args);
-			$interface_details = json_decode($interface_details);
-			// check for "special" sub_interfaces
-			if (isset($interface_details->integrated_sub)) {
-				// execute special internal route command
-				sysCmd($interface_details->route_cmd);
-				// TODO: improove this function
-				sysCmd('amixer -c 0 set PCM unmute');
-				$mpdout = $interface_details->sysname;
-			}
-			wrk_mpdconf($redis, 'writecfg');
-			wrk_shairport($redis, $args);
-			// toggle playback state
-			if (wrk_mpdPlaybackStatus() === 'playing') {
-				syscmd('mpc toggle');
-				$recover_state = 1;
-				// debug
-				runelog('switchao (set recover state):', $recover_state);
-			}
-			// switch interface
-			// debug
-			runelog('switchao (switch AO):', $mpdout);
-			syscmd('mpc enable only "'.$mpdout.'"');
-			// restore playback state
-			if (isset($recover_state)) {
-				// debug
-				runelog('switchao (RECOVER STATE!)');
-				syscmd('mpc toggle');
-			}
-			// set notify label
-			if (isset($interface_details->extlabel)) { $interface_label = $interface_details->extlabel; } else { $interface_label = $args; }
-			// notify UI
-			ui_notify_async('Audio output switched', "Current active output:\n".$interface_label, $jobID);
+        case 'switchao':
+            // record current interface selection
+            $redis->set('ao', $args);
+            $mpdout = $args;
+            // get interface details
+            $interface_details = $redis->hGet('acards', $args);
+            $interface_details = json_decode($interface_details);
+            // check for "special" sub_interfaces
+            if (isset($interface_details->integrated_sub)) {
+                // execute special internal route command
+                sysCmd($interface_details->route_cmd);
+                // TODO: improove this function
+                sysCmd('amixer -c 0 set PCM unmute');
+                $mpdout = $interface_details->sysname;
+            }
+        	wrk_mpdconf($redis, 'writecfg');
+            wrk_shairport($redis, $args);
+            // toggle playback state
+            if (wrk_mpdPlaybackStatus() === 'playing') {
+                syscmd('mpc toggle');
+                $recover_state = 1;
+                // debug
+                runelog('switchao (set recover state):', $recover_state);
+            }
+            // switch interface
+            // debug
+            runelog('switchao (switch AO):', $mpdout);
+            syscmd('mpc enable only "'.$mpdout.'"');
+            // restore playback state
+            if (isset($recover_state)) {
+                // debug
+                runelog('switchao (RECOVER STATE!)');
+                syscmd('mpc toggle');
+            }
+            // set notify label
+            if (isset($interface_details->extlabel)) { $interface_label = $interface_details->extlabel; } else { $interface_label = $args; }
+            // notify UI
+            ui_notify_async('Audio output switched', "Current active output:\n".$interface_label, $jobID);
             break;
-		case 'refresh':
-			wrk_audioOutput($redis, 'refresh');
-			wrk_mpdconf($redis, 'writecfg');
-			wrk_mpdconf($redis, 'restart');
-            break;		
-		case 'start':
-			sysCmd('systemctl start mpd');
-			if ($redis->get('mpd_playback_status') === 'playing') {
-				syscmd('mpc play');
-			}
-			// restart mpdscribble
-			if ($redis->get('scrobbling_lastfm') === '1') {
-				sysCmd('systemctl restart mpdscribble');
-			}
+        case 'refresh':
+            wrk_audioOutput($redis, 'refresh');
+            wrk_mpdconf($redis, 'writecfg');
+            wrk_mpdconf($redis, 'restart');
+            break;        
+        case 'start':
+            sysCmd('systemctl start mpd');
+            if ($redis->get('mpd_playback_status') === 'playing') {
+                syscmd('mpc play');
+            }
+            // restart mpdscribble
+            if ($redis->get('scrobbling_lastfm') === '1') {
+                sysCmd('systemctl restart mpdscribble');
+            }
             break;
-		case 'stop':
-			$redis->set('mpd_playback_status', wrk_mpdPlaybackStatus());
-			$mpd = openMpdSocket('/run/mpd.sock');
-			sendMpdCommand($mpd, 'kill');
-			closeMpdSocket($mpd);
-			sleep(1);
-			sysCmd('systemctl stop mpd');
+        case 'stop':
+            $redis->set('mpd_playback_status', wrk_mpdPlaybackStatus());
+            $mpd = openMpdSocket('/run/mpd.sock');
+            sendMpdCommand($mpd, 'kill');
+            closeMpdSocket($mpd);
+            sleep(1);
+            sysCmd('systemctl stop mpd');
             break;
-		case 'restart':
-			wrk_mpdconf($redis, 'stop');
-			sleep(1);
-			wrk_mpdconf($redis, 'start');
+        case 'restart':
+            wrk_mpdconf($redis, 'stop');
+            sleep(1);
+            wrk_mpdconf($redis, 'start');
             break;
-	}
+    }
 }
 
 function wrk_mpdPlaybackStatus()
 {
-	$status = sysCmd("mpc status | grep '\[' | cut -d '[' -f 2 | cut -d ']' -f 1");
-	// debug
-	runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
+    $status = sysCmd("mpc status | grep '\[' | cut -d '[' -f 2 | cut -d ']' -f 1");
+    // debug
+    runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
     return $status[0];
 }
 
 function wrk_shairport($redis, $ao, $name = null)
 {
-	if (!isset($name)) {
-		$name = $redis->hGet('airplay', 'name');
-	}
-	$acard = json_decode($redis->hget('acards', $ao));
-	runelog('acard details: ', $acard);
-	$file = '/usr/lib/systemd/system/shairport.service';
-	$newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/local/bin/shairport -w --name='.$name.' --on-start=/var/www/command/airplay.sh --on-stop=/var/www/command/airplay.sh -o alsa -- -d '.$acard->device);
-	runelog('shairport.service :', $newArray);
-	// Commit changes to /usr/lib/systemd/system/shairport.service
-	$fp = fopen($file, 'w');
-	fwrite($fp, implode("", $newArray));
-	fclose($fp);
-	// update systemd
-	sysCmd('systemctl daemon-reload');
-	if ($redis->hGet('airplay','enable') === '1') {
-		runelog('restart shairport');
-		sysCmd('systemctl restart shairport');
-	}
+    if (!isset($name)) {
+        $name = $redis->hGet('airplay', 'name');
+    }
+    $acard = json_decode($redis->hget('acards', $ao));
+    runelog('acard details: ', $acard);
+    $file = '/usr/lib/systemd/system/shairport.service';
+    $newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/local/bin/shairport -w --name='.$name.' --on-start=/var/www/command/airplay.sh --on-stop=/var/www/command/airplay.sh -o alsa -- -d '.$acard->device);
+    runelog('shairport.service :', $newArray);
+    // Commit changes to /usr/lib/systemd/system/shairport.service
+    $fp = fopen($file, 'w');
+    fwrite($fp, implode("", $newArray));
+    fclose($fp);
+    // update systemd
+    sysCmd('systemctl daemon-reload');
+    if ($redis->hGet('airplay','enable') === '1') {
+        runelog('restart shairport');
+        sysCmd('systemctl restart shairport');
+    }
 }
 
 function wrk_sourcemount($redis, $action, $id)
 {
-	switch ($action) {
-		case 'mount':
-			$mp = $redis->hGetAll('mount_'.$id);
-			$mpdproc = getMpdDaemonDetalis();
-			sysCmd("mkdir \"/mnt/MPD/NAS/".$mp['name']."\"");
-			if ($mp['type'] === 'cifs' OR $mp['type'] === 'osx') {
-			// smb/cifs mount
-			$auth = 'guest';
-				if (!empty($mp['username'])) {
-					$auth = "username=".$mp['username'].",password=".$mp['password'];
-				}
-				if ($mp['type'] === 'cifs') {
-					$mountstr = "mount -t cifs \"//".$mp['address']."/".$mp['remotedir']."\" -o ".$auth.",sec=ntlm,soft,uid=".$mpdproc['uid'].",gid=".$mpdproc['gid'].",rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",iocharset=".$mp['charset'].",".$mp['options']." \"/mnt/MPD/NAS/".$mp['name']."\"";
-				} else {
-					$mountstr = "mount -t cifs \"//".$mp['address']."/".$mp['remotedir']."\" -o ".$auth.",nounix,sec=ntlmssp,soft,uid=".$mpdproc['uid'].",gid=".$mpdproc['gid'].",rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",iocharset=".$mp['charset'].",".$mp['options']." \"/mnt/MPD/NAS/".$mp['name']."\"";
-				}
-			} elseif ($mp['type'] === 'nfs') {
-				// nfs mount
-				$mountstr = "mount -t nfs -o soft,retry=0,actimeo=1,retrans=2,timeo=50,nofsc,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
-				// $mountstr = "mount -t nfs -o soft,retry=1,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
-			} 
-			// debug
-			runelog('mount string', $mountstr);
-			$sysoutput = sysCmd($mountstr);
-			// -- REWORK NEEDED --
-			runelog('system response',var_dump($sysoutput));
-			if (empty($sysoutput)) {
-				if (!empty($mp['error'])) {
-				$mp['error'] = '';
-				$redis->hMSet('mount_'.$id, $mp);
-				}
+    switch ($action) {
+        case 'mount':
+            $mp = $redis->hGetAll('mount_'.$id);
+            $mpdproc = getMpdDaemonDetalis();
+            sysCmd("mkdir \"/mnt/MPD/NAS/".$mp['name']."\"");
+            if ($mp['type'] === 'cifs' OR $mp['type'] === 'osx') {
+            // smb/cifs mount
+            $auth = 'guest';
+                if (!empty($mp['username'])) {
+                    $auth = "username=".$mp['username'].",password=".$mp['password'];
+                }
+                if ($mp['type'] === 'cifs') {
+                    $mountstr = "mount -t cifs \"//".$mp['address']."/".$mp['remotedir']."\" -o ".$auth.",sec=ntlm,soft,uid=".$mpdproc['uid'].",gid=".$mpdproc['gid'].",rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",iocharset=".$mp['charset'].",".$mp['options']." \"/mnt/MPD/NAS/".$mp['name']."\"";
+                } else {
+                    $mountstr = "mount -t cifs \"//".$mp['address']."/".$mp['remotedir']."\" -o ".$auth.",nounix,sec=ntlmssp,soft,uid=".$mpdproc['uid'].",gid=".$mpdproc['gid'].",rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",iocharset=".$mp['charset'].",".$mp['options']." \"/mnt/MPD/NAS/".$mp['name']."\"";
+                }
+            } elseif ($mp['type'] === 'nfs') {
+                // nfs mount
+                $mountstr = "mount -t nfs -o soft,retry=0,actimeo=1,retrans=2,timeo=50,nofsc,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
+                // $mountstr = "mount -t nfs -o soft,retry=1,noatime,rsize=".$mp['rsize'].",wsize=".$mp['wsize'].",".$mp['options']." \"".$mp['address'].":/".$mp['remotedir']."\" \"/mnt/MPD/NAS/".$mp['name']."\"";
+            } 
+            // debug
+            runelog('mount string', $mountstr);
+            $sysoutput = sysCmd($mountstr);
+            // -- REWORK NEEDED --
+            runelog('system response',var_dump($sysoutput));
+            if (empty($sysoutput)) {
+                if (!empty($mp['error'])) {
+                $mp['error'] = '';
+                $redis->hMSet('mount_'.$id, $mp);
+                }
                 $return = 1;
-			} else {
+            } else {
                 if(!empty($mp['name'])) sysCmd("rmdir \"/mnt/MPD/NAS/".$mp['name']."\"");
                 $mp['error'] = implode("\n", $sysoutput);
                 $redis->hMSet('mount_'.$id, $mp);
                 $return = 0;
-			}	
+            }    
             break;
-		case 'mountall':
+        case 'mountall':
             $mounts = $redis->keys('mount_*');
             foreach ($mounts as $key) {
                 $mp = $redis->hGetAll($key);
@@ -1753,22 +1753,22 @@ function wrk_sourcemount($redis, $action, $id)
                 }
             }
             break;
-	}
+    }
     return $return;
 }
 
 function wrk_sourcecfg($redis, $action, $args)
 {
     runelog('function wrk_sourcecfg('.$action.')', $args);
-	switch ($action) {
-		case 'add':
+    switch ($action) {
+        case 'add':
             // unset($args->id);
             $args->id = $redis->incr('mountidx');
             $args = (array) $args;
             $redis->hMset('mount_'.$args['id'], $args);
             $return = wrk_sourcemount($redis, 'mount', $args['id']);
             break;
-		case 'edit':
+        case 'edit':
             $mp = $redis->hGetAll('mount_'.$args->id);
             $args = (array) $args;
             $redis->hMset('mount_'.$args['id'], $args);
@@ -1782,7 +1782,7 @@ function wrk_sourcecfg($redis, $action, $args)
             $return = wrk_sourcemount($redis, 'mount', $args['id']);
             runelog('wrk_sourcecfg(edit) exit status', $return);
             break;
-		case 'delete':
+        case 'delete':
             $mp = $redis->hGetAll('mount_'.$args->id);
             sysCmd('mpc stop');
             usleep(500000);
@@ -1791,7 +1791,7 @@ function wrk_sourcecfg($redis, $action, $args)
             if (!empty($mp['name'])) sysCmd("rmdir \"/mnt/MPD/NAS/".$mp['name']."\"");
             $return = $redis->del('mount_'.$args->id);
             break;
-		case 'reset': 
+        case 'reset': 
             $source = $redis->keys('mount_*');
             sysCmd('mpc stop');
             usleep(500000);
@@ -1805,25 +1805,25 @@ function wrk_sourcecfg($redis, $action, $args)
             // reset mount index
             if ($return) $redis->del('mountidx');
             break;
-		case 'mountall':
-			$return = wrk_sourcemount($redis, 'mountall');
-            break;		
-		case 'umountusb':
-			$return = sysCmd('udevil umount '.$args);
+        case 'mountall':
+            $return = wrk_sourcemount($redis, 'mountall');
+            break;        
+        case 'umountusb':
+            $return = sysCmd('udevil umount '.$args);
             break;
-	}
+    }
     return $return;
 }
 
 function wrk_getHwPlatform()
 {
     $file = '/proc/cpuinfo';
-	$fileData = file($file);
-	foreach($fileData as $line) {
-		if (substr($line, 0, 8) == 'Hardware') {
-			$arch = trim(substr($line, 11, 50));
-			// debug
-			runelog('wrk_getHwPlatform() /proc/cpu string', $arch);
+    $fileData = file($file);
+    foreach($fileData as $line) {
+        if (substr($line, 0, 8) == 'Hardware') {
+            $arch = trim(substr($line, 11, 50));
+            // debug
+            runelog('wrk_getHwPlatform() /proc/cpu string', $arch);
             switch($arch) {
                 // RaspberryPi
                 case 'BCM2708':
@@ -1849,8 +1849,8 @@ function wrk_getHwPlatform()
                     $arch = '--';
                     break;
             }
-		}
-	}
+        }
+    }
     if (!isset($arch)) {
         $arch = '--';
     }
@@ -1865,31 +1865,31 @@ function wrk_setHwPlatform($redis)
     $redis->set('playerid', $playerid);
     runelog('playerid= ', $playerid);
     // register platform into database
-	switch($arch) {
-		case '01':
+    switch($arch) {
+        case '01':
             $redis->set('hwplatform', 'RaspberryPi');
             $redis->set('hwplatformid', $arch);
             break;
-		case '02':
+        case '02':
             $redis->set('hwplatform', 'UDOO');
             $redis->set('hwplatformid',$arch);
             break;
-		case '03':
+        case '03':
             $redis->set('hwplatform', 'CuBox');
             $redis->set('hwplatformid',$arch);
             break;
-		case '04':
+        case '04':
             $redis->set('hwplatform', 'BeagleBone Black');
             $redis->set('hwplatformid', $arch);
             break;
-		case '05':
+        case '05':
             $redis->set('hwplatform', 'Utilite Standard');
             $redis->set('hwplatformid', $arch);
             break;
-		default:
+        default:
             $redis->set('hwplatform', 'unknown');
             $redis->set('hwplatformid', $arch);
-	}
+    }
 }
 
 function wrk_playerID($arch)
@@ -1910,7 +1910,7 @@ function wrk_sysAcl()
 
 function wrk_sysEnvCheck($arch, $install)
 {
-	if ($arch == '01' OR $arch == '02' OR $arch == '03' OR $arch == '04' ) {
+    if ($arch == '01' OR $arch == '02' OR $arch == '03' OR $arch == '04' ) {
          // /etc/rc.local
          $a = '/etc/rc.local';
          $b = '/var/www/_OS_SETTINGS/etc/rc.local';
@@ -2009,19 +2009,19 @@ function wrk_sysEnvCheck($arch, $install)
         if (isset($reboot) && $reboot == 1) {
             sysCmd('reboot');
         }
-	}	
+    }    
 }
 
 function wrk_NTPsync($ntpserver)
 {
     //debug
     runelog('NTP SERVER', $ntpserver);
-	// if (sysCmd('ntpdate '.$ntpserver)) {
-	if (sysCmdAsync('ntpdate '.$ntpserver)) {
-		return $ntpserver;
-	} else {
-		return false;
-	}
+    // if (sysCmd('ntpdate '.$ntpserver)) {
+    if (sysCmdAsync('ntpdate '.$ntpserver)) {
+        return $ntpserver;
+    } else {
+        return false;
+    }
 }
 
 function wrk_changeHostname($redis, $newhostname)
@@ -2052,9 +2052,9 @@ function wrk_changeHostname($redis, $newhostname)
 
 function alsa_findHwMixerControl($cardID)
 {
-	$cmd = "amixer -c ".$cardID." |grep \"mixer control\"";
-	$str = sysCmd($cmd);
-	$hwmixerdev = substr(substr($str[0], 0, -(strlen($str[0]) - strrpos($str[0], "'"))), strpos($str[0], "'")+1);
+    $cmd = "amixer -c ".$cardID." |grep \"mixer control\"";
+    $str = sysCmd($cmd);
+    $hwmixerdev = substr(substr($str[0], 0, -(strlen($str[0]) - strrpos($str[0], "'"))), strpos($str[0], "'")+1);
     return $hwmixerdev;
 }
 
@@ -2063,19 +2063,19 @@ function addRadio($mpd, $redis, $data)
 {
     //debug
     runelog('addRadio (data)', $data);
-	// store webradio record in redis
-	$redis->hSet('webradios', $data->label, $data->url);
-	// create new file
-	// $file = '/mnt/MPD/Webradio/'.$data['label'].'.pls';
-	$file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
-	$newpls = "[playlist]\n";
-	$newpls .= "NumberOfEntries=1\n";
-	$newpls .= "File1=".$data->url."\n";
-	$newpls .= "Title1=".$data->label;
-	// Commit changes to .pls file
-	$fp = fopen($file, 'w');
-	$return = fwrite($fp, $newpls);
-	fclose($fp);
+    // store webradio record in redis
+    $redis->hSet('webradios', $data->label, $data->url);
+    // create new file
+    // $file = '/mnt/MPD/Webradio/'.$data['label'].'.pls';
+    $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
+    $newpls = "[playlist]\n";
+    $newpls .= "NumberOfEntries=1\n";
+    $newpls .= "File1=".$data->url."\n";
+    $newpls .= "Title1=".$data->label;
+    // Commit changes to .pls file
+    $fp = fopen($file, 'w');
+    $return = fwrite($fp, $newpls);
+    fclose($fp);
     if ($return) sendMpdCommand($mpd, 'update Webradio');
     return $return;
 }
@@ -2084,24 +2084,24 @@ function editRadio($mpd,$redis,$data)
 {
     //debug
     runelog('editRadio (data)', $data);
-	// edit webradio URL in .pls file
-	$file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
-	if ($data->label !== $data->newlabel) {
-		unlink($file);
-		// delete old webradio record in redis
-		$redis->hDel('webradios', $data->label);
-		// store new webradio record in redis
-		$data->label = $data->newlabel;
-		$data->newlabel = null;
-		$return = addRadio($mpd, $redis, $data);
-	} else {
-		$redis->hSet('webradios',$data->label,$data->url);
-		$newArray = wrk_replaceTextLine($file, '', 'File1=', 'File1='.$data->url, 'NumberOfEntries=1',1);
-		// Commit changes to .pls file
-		$fp = fopen($file, 'w');
-		$return = fwrite($fp, implode("", $newArray));
-		fclose($fp);
-	}
+    // edit webradio URL in .pls file
+    $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
+    if ($data->label !== $data->newlabel) {
+        unlink($file);
+        // delete old webradio record in redis
+        $redis->hDel('webradios', $data->label);
+        // store new webradio record in redis
+        $data->label = $data->newlabel;
+        $data->newlabel = null;
+        $return = addRadio($mpd, $redis, $data);
+    } else {
+        $redis->hSet('webradios',$data->label,$data->url);
+        $newArray = wrk_replaceTextLine($file, '', 'File1=', 'File1='.$data->url, 'NumberOfEntries=1',1);
+        // Commit changes to .pls file
+        $fp = fopen($file, 'w');
+        $return = fwrite($fp, implode("", $newArray));
+        fclose($fp);
+    }
     if ($return) sendMpdCommand($mpd, 'update Webradio');
     return $return;
 }
@@ -2110,37 +2110,37 @@ function deleteRadio($mpd,$redis,$data)
 {
     //debug
     runelog('deleteRadio (data)', $data);
-	// delete .pls file
-	$file = '/mnt/MPD/Webradio/'.$data->label;
-	$label = parseFileStr($data->label, '.', 1);
-	runelog('deleteRadio (label)', $label);
-	$return = unlink($file);
-	if ($return) {
-		// delete webradio record in redis
-		$redis->hDel('webradios', $label);
-		sendMpdCommand($mpd, 'update Webradio');
-	}
+    // delete .pls file
+    $file = '/mnt/MPD/Webradio/'.$data->label;
+    $label = parseFileStr($data->label, '.', 1);
+    runelog('deleteRadio (label)', $label);
+    $return = unlink($file);
+    if ($return) {
+        // delete webradio record in redis
+        $redis->hDel('webradios', $label);
+        sendMpdCommand($mpd, 'update Webradio');
+    }
     return $return;
 }
 
 function ui_notify($title = null, $text, $type = null )
 {
-	$output = array( 'title' => $title, 'text' => $text, 'type' => $type);
-	ui_render('notify', json_encode($output));
+    $output = array( 'title' => $title, 'text' => $text, 'type' => $type);
+    ui_render('notify', json_encode($output));
 }
 
 function ui_notify_async($title, $text, $jobID = null, $icon = null, $opacity = null, $hide = null, $type = null)
 {
-	// $output = json_encode(array( 'title' => $title, 'text' => $text, 'icon' => $icon, 'opacity' => $opacity, 'hide' => $hide ));
-	if ($title === 'Kernel switch') {
-		// $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
-		$output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
-	} else {
-		// $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => $type ));
-		$output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => $type ));
-	}
-	runelog('notify JSON string: ', $output);
-	sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
+    // $output = json_encode(array( 'title' => $title, 'text' => $text, 'icon' => $icon, 'opacity' => $opacity, 'hide' => $hide ));
+    if ($title === 'Kernel switch') {
+        // $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
+        $output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
+    } else {
+        // $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => $type ));
+        $output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => $type ));
+    }
+    runelog('notify JSON string: ', $output);
+    sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
 }
 
 /*
@@ -2148,35 +2148,35 @@ class ui_renderQueue extends Thread
 {
     public function __construct($socket)
     {
-		$this->socket = $socket;
-    }	
+        $this->socket = $socket;
+    }    
     public function run() 
     {
-		$queue = getPlayQueue($this->socket);
-		ui_render('queue', json_encode($queue));
+        $queue = getPlayQueue($this->socket);
+        ui_render('queue', json_encode($queue));
     }
 }
 */
 
 function ui_status($mpd, $status)
 {
-	$curTrack = getTrackInfo($mpd, $status['song']);
-	if (isset($curTrack[0]['Title'])) {
-		$status['currentartist'] = $curTrack[0]['Artist'];
-		$status['currentsong'] = htmlentities($curTrack[0]['Title'], ENT_XML1, 'UTF-8');
-		$status['currentalbum'] = $curTrack[0]['Album'];
-		$status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
-	} else {
-		$path = parseFileStr($curTrack[0]['file'], '/');
-		$status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
-		$status['currentartist'] = "";
-		// $status['currentsong'] = $song;
-		if (!empty($path)){
-			$status['currentalbum'] = $path;
-		} else {
-			$status['currentalbum'] = '';
-		}
-	}
+    $curTrack = getTrackInfo($mpd, $status['song']);
+    if (isset($curTrack[0]['Title'])) {
+        $status['currentartist'] = $curTrack[0]['Artist'];
+        $status['currentsong'] = htmlentities($curTrack[0]['Title'], ENT_XML1, 'UTF-8');
+        $status['currentalbum'] = $curTrack[0]['Album'];
+        $status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
+    } else {
+        $path = parseFileStr($curTrack[0]['file'], '/');
+        $status['fileext'] = parseFileStr($curTrack[0]['file'], '.');
+        $status['currentartist'] = "";
+        // $status['currentsong'] = $song;
+        if (!empty($path)){
+            $status['currentalbum'] = $path;
+        } else {
+            $status['currentalbum'] = '';
+        }
+    }
     $status['radioname'] = $curTrack[0]['Name'];
     return $status;
 }
@@ -2215,48 +2215,48 @@ function ui_libraryHome($redis, $mpd)
 
 function ui_lastFM_coverart($artist, $album, $lastfm_apikey, $proxy)
 {
-	if (!empty($album)) {
-		$url = "http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=".$lastfm_apikey."&artist=".urlencode($artist)."&album=".urlencode($album)."&format=json";
-		unset($artist);
-	} else {
-		$url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&api_key=".$lastfm_apikey."&artist=".urlencode($artist)."&format=json";
-		$artist = 1;
-	}
-	// debug
-	//echo $url;
-	$output = json_decode(curlGet($url, $proxy), true);
-	// debug
-	runelog('coverart lastfm query URL', $url);
-	// debug++
-	// echo "<pre>";
-	// print_r($output);
-	// echo "</pre>";
+    if (!empty($album)) {
+        $url = "http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=".$lastfm_apikey."&artist=".urlencode($artist)."&album=".urlencode($album)."&format=json";
+        unset($artist);
+    } else {
+        $url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&api_key=".$lastfm_apikey."&artist=".urlencode($artist)."&format=json";
+        $artist = 1;
+    }
+    // debug
+    //echo $url;
+    $output = json_decode(curlGet($url, $proxy), true);
+    // debug
+    runelog('coverart lastfm query URL', $url);
+    // debug++
+    // echo "<pre>";
+    // print_r($output);
+    // echo "</pre>";
 
-	// key [3] == extralarge last.fm image
-	// key [4] == mega last.fm image
-	if(isset($artist)) {
-		runelog('coverart lastfm query URL', $output['artist']['image'][3]['#text']);
-		return $output['artist']['image'][3]['#text'];
-	} else {
-		runelog('coverart lastfm query URL', $output['album']['image'][3]['#text']);
-		return $output['album']['image'][3]['#text'];
-	}
+    // key [3] == extralarge last.fm image
+    // key [4] == mega last.fm image
+    if(isset($artist)) {
+        runelog('coverart lastfm query URL', $output['artist']['image'][3]['#text']);
+        return $output['artist']['image'][3]['#text'];
+    } else {
+        runelog('coverart lastfm query URL', $output['album']['image'][3]['#text']);
+        return $output['album']['image'][3]['#text'];
+    }
 }
 
 // push UI update to NGiNX channel
 function ui_render($channel, $data)
 {
-	curlPost('http://127.0.0.1/pub?id='.$channel, $data);
+    curlPost('http://127.0.0.1/pub?id='.$channel, $data);
 }
 
 function ui_update($redis ,$mpd)
 {
     ui_libraryHome($redis, $mpd);
-	if ($redis->get('pl_length') !== '0') {
-		sendMpdCommand($mpd, 'swap 0 0');
-	} else {
-		sendMpdCommand($mpd, 'clear');
-	}
+    if ($redis->get('pl_length') !== '0') {
+        sendMpdCommand($mpd, 'swap 0 0');
+    } else {
+        sendMpdCommand($mpd, 'clear');
+    }
 }
 
 function ui_mpd_response($mpd, $notify = null)
@@ -2267,7 +2267,7 @@ function ui_mpd_response($mpd, $notify = null)
     if (strpos($response, "OK") && isset($notify)) {
         runelog('send UI notify: ', $notify);
         ui_notify($notify['title'], $notify['text']);
-	}
+    }
     echo $response;
 }
 

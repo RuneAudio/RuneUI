@@ -32,44 +32,44 @@
  *
  */
 // inspect POST
-if (isset($_POST)) {	
-	// ----- HOSTNAME -----
-	if (isset($_POST['hostname'])) {
-		if (empty($_POST['hostname'])) {
-		$args = 'runeaudio';
-		} else {
-		$args = $_POST['hostname'];
-		}
-		$redis->get('hostname') == $_POST['hostname'] || $jobID[] = wrk_control($redis, 'newjob', $data = array( 'wrkcmd' => 'hostname', 'args' => $args ));		
-	}
-	// ----- NTP SERVER -----
-	if (isset($_POST['ntpserver'])) {
-		if (empty($_POST['ntpserver'])) {
-		$args = 'pool.ntp.org';
-		} else {
-		$args = $_POST['ntpserver'];
-		}
-		$redis->get('ntpserver') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ntpserver', 'args' => $args));		
-	}
-	// ----- KERNEL -----
-	if (isset($_POST['kernel'])) {		
-		// submit worker job
-		$redis->get('kernel') == $_POST['kernel'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'kernelswitch', 'args' => $_POST['kernel']));	
-	}
-	if (isset($_POST['orionprofile'])) {		
-		// submit worker job
-		$redis->get('orionprofile') == $_POST['orionprofile'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => $_POST['orionprofile']));		
-	}
-	if (isset($_POST['i2smodule'])) {		
-		// submit worker job
-		$redis->get('i2smodule') == $_POST['i2smodule'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'i2smodule', 'args' => $_POST['i2smodule']));
-		// autoswitch optimized kernel profile for BerryNOS mini DAC
-		if ($_POST['i2smodule'] === 'berrynosmini') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => 'OrionV3_berrynosmini'));
-		// autoswitch optimized kernel profile for IQaudIO Pi-DAC
-		if ($_POST['i2smodule'] === 'iqaudiopidac') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => 'OrionV3_iqaudio'));
-	}
-	// ----- FEATURES -----
-	if (isset($_POST['features'])) {
+if (isset($_POST)) {    
+    // ----- HOSTNAME -----
+    if (isset($_POST['hostname'])) {
+        if (empty($_POST['hostname'])) {
+        $args = 'runeaudio';
+        } else {
+        $args = $_POST['hostname'];
+        }
+        $redis->get('hostname') == $_POST['hostname'] || $jobID[] = wrk_control($redis, 'newjob', $data = array( 'wrkcmd' => 'hostname', 'args' => $args ));        
+    }
+    // ----- NTP SERVER -----
+    if (isset($_POST['ntpserver'])) {
+        if (empty($_POST['ntpserver'])) {
+        $args = 'pool.ntp.org';
+        } else {
+        $args = $_POST['ntpserver'];
+        }
+        $redis->get('ntpserver') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ntpserver', 'args' => $args));        
+    }
+    // ----- KERNEL -----
+    if (isset($_POST['kernel'])) {        
+        // submit worker job
+        $redis->get('kernel') == $_POST['kernel'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'kernelswitch', 'args' => $_POST['kernel']));    
+    }
+    if (isset($_POST['orionprofile'])) {        
+        // submit worker job
+        $redis->get('orionprofile') == $_POST['orionprofile'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => $_POST['orionprofile']));        
+    }
+    if (isset($_POST['i2smodule'])) {        
+        // submit worker job
+        $redis->get('i2smodule') == $_POST['i2smodule'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'i2smodule', 'args' => $_POST['i2smodule']));
+        // autoswitch optimized kernel profile for BerryNOS mini DAC
+        if ($_POST['i2smodule'] === 'berrynosmini') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => 'OrionV3_berrynosmini'));
+        // autoswitch optimized kernel profile for IQaudIO Pi-DAC
+        if ($_POST['i2smodule'] === 'iqaudiopidac') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => 'OrionV3_iqaudio'));
+    }
+    // ----- FEATURES -----
+    if (isset($_POST['features'])) {
         if ($_POST['features']['airplay']['enable'] == 1) {
             if ($redis->hGet('airplay','enable') !== $_POST['features']['airplay']['enable'] OR $redis->hGet('airplay','name') !== $_POST['features']['airplay']['name']) {
                 // create worker job (start shairport)
@@ -106,19 +106,19 @@ if (isset($_POST)) {
             // create worker job (stop shairport)
             $redis->get('scrobbling_lastfm') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'scrobbling_lastfm', 'action' => 'stop'));
         }
-	}
-	// ----- C-MEDIA FIX -----
-	if (isset($_POST['cmediafix'][1])){
-		$redis->get('cmediafix') == 1 || $redis->set('cmediafix', 1);
-	} else {
-		$redis->get('cmediafix') == 0 || $redis->set('cmediafix', 0);
-	}
-	// ----- SYSTEM COMMANDS -----
-	if (isset($_POST['syscmd'])){
-		if ($_POST['syscmd'] == 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
-		if ($_POST['syscmd'] == 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
-		if ($_POST['syscmd'] == 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
-	}
+    }
+    // ----- C-MEDIA FIX -----
+    if (isset($_POST['cmediafix'][1])){
+        $redis->get('cmediafix') == 1 || $redis->set('cmediafix', 1);
+    } else {
+        $redis->get('cmediafix') == 0 || $redis->set('cmediafix', 0);
+    }
+    // ----- SYSTEM COMMANDS -----
+    if (isset($_POST['syscmd'])){
+        if ($_POST['syscmd'] == 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
+        if ($_POST['syscmd'] == 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
+        if ($_POST['syscmd'] == 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
+    }
 }
 waitSyWrk($redis,$jobID);
 $template->hostname = $redis->get('hostname');

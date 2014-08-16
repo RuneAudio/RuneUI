@@ -32,22 +32,22 @@
  *
  */
  if (isset($_POST)) {
-	// switch audio output
-	if (isset($_POST['ao'])) {
-		$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $_POST['ao']));
-	}
-	// reset MPD configuration
-	if (isset($_POST['reset'])) {
-		$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
-	}
-	// update MPD configuration
-	if (isset($_POST['conf'])) {
-		$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $_POST['conf']));
-	}
-	// manual MPD configuration
-	if (isset($_POST['mpdconf'])) {
-		$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
-	}
+    // switch audio output
+    if (isset($_POST['ao'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $_POST['ao']));
+    }
+    // reset MPD configuration
+    if (isset($_POST['reset'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
+    }
+    // update MPD configuration
+    if (isset($_POST['conf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $_POST['conf']));
+    }
+    // manual MPD configuration
+    if (isset($_POST['mpdconf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
+    }
  }
 waitSyWrk($redis, $jobID);
 // check integrity of /etc/network/interfaces
@@ -80,16 +80,16 @@ if(!hashCFG('check_mpd', $redis)) {
             // print_r($details);
             if ($details->sysname === $card) {
                 if ($details->type === 'integrated_sub') {
-                    $sub_interfaces = $redis->sMembers($card); 
+                    $sub_interfaces = $redis->sMembers($card);
                     foreach ($sub_interfaces as $int) {
                         $sub_int_details = json_decode($int);
                         // TODO !!! check
                         $audio_cards[] = $sub_int_details;
                     }
-                } 
+                }
                 if ($details->extlabel !== 'none') $acard_data->extlabel = $details->extlabel;
             }
-        } 
+        }
         $audio_cards[] = $acard_data;
     }
     // debug

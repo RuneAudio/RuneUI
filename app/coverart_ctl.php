@@ -81,12 +81,12 @@ if ($flac->hasMetadataBlock(Zend_Media_Flac::PICTURE)) {
     // header('Content-Type: ' .mime_content_type($image));
     echo $image;
 } else {
-	// debug
-	runelog("coverart match: cover-default");
-	$image = '/var/www/assets/img/cover-default.png';
+    // debug
+    runelog("coverart match: cover-default");
+    $image = '/var/www/assets/img/cover-default.png';
     header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-	header('Pragma: no-cache'); // HTTP 1.0.
-	header('Expires: 0'); // Proxies.
-	header('Content-Type: '.mime_content_type($image));
+    header('Pragma: no-cache'); // HTTP 1.0.
+    header('Expires: 0'); // Proxies.
+    header('Content-Type: '.mime_content_type($image));
     readfile($image);
 }
