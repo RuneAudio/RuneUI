@@ -34,7 +34,7 @@
 include('getid3/audioinfo.class.php');
 $lastfm_apikey = $redis->get('lastfm_apikey');
 $proxy = $redis->hGetall('proxy');
-$mpd2 = openMpdSocket('/run/mpd.sock');
+$mpd2 = openMpdSocket('/run/mpd.sock', 0);
 // direct output bypass template system
 $tplfile = 0;
 // fetch MPD status
