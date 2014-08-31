@@ -2381,7 +2381,8 @@ function ui_update($redis ,$mpd)
     } else {
         sendMpdCommand($mpd, 'clear');
     }
-    $respone = readMpdResponse($mpd);
+    // return MPD response
+    return readMpdResponse($mpd);
 }
 
 function ui_mpd_response($mpd, $notify = null)

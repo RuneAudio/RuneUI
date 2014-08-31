@@ -189,12 +189,13 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 print_r($proxy);
                 break;
         }
-        closeMpdSocket($mpd);
     }
 } else {
   echo 'MPD DB INTERFACE<br>';
   echo 'INTERNAL USE ONLY<br>';
   echo 'hosted on runeaudio.local:81';
 }
+// close MPD connection
+closeMpdSocket($mpd);
 // close Redis connection
 $redis->close();

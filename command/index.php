@@ -41,7 +41,7 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
         // debug
         // runelog('MPD command: ',$_GET['cmd']);
         if ($_GET['cmd'] === 'renderui') {
-            ui_update($redis, $mpd);
+           $response = ui_update($redis, $mpd);
         } else if ($_GET['cmd'] === 'wifiscan') {
             wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wificfg', 'action' => 'scan'));
             echo 'wlan scan queued';
@@ -51,15 +51,15 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
         }
         // debug
         // runelog('--- [command/index.php] --- CLOSE MPD SOCKET <<< (1) ---','');
-        $response = readMpdResponse($mpd);
-        closeMpdSocket($mpd);
+        if (!$response) $response = readMpdResponse($mpd);
         echo $response;
     }
 } else {
     echo 'MPD COMMAND INTERFACE<br>';
     echo 'INTERNAL USE ONLY<br>';
     echo 'hosted on runeaudio.local:82';
-    phpinfo(32);
 }
+// close MPD connection
+closeMpdSocket($mpd);
 // close Redis connection
 $redis->close();
