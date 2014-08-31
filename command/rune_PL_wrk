@@ -54,7 +54,7 @@ if (!$mpd) {
     // exit script
     // die();
     $forceupdate = 1;
-    sleep(1);
+    sleep(3);
 } else {
     if ($forceupdate !== 0) {
         $forceupdate = 0;

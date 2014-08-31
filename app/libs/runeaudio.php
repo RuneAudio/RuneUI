@@ -35,7 +35,7 @@
 // Predefined MPD Response messages
 define("MPD_GREETING", "OK MPD 0.18.0\n");
 
-function openMpdSocket($path, $type = 1)
+function openMpdSocket($path, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
 {
     $sock = socket_create(AF_UNIX, SOCK_STREAM, 0);
@@ -108,33 +108,26 @@ function sendMpdCommand($sock, $cmd)
 
 function readMpdResponse($sock)
 {
+    // initialize vars
     $output = '';
     $read = '';
-    $end = 0;
-    // buffer size
-    // set 32 kbyte buffer
-    // $buff = 32768;
-    // set 320 kbyte buffer
-    // $buff = 327680;
-    // set 640 kbyte buffer
-    // $buff = 655360;
-    // set 1280 kbyte buffer
-    $buff = 1310720;
-    // socket monitoring
     $read_monitor = array();
     $write_monitor  = NULL;
     $except_monitor = NULL;
-    // iteration counter
-    $i = 0;
-    // timestamp
-    $starttime = microtime(true);
     // debug
-    runelog('START timestamp:', $starttime);
+    // socket monitoring
+    // iteration counter
+    // $i = 0;
+    // timestamp
+    // $starttime = microtime(true);
+    // runelog('START timestamp:', $starttime);
     if ($sock['type'] === 2) {
         // handle burst mode 2 (nonblocking) socket session
+        $buff = 1024;
+        $end = 0;
         while($end === 0) {
             $read = socket_read($sock['resource'], $buff);
-            if ((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK") !== false)) {
+            if ((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)) {
                 ob_start();
                 echo $read;
                 // flush();
@@ -152,46 +145,66 @@ function readMpdResponse($sock)
             } else {
                 continue;               
             }
-            // usleep(200);
+            usleep(200);
         }
-    } else {
+    } elseif ($sock['type'] === 1) {
     // handle burst mode 1 (blocking) socket session
-        if ($sock['type'] === 1) {
-            $read_monitor = array($sock['resource']);
-        } else {
-            $read_monitor = array($sock);
-        }
-        $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, NULL);
-        // runelog('socket_activity (pre-loop):', $socket_activity);
+    $read_monitor = array($sock['resource']);
+    $buff = 1310720;
+    // debug
+    // $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, NULL);
+    // runelog('socket_activity (pre-loop):', $socket_activity);
         do {
             // debug
             // $i++;
             // $elapsed = microtime(true);
             // read data from socket
-            if ($sock['type'] === 1) {
-                $read = socket_read($sock['resource'], $buff);
-            } else {
-                $read = socket_read($sock, $buff, PHP_NORMAL_READ);
-            }
-            if ($read !== '') {
-                if ((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK") !== false)) $end = 1;
-            } else {
-                $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, 0);
-                if ($socket_activity === false) $end = 1;
+            $read = socket_read($sock['resource'], $buff);
+            if ($read === '') {
+                if (socket_select($read_monitor, $write_monitor, $except_monitor, 0) === 0) break; 
             }
             $output .= $read;
+            // usleep(200);
             // debug
             // runelog('_1_socket_activity (in-loop): iteration='.$i.' ', $socket_activity);
             // runelog('_1_buffer length:', strlen($output));
             // runelog('_1_iteration:', $i);
             // runelog('_1_timestamp:', $elapsed);
-        } while ($end === 0);
+        } while (!((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)));
         // debug
         // runelog('END timestamp:', $elapsed);
         // runelog('RESPONSE length:', strlen($output));
         // runelog('EXEC TIME:', $elapsed - $starttime);
         return $output;
-    } 
+    } else {
+        // handle normal mode (blocking) socket session
+        $read_monitor = array($sock);
+        $buff = 4096;
+        // debug
+        // $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, NULL);
+        // runelog('socket_activity (pre-loop):', $socket_activity);
+        do {
+            // debug
+            // $i++;
+            // $elapsed = microtime(true);
+            $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            if ($read === '') {
+                if (socket_select($read_monitor, $write_monitor, $except_monitor, 0) === 0) break; 
+            }
+            $output .= $read;
+            // usleep(200);
+            // debug
+            // runelog('read buffer content (0 mode)', $read);
+            // runelog('_0_buffer length:', strlen($output));
+            // runelog('_0_iteration:', $i);
+            // runelog('_0_timestamp:', $elapsed);
+        } while (!((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)));
+        // debug
+        // runelog('END timestamp:', $elapsed);
+        // runelog('RESPONSE length:', strlen($output));
+        // runelog('EXEC TIME:', $elapsed - $starttime);
+        return $output;
+    }
 }
 
 function sendMpdIdle($sock)
@@ -2368,6 +2381,7 @@ function ui_update($redis ,$mpd)
     } else {
         sendMpdCommand($mpd, 'clear');
     }
+    $respone = readMpdResponse($mpd);
 }
 
 function ui_mpd_response($mpd, $notify = null)

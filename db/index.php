@@ -49,10 +49,10 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 break;
             case 'playlist':
                 // open non blocking socket with mpd daemon
-                // $mpd2 = openMpdSocket('/run/mpd.sock', 1);
-                echo getPlayQueue($mpd);
+                // $mpd2 = openMpdSocket('/run/mpd.sock', 2);
                 // getPlayQueue($mpd2);
                 // closeMpdSocket($mpd2);
+                echo getPlayQueue($mpd);
                 break;
             case 'add':
                 if (isset($_POST['path'])) {

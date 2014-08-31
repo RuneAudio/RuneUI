@@ -52,7 +52,13 @@ if ($redis->get('debug') > 0 ) {
 ini_set('log_errors', $activeLog);
 ini_set('error_log', '/var/log/runeaudio/runeui.log');
 ini_set('display_errors', $activeLog);
-// debug
-runelog('--- [connection.php] >>> OPEN MPD SOCKET --- [connection.php] ---','');
 // connect to MPD daemon
-$mpd = openMpdSocket('/run/mpd.sock');
+if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php') {
+    // debug
+    runelog('[connection.php] >>> OPEN MPD SOCKET [NORMAL MODE [0] (blocking)] <<<','');
+    $mpd = openMpdSocket('/run/mpd.sock', 0);
+} else {
+    // debug
+    runelog('[connection.php] >>> OPEN MPD SOCKET [BURST MODE [1] (blocking)] <<<','');
+    $mpd = openMpdSocket('/run/mpd.sock', 1);
+}

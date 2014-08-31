@@ -59,6 +59,7 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
     echo 'MPD COMMAND INTERFACE<br>';
     echo 'INTERNAL USE ONLY<br>';
     echo 'hosted on runeaudio.local:82';
+    phpinfo(32);
 }
 // close Redis connection
 $redis->close();
