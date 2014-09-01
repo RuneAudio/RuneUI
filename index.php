@@ -67,12 +67,12 @@ $controllers = array(
 // check page
 if (in_array($template->uri(1), $controllers) OR empty($template->uri(1))) {
     // decode REQUEST_URL and assing section
-    if (!empty($template->uri(1)) && ($template->uri(1) != 'playback')) {
+    if (!empty($template->uri(1)) && ($template->uri(1) !== 'playback')) {
         // decode ACTION
         if (!empty($template->uri(2))) {
         $template->action = $template->uri(2);
                 // assign SUB-TEMPLATE
-                if ($template->action == 'add') {
+                if ($template->action === 'add') {
                     $subtpl = 'edit';
                 } else {
                     $subtpl = $template->action;

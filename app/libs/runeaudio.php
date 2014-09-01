@@ -160,8 +160,13 @@ function readMpdResponse($sock)
             // $elapsed = microtime(true);
             // read data from socket
             $read = socket_read($sock['resource'], $buff);
-            if ($read === '') {
-                if (socket_select($read_monitor, $write_monitor, $except_monitor, 0) === 0) break; 
+            // debug
+            // runelog('socket_read status', $read);
+            if ($read === '' OR $read === false) {
+                $output = socket_strerror(socket_last_error($sock));
+                // debug
+                runelog('socket disconnected!!!', $output);
+                break; 
             }
             $output .= $read;
             // usleep(200);
@@ -188,8 +193,13 @@ function readMpdResponse($sock)
             // $i++;
             // $elapsed = microtime(true);
             $read = socket_read($sock, $buff, PHP_NORMAL_READ);
-            if ($read === '') {
-                if (socket_select($read_monitor, $write_monitor, $except_monitor, 0) === 0) break; 
+            // debug
+            // runelog('socket_read status', $read);
+            if ($read === '' OR $read === false) {
+                $output = socket_strerror(socket_last_error($sock));
+                // debug
+                runelog('socket disconnected!!!', $output);
+                break; 
             }
             $output .= $read;
             // usleep(200);
