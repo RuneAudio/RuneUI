@@ -665,22 +665,18 @@ function rp_checkPLid($id, $mpd)
 //<< TODO: join with findPLposPath
 function rp_findPath($id, $mpd)
 {
-    //$_SESSION['DEBUG'] .= "rp_findPath:$id |";
     sendMpdCommand($mpd, 'playlistid '.$id);
     $idinfo = _parseFileListResponse(readMpdResponse($mpd));
     $path = $idinfo[0]['file'];
-    //$_SESSION['DEBUG'] .= "Path:$path |";
     return $path;
 }
 
 //<< TODO: join with rp_findPath()
 function findPLposPath($songpos, $mpd)
 {
-    //$_SESSION['DEBUG'] .= "rp_findPath:$id |";
     sendMpdCommand($mpd, 'playlistinfo '.$songpos);
     $idinfo = _parseFileListResponse(readMpdResponse($mpd));
     $path = $idinfo[0]['file'];
-    //$_SESSION['DEBUG'] .= "Path:$path |";
     return $path;
 }
 
@@ -1482,6 +1478,13 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
+            break;
+        case 'hifiberrydacplus':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dacplus');
             break;
         case 'hifiberrydigi':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);

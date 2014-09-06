@@ -79,6 +79,7 @@
                         <option value="berrynos" <?php if($this->i2smodule === 'berrynos'): ?> selected <?php endif ?>>G2Labs BerryNOS</option>
                         <option value="berrynosmini" <?php if($this->i2smodule === 'berrynosmini'): ?> selected <?php endif ?>>G2Labs BerryNOS mini</option>
                         <option value="hifiberrydac" <?php if($this->i2smodule === 'hifiberrydac'): ?> selected <?php endif ?>>HiFiBerry DAC</option>
+                        <option value="hifiberrydacplus" <?php if($this->i2smodule === 'hifiberrydacplus'): ?> selected <?php endif ?>>HiFiBerry DAC+</option>
                         <option value="hifiberrydigi" <?php if($this->i2smodule === 'hifiberrydigi'): ?> selected <?php endif ?>>HiFiBerry Digi</option>
                         <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC</option>
                         <option value="raspi2splay3" <?php if($this->i2smodule === 'raspi2splay3'): ?> selected <?php endif ?>>RaspI2SPlay3</option>

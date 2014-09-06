@@ -38,7 +38,7 @@ do
     if ((count == 3))
     then
         echo "### Set priority for: mpd-player thread ###";
-        renice -15 $pid;
+        renice -16 $pid;
     fi
     if ((count == 4))
     then
@@ -67,6 +67,7 @@ renice 20 $(pgrep -w rpcbind)
 renice 20 $(pgrep -w redis-server)
 renice 20 $(pgrep -w ksoftirqd)
 renice 20 $(pgrep -w rcu_preempt)
+renice 20 $(pgrep -w systemd)
 renice 20 $(pgrep -w systemd-udevd)
 renice 20 $(pgrep -w ifplugd)
 renice 20 $(pgrep -w dhcpcd)
@@ -112,6 +113,7 @@ renice 0 $(pgrep -w rpcbind)
 renice 0 $(pgrep -w redis-server)
 renice 0 $(pgrep -w ksoftirqd)
 renice 0 $(pgrep -w rcu_preempt)
+renice 0 $(pgrep -w systemd)
 renice 0 $(pgrep -w systemd-udevd)
 renice 0 $(pgrep -w ifplugd)
 renice 0 $(pgrep -w dhcpcd)
