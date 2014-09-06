@@ -256,39 +256,44 @@ function randomScrollDB() {
 	customScroll('db', random);
 }
 
+// custom complex notifies
+function customNotify(notify) {
+	if (notify.type === 'kernelswitch') {
+		new PNotify({
+			title: notify.title,
+			text: notify.text,
+			icon: 'fa fa-refresh',
+			hide: false,
+			confirm: {
+				confirm: true,
+				buttons: [{
+					text: notify.btntext,
+					addClass: 'btn-default btn-block  uppercase',
+					click: function() {
+						$.post('/settings/', { 'syscmd' : 'reboot' });
+						$('#loader').removeClass('hide');
+					}
+				},
+				{
+					text: 'Cancel',
+					addClass: 'hide'
+				}]
+			},
+			buttons: {
+				closer: false,
+				sticker: false
+			}
+		});
+	}
+}
+
 // notify messages rendering
 function renderMSG(text) {
 	// console.log((notify.hide === undefined) ? 'undefined' : notify.hide);
 	// console.log(text);
 	var notify = text[0];
 	if (notify.type !== null) {
-		if (notify.type === 'kernelswitch') {
-			new PNotify({
-				title: notify.title,
-				text: notify.text,
-				icon: 'fa fa-refresh',
-				hide: false,
-				confirm: {
-					confirm: true,
-					buttons: [{
-						text: notify.btntext,
-						addClass: 'btn-default btn-block  uppercase',
-						click: function() {
-							$.post('/settings/', { 'syscmd' : 'reboot' });
-							$('#loader').removeClass('hide');
-						}
-					},
-					{
-						text: 'Cancel',
-						addClass: 'hide'
-					}]
-				},
-				buttons: {
-					closer: false,
-					sticker: false
-				}
-			});
-		}
+		customNotify(notify);
 		return;
 	}
 	new PNotify({
@@ -299,44 +304,6 @@ function renderMSG(text) {
 		hide: (notify.hide === undefined),
 		delay: (notify.delay === undefined) ? 8000 : notify.delay
 	});
-}
-
-// client side notify
-function notify(command, msg) {
-	switch (command) {
-		case 'add':
-			new PNotify({
-				title: 'Added to playlist',
-				text: msg,
-				icon: 'icon-ok',
-				opacity: 0.9
-			});
-		break;
-		case 'addreplaceplay':
-			new PNotify({
-				title: 'Playlist cleared<br> Added to playlist',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
-		case 'update':
-			new PNotify({
-				title: 'Update path: ',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
-		case 'remove':
-			new PNotify({
-				title: 'Removed from playlist',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
-	}
 }
 
 // sorting commands
@@ -1532,7 +1499,6 @@ if ($('#section-index').length) {
 				id = parseInt(id.replace('pl-', ''));
 				cmd = 'deleteid ' + id;
 				// var path = $(this).parent().data('path');
-				// notify('remove', '');
 				sendCmd(cmd);
 			} else {
 				// play queue entry
@@ -1759,7 +1725,6 @@ if ($('#section-index').length) {
 					cmd: 'addplay',
 					path: path
 				});
-				// notify('add', path);
 			}
 		});
 
@@ -1801,28 +1766,24 @@ if ($('#section-index').length) {
 					cmd: 'add',
 					path: path
 				});
-				// notify('add', path);
 			}
 			if (dataCmd === 'addplay') {
 				getDB({
 					cmd: 'addplay',
 					path: path
 				});
-				// notify('add', path);
 			}
 			if (dataCmd === 'addreplaceplay') {
 				getDB({
 					cmd: 'addreplaceplay',
 					path: path
 				});
-				// notify('addreplaceplay', path);
 			}
 			if (dataCmd === 'update') {
 				getDB({
 					cmd: 'update',
 					path: path
 				});
-				// notify('update', path);
 			}
 			if (dataCmd === 'bookmark') {
 				getDB({
