@@ -1483,7 +1483,7 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
-            sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dacplus');
             break;
         case 'hifiberrydigi':
