@@ -48,5 +48,5 @@ $redis->hSet('acards_details', 'imx-spdif', '{"sysname":"imx-spdif","extlabel":"
 $redis->hSet('acards_details', 'imx-hdmi-soc', '{"sysname":"imx-hdmi-soc","extlabel":"Utilite HDMI Out","hwplatformid":"05","type":"integrated"}');
 $redis->hSet('acards_details', 'bcm2835 ALSA', '{"sysname":"bcm2835 ALSA","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
 $redis->hSet('acards_details', 'SA9023 USB Audio', '{"sysname":"SA9023 USB Audio","extlabel":"HiFimeDIY SABRE U2","mixer_numid":"4","mixer_control":"PCM","type":"usb"}');
-$redis->sAdd('bcm2835 ALSA', '{"id:"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
-$redis->sAdd('bcm2835 ALSA', '{"id:"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}')
+$redis->sAdd('bcm2835 ALSA', '{"id":"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
+$redis->sAdd('bcm2835 ALSA', '{"id":"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}')

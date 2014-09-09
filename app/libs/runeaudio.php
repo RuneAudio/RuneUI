@@ -1381,6 +1381,7 @@ function wrk_audioOutput($redis, $action, $args = null)
                 if ($acards_details !== '') {
                     // debug
                     runelog('wrk_audioOutput: in loop: acards_details for: '.$card, $acards_details);
+                    $details = new stdClass();
                     $details = json_decode($acards_details);
                     // debug
                     runelog('wrk_audioOutput: in loop: (decoded) acards_details for: '.$card, $details);
@@ -1392,11 +1393,16 @@ function wrk_audioOutput($redis, $action, $args = null)
                         $data['mixer_device'] = "hw:".$details->mixer_numid;
                         $data['mixer_control'] = $details->mixer_control;
                     }
-                    if ($details->sysname === $card) {
+                    if (isset($details->sysname) && $details->sysname === $card) {
                         if ($details->type === 'integrated_sub') {
                             $sub_interfaces = $redis->sMembers($card);
-                            foreach ($sub_interfaces as $int) {
-                                $sub_int_details = json_decode($int);
+                            // debug
+                            runelog('line 1399: (sub_interfaces loop) card: '.$card, $sub_interfaces);
+                            foreach ($sub_interfaces as $sub_interface) {
+								runelog('line 1401: (sub_interfaces foreach) card: '.$card, $sub_interface);
+                                $sub_int_details = new stdClass();
+                                $sub_int_details = json_decode($sub_interface);
+                                runelog('line 1402: (sub_interfaces foreach json_decode) card: '.$card, $sub_int_details);
                                 $sub_int_details->device = $data['device'];
                                 $sub_int_details->name = $card.'_'.$sub_int_details->id;
                                 $sub_int_details->type = 'alsa';
@@ -1421,7 +1427,7 @@ function wrk_audioOutput($redis, $action, $args = null)
                         }
                     }
                     // debug
-                    runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
+                    if (isset($data['extlabel'])) runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
                 }
                 if (!isset($sub_interfaces)) {
                 $data['name'] = $card;
@@ -1680,20 +1686,21 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             $sub_count = 0;
             runelog('sub_count ----->(0)'.$sub_count);
             foreach ($acards as $card) {
-                $card= json_decode($card);
-                if ($card->integrated_sub === 1) {
+                $card_decoded = new stdClass();
+                $card_decoded = json_decode($card);
+                if (isset($card_decoded->integrated_sub) && $card_decoded->integrated_sub === 1) {
                     // record UI audio output name
-                    $current_card = $card->name;
+                    $current_card = $card_decoded->name;
                     if ($sub_count >= 1) continue;
-                    $card = json_decode($card->real_interface);
+                    $card_decoded = json_decode($card_decoded->real_interface);
                     runelog('current AO ---->  ', $ao);
-                    var_dump($ao);
-                    runelog('current card_name ---->  ', $card->name);
-                    var_dump($card->name);
-                    var_dump(strpos($ao, $card->name));
-                    if (strpos($ao,$card->name) === true OR strpos($ao, $card->name) === 0) $sub_interface_selected = 1;
+                    // var_dump($ao);
+                    runelog('current card_name ---->  ', $card_decoded->name);
+                    // var_dump($card_decoded->name);
+                    // var_dump(strpos($ao, $card_decoded->name));
+                    if (strpos($ao,$card_decoded->name) === true OR strpos($ao, $card_decoded->name) === 0) $sub_interface_selected = 1;
                     // debug
-                    runelog('sub_card_selected ? >>>> '.$sub_interface_selected);
+                    if (isset($sub_interface_selected)) runelog('sub_card_selected ? >>>> '.$sub_interface_selected);
                     // debug
                     runelog('this is a sub_interface');
                     $sub_interface = 1;
@@ -1701,13 +1708,13 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 }
                 $output .="\n";
                 $output .="audio_output {\n";
-                $output .="name \t\t\"".$card->name."\"\n";
-                $output .="type \t\t\"".$card->type."\"\n";
-                $output .="device \t\t\"".$card->device."\"\n";
+                $output .="name \t\t\"".$card_decoded->name."\"\n";
+                $output .="type \t\t\"".$card_decoded->type."\"\n";
+                $output .="device \t\t\"".$card_decoded->device."\"\n";
                 if (isset($hwmixer)) {
                     $output .="mixer_type \t\"hardware\"\n";
-                    if (isset($card->mixer_device)) $output .="mixer_device \t\"".$card->mixer_device."\"\n";
-                    if (isset($card->mixer_control)) $output .="mixer_control \t\"".$card->mixer_control."\"\n";
+                    if (isset($card_decoded->mixer_device)) $output .="mixer_device \t\"".$card_decoded->mixer_device."\"\n";
+                    if (isset($card_decoded->mixer_control)) $output .="mixer_control \t\"".$card_decoded->mixer_control."\"\n";
                 }
                 if ($mpdcfg['dsd_usb'] === 'yes') $output .="dsd_usb \t\"yes\"\n";
                 $output .="auto_resample \t\"no\"\n";
@@ -1717,12 +1724,12 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     $output .="enabled \t\"yes\"\n";
                 } else {
                     // normal condition
-                    if ($ao === $card->name) $output .="enabled \t\"yes\"\n";
+                    if ($ao === $card_decoded->name) $output .="enabled \t\"yes\"\n";
                 }
                 $output .="}\n";
                 unset($current_card);
                 unset($sub_interface);
-                unset($card);
+                unset($card_decoded);
             }
             $output .="\n";
             // debug
