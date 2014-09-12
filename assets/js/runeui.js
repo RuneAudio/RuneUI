@@ -47,6 +47,7 @@ var GUI = {
 	json: 0,
 	libraryhome: '',
 	mode: 'websocket',
+	noticeUI: {},
 	playlist: null,
 	plugin: '',
 	state: '',
@@ -258,10 +259,10 @@ function randomScrollDB() {
 
 // custom complex notifies
 function customNotify(notify) {
-	if (notify.type === 'kernelswitch') {
-		new PNotify({
-			title: notify.title,
-			text: notify.text,
+	if (notify.custom === 'kernelswitch') {
+		GUI.noticeUI.kernelswitch = new PNotify({
+			title: ('title' in notify) ? notify.title : '[missing title]',
+			text: ('text' in notify) ? notify.text : '[missing text]',
 			icon: 'fa fa-refresh',
 			hide: false,
 			confirm: {
@@ -289,21 +290,39 @@ function customNotify(notify) {
 
 // notify messages rendering
 function renderMSG(text) {
-	// console.log((notify.hide === undefined) ? 'undefined' : notify.hide);
 	// console.log(text);
 	var notify = text[0];
-	if (notify.type !== null) {
+	if ('custom' in notify && notify.custom !== null) {
 		customNotify(notify);
 		return;
 	}
-	new PNotify({
-		title: notify.title,
-		text: notify.text,
+	var noticeOptions = {
+		title: ('title' in notify) ? notify.title : '[missing title]',
+		text: ('text' in notify) ? notify.text : '[missing text]',
 		icon: (notify.icon === undefined) ? 'fa fa-check' : notify.icon,
 		opacity: (notify.opacity === undefined) ? 0.9 : notify.opacity,
-		hide: (notify.hide === undefined),
-		delay: (notify.delay === undefined) ? 8000 : notify.delay
-	});
+		hide: (notify.hide === undefined && notify.permanotice === undefined),
+		buttons: {
+			closer: (notify.permanotice === undefined),
+			sticker: (notify.permanotice === undefined)
+		},
+		delay: (notify.delay === undefined) ? 8000 : notify.delay,
+		mouse_reset: false
+	};
+	if ('permanotice' in notify) {
+		if (GUI.noticeUI[notify.permanotice] === undefined) {
+			GUI.noticeUI[notify.permanotice] = new PNotify(noticeOptions);
+		} else {
+			if ('permaremove' in notify) {
+				GUI.noticeUI[notify.permanotice].remove();
+				GUI.noticeUI[notify.permanotice] = undefined;
+			} else {
+				GUI.noticeUI[notify.permanotice].open();
+			}
+		}
+	} else {
+		new PNotify(noticeOptions);
+	}
 }
 
 // sorting commands
@@ -1390,6 +1409,12 @@ if ($('#section-index').length) {
 		
 		// PNotify init options
 		PNotify.prototype.options.styling = 'fontawesome';
+		PNotify.prototype.options.stack.dir1 = 'up';
+		PNotify.prototype.options.stack.dir2 = 'left';
+		PNotify.prototype.options.stack.firstpos1 = 90;
+		PNotify.prototype.options.stack.firstpos2 = 50;
+		PNotify.prototype.options.stack.spacing1 = 10;
+		PNotify.prototype.options.stack.spacing2 = 10;
 		// open notify channel
 		notifyChannel();
 		
