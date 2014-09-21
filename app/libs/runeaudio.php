@@ -106,6 +106,20 @@ function sendMpdCommand($sock, $cmd)
     //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
 }
 
+// detect end of MPD response
+function checkEOR($chunk)
+{
+    if (strpos($chunk, "OK\n") !== false) {
+        return true;
+    } elseif (strpos($chunk, "ACK [") !== false) {
+        if (preg_match("/(\[[0-9]@[0-9]\])/", $chunk) === 1) {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
 function readMpdResponse($sock)
 {
     // initialize vars
@@ -127,7 +141,7 @@ function readMpdResponse($sock)
         $end = 0;
         while($end === 0) {
             $read = socket_read($sock['resource'], $buff);
-            if ((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)) {
+            if (checkEOR($read) === true) {
                 ob_start();
                 echo $read;
                 // flush();
@@ -175,7 +189,7 @@ function readMpdResponse($sock)
             // runelog('_1_buffer length:', strlen($output));
             // runelog('_1_iteration:', $i);
             // runelog('_1_timestamp:', $elapsed);
-        } while (!((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)));
+        } while (checkEOR($read) === false);
         // debug
         // runelog('END timestamp:', $elapsed);
         // runelog('RESPONSE length:', strlen($output));
@@ -208,7 +222,7 @@ function readMpdResponse($sock)
             // runelog('_0_buffer length:', strlen($output));
             // runelog('_0_iteration:', $i);
             // runelog('_0_timestamp:', $elapsed);
-        } while (!((strpos($read, "OK\n") !== false) OR (strpos($read, "ACK [") !== false)));
+        } while (checkEOR($read) === false);
         // debug
         // runelog('END timestamp:', $elapsed);
         // runelog('RESPONSE length:', strlen($output));
@@ -390,9 +404,8 @@ function randomSelect($sock)
 
 function MpdStatus($sock)
 {
-    // usleep(2000);
     sendMpdCommand($sock, "status");
-    $status= readMpdResponse($sock);
+    $status = readMpdResponse($sock);
     return $status;
 }
 
@@ -408,13 +421,6 @@ function songTime($sec)
     $minutes = sprintf('%02d', floor($sec / 60));
     $seconds = sprintf(':%02d', (int) $sec % 60);
     return $minutes.$seconds;
-}
-
-function phpVer()
-{
-    $version = phpversion();
-    // return substr($version, 0, 3);
-    return $version;
 }
 
 function sysCmd($syscmd)
@@ -1397,12 +1403,12 @@ function wrk_audioOutput($redis, $action, $args = null)
                         if ($details->type === 'integrated_sub') {
                             $sub_interfaces = $redis->sMembers($card);
                             // debug
-                            runelog('line 1399: (sub_interfaces loop) card: '.$card, $sub_interfaces);
+                            runelog('line 1400: (sub_interfaces loop) card: '.$card, $sub_interfaces);
                             foreach ($sub_interfaces as $sub_interface) {
-								runelog('line 1401: (sub_interfaces foreach) card: '.$card, $sub_interface);
+								runelog('line 1402: (sub_interfaces foreach) card: '.$card, $sub_interface);
                                 $sub_int_details = new stdClass();
                                 $sub_int_details = json_decode($sub_interface);
-                                runelog('line 1402: (sub_interfaces foreach json_decode) card: '.$card, $sub_int_details);
+                                runelog('line 1405: (sub_interfaces foreach json_decode) card: '.$card, $sub_int_details);
                                 $sub_int_details->device = $data['device'];
                                 $sub_int_details->name = $card.'_'.$sub_int_details->id;
                                 $sub_int_details->type = 'alsa';
@@ -1937,7 +1943,7 @@ function wrk_sourcecfg($redis, $action, $args)
             break;
         case 'reset':
             $source = $redis->keys('mount_*');
-            sysCmd('mpc stop');
+            sysCmd('systemctl stop mpd');
             usleep(500000);
                 foreach ($source as $key) {
                     $mp = $redis->hGetAll($key);
@@ -1948,6 +1954,7 @@ function wrk_sourcecfg($redis, $action, $args)
                 }
             // reset mount index
             if ($return) $redis->del('mountidx');
+            sysCmd('systemctl start mpd');
             break;
         case 'mountall':
             $return = wrk_sourcemount($redis, 'mountall');
@@ -1979,6 +1986,7 @@ function wrk_getHwPlatform()
                     break;
                 // CuBox
                 case 'Marvell Dove (Flattened Device Tree)':
+                case 'SolidRun CuBox':
                     $arch = '03';
                     break;
                 // BeagleBone Black
@@ -1988,6 +1996,10 @@ function wrk_getHwPlatform()
                 // Utilite Standard
                 case 'Compulab CM-FX6':
                     $arch = '05';
+                    break;
+                // Cubox-i
+                case 'Freescale i.MX6 Quad/DualLite (Device Tree)':
+                    $arch = '07';
                     break;
                 default:
                     $arch = '--';
@@ -2045,10 +2057,13 @@ function wrk_playerID($arch)
 
 function wrk_sysAcl()
 {
-    sysCmd('chmod -R a+x /var/www/command');
+    sysCmd('chown -R http.http /srv/http/');
+    sysCmd('chmod -R 755 /srv/http/db/redis_datastore_setup');
+    sysCmd('chmod -R 755 /srv/http/db/redis_acards_details');
     sysCmd('chmod 777 /run');
-    sysCmd('chmod a+rw /etc/mpd.conf');
-    sysCmd('chmod a+rw /etc/mpdscribble.conf');
+    sysCmd('chmod 644 $(find /srv/http/ -type f)');
+    sysCmd('chmod 755 $(find /srv/http/ -type d)');
+    sysCmd('chmod 755 /srv/http/command/*');
     sysCmd('chown -R mpd.audio /var/lib/mpd');
 }
 
@@ -2099,10 +2114,6 @@ function wrk_sysEnvCheck($arch, $install)
              $restartphp = 1;
          }
         if ($install == 1) {
-             // remove autoFS for NAS mount
-             sysCmd('cp /var/www/_OS_SETTINGS/etc/auto.master /etc/auto.master');
-             sysCmd('rm /etc/auto.nas');
-             sysCmd('systemctl restart autofs');
              // /etc/php5/mods-available/apc.ini
              sysCmd('cp /var/www/_OS_SETTINGS/etc/php5/mods-available/apc.ini /etc/php5/mods-available/apc.ini');
              // /etc/php5/fpm/pool.d/ erase
@@ -2205,85 +2216,111 @@ function alsa_findHwMixerControl($cardID)
 // webradio management (via .pls files)
 function addRadio($mpd, $redis, $data)
 {
-    //debug
-    runelog('addRadio (data)', $data);
-    // store webradio record in redis
-    $redis->hSet('webradios', $data->label, $data->url);
-    // create new file
-    // $file = '/mnt/MPD/Webradio/'.$data['label'].'.pls';
-    $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
-    $newpls = "[playlist]\n";
-    $newpls .= "NumberOfEntries=1\n";
-    $newpls .= "File1=".$data->url."\n";
-    $newpls .= "Title1=".$data->label;
-    // Commit changes to .pls file
-    $fp = fopen($file, 'w');
-    $return = fwrite($fp, $newpls);
-    fclose($fp);
-    if ($return) sendMpdCommand($mpd, 'update Webradio');
+    if ($data->label !== '' && $data->url !== '') {
+        //debug
+        runelog('addRadio (data)', $data);
+        // store webradio record in redis
+        $redis->hSet('webradios', $data->label, $data->url);
+        // create new file
+        // $file = '/mnt/MPD/Webradio/'.$data['label'].'.pls';
+        $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
+        $newpls = "[playlist]\n";
+        $newpls .= "NumberOfEntries=1\n";
+        $newpls .= "File1=".$data->url."\n";
+        $newpls .= "Title1=".$data->label;
+        // Commit changes to .pls file
+        $fp = fopen($file, 'w');
+        $return = fwrite($fp, $newpls);
+        fclose($fp);
+        if ($return) sendMpdCommand($mpd, 'update Webradio');
+    } else {
+        $return = false;
+    }
     return $return;
 }
 
 function editRadio($mpd,$redis,$data)
 {
-    //debug
-    runelog('editRadio (data)', $data);
-    // edit webradio URL in .pls file
-    $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
-    if ($data->label !== $data->newlabel) {
-        unlink($file);
-        // delete old webradio record in redis
-        $redis->hDel('webradios', $data->label);
-        // store new webradio record in redis
-        $data->label = $data->newlabel;
-        $data->newlabel = null;
-        $return = addRadio($mpd, $redis, $data);
+    if ($data->label !== '' && $data->url !== '') {
+        //debug
+        runelog('editRadio (data)', $data);
+        // edit webradio URL in .pls file
+        $file = '/mnt/MPD/Webradio/'.$data->label.'.pls';
+        if ($data->label !== $data->newlabel) {
+            unlink($file);
+            // delete old webradio record in redis
+            $redis->hDel('webradios', $data->label);
+            // store new webradio record in redis
+            $data->label = $data->newlabel;
+            $data->newlabel = null;
+            $return = addRadio($mpd, $redis, $data);
+        } else {
+            $redis->hSet('webradios',$data->label,$data->url);
+            $newArray = wrk_replaceTextLine($file, '', 'File1=', 'File1='.$data->url, 'NumberOfEntries=1',1);
+            // Commit changes to .pls file
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
+        }
+        if ($return) sendMpdCommand($mpd, 'update Webradio');
     } else {
-        $redis->hSet('webradios',$data->label,$data->url);
-        $newArray = wrk_replaceTextLine($file, '', 'File1=', 'File1='.$data->url, 'NumberOfEntries=1',1);
-        // Commit changes to .pls file
-        $fp = fopen($file, 'w');
-        $return = fwrite($fp, implode("", $newArray));
-        fclose($fp);
+        $return = false;
     }
-    if ($return) sendMpdCommand($mpd, 'update Webradio');
     return $return;
 }
 
 function deleteRadio($mpd,$redis,$data)
 {
-    //debug
-    runelog('deleteRadio (data)', $data);
-    // delete .pls file
-    $file = '/mnt/MPD/Webradio/'.$data->label;
-    $label = parseFileStr($data->label, '.', 1);
-    runelog('deleteRadio (label)', $label);
-    $return = unlink($file);
-    if ($return) {
-        // delete webradio record in redis
-        $redis->hDel('webradios', $label);
-        sendMpdCommand($mpd, 'update Webradio');
+    if ($data->label !== '') {
+        //debug
+        runelog('deleteRadio (data)', $data);
+        // delete .pls file
+        $file = '/mnt/MPD/Webradio/'.$data->label;
+        $label = parseFileStr($data->label, '.', 1);
+        runelog('deleteRadio (label)', $label);
+        $return = unlink($file);
+        if ($return) {
+            // delete webradio record in redis
+            $redis->hDel('webradios', $label);
+            sendMpdCommand($mpd, 'update Webradio');
+        }
+    } else {
+        $return = false;
     }
     return $return;
 }
 
-function ui_notify($title = null, $text, $type = null )
+function ui_notify($title = null, $text, $type = null, $permanotice = null )
 {
-    $output = array( 'title' => $title, 'text' => $text, 'type' => $type);
+    if (is_object($permanotice)) {
+        $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
+    } else {
+        if (isset($permanotice)) {
+            $output = array('title' => $title, 'text' => $text, 'type' => $type, 'permanotice' => $permanotice);
+        } else {
+            $output = array('title' => $title, 'text' => $text, 'type' => $type);
+        }
+    }
     ui_render('notify', json_encode($output));
 }
 
-function ui_notify_async($title, $text, $jobID = null, $icon = null, $opacity = null, $hide = null, $type = null)
+function ui_notify_async($title = null, $text, $type = null, $permanotice = null )
 {
-    // $output = json_encode(array( 'title' => $title, 'text' => $text, 'icon' => $icon, 'opacity' => $opacity, 'hide' => $hide ));
     if ($title === 'Kernel switch') {
-        // $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
-        $output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now' ));
+        $output = array('title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now');
     } else {
-        // $output = json_encode(array( 'title' => htmlentities($title,ENT_XML1,'UTF-8'), 'text' => htmlentities($text,ENT_XML1,'UTF-8'), 'type' => $type ));
-        $output = json_encode(array( 'title' => $title, 'text' => $text, 'type' => $type ));
+        if (is_object($permanotice)) {
+            $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
+        } else {
+            if (isset($permanotice)) {
+                $output = array('title' => $title, 'text' => $text, 'type' => $type, 'permanotice' => $permanotice);
+            } else {
+                $output = array('title' => $title, 'text' => $text, 'type' => $type);
+            }
+        }
     }
-    runelog('notify JSON string: ', $output);
+    $output = json_encode($output);
+    runelog('notify (async) JSON string: ', $output);
     sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
 }
 

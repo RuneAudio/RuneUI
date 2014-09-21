@@ -40,20 +40,22 @@ ini_set('error_log', '/var/log/runeaudio/refresh_ao.log');
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
 include('/var/www/app/libs/runeaudio.php');
+$lock = $redis->get('lock_refresh_ao');
+runelog('lock status ', $lock);
 // startup
 runelog('--------------------------- start Audio Outputs refresh ---------------------------');
 // refesh audio hardware status (soundcards and MPD config)
-if ($redis->get('lock_refresh_ao') === '0') {
+if ($lock === '0') {
     $redis->set('lock_refresh_ao', '1');
-    $redis->save();
     wrk_mpdconf($redis, 'refresh');
-    ui_notify('Audio Output', 'configuration changed.');
+    ui_notify('Audio Output', 'configuration changed.');    
+    sleep(1);
     $redis->set('lock_refresh_ao', '0');
-    $redis->save();
 } else {
     echo "LOCKED!";
 }
 // startup
 runelog('-------------------------- #finish Audio Outputs refresh# --------------------------');
+runelog('lock status ', $redis->get('lock_refresh_ao'));
 // close Redis connection
 $redis->close();

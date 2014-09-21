@@ -64,8 +64,6 @@ sysCmd('echo "--------------- start: rune_SY_wrk.php ---------------" > /var/log
 runelog('WORKER rune_SY_wrk.php STARTING...');
 // INITIALIZE ENVIRONMENT --- //
 runelog('INITIALIZE ENVIRONMENT ---');
-// reset critical file permissions to default
-wrk_sysAcl();
 // mount all sources
 wrk_sourcemount($redis, 'mountall');
 // check Architecture
@@ -88,22 +86,25 @@ if ($playerid_db === '') {
     runelog('register HW architectureID and playerID');
     wrk_setHwPlatform($redis);
     // reset netconf to defaults
-    // runelog('reset netconf to defaults');
+    runelog('reset netconf to defaults');
     // read system network interfaces details
-    // wrk_netconfig($redis,'reset');
+    wrk_netconfig($redis,'reset');
     // reset sourcecfg to defaults
-    // runelog('reset sourcecfg to defaults');
-    // wrk_sourcecfg($redis,'reset');
-    // sendMpdCommand($mpd,'update');
+    runelog('reset sourcecfg to defaults');
+    closeMpdSocket($mpd);
+    wrk_sourcecfg($redis,'reset');
+    // reconnect to new instance of MPD
+    $mpd = openMpdSocket('/run/mpd.sock', 0);
+    // clear MPD database
+    sendMpdCommand($mpd,'update');
+    sleep(3);
     // reset mpdconf to defaults
-    // runelog('reset mpdconf to defaults');
-    // wrk_mpdconf($redis,'reset');
-    // tell worker to write new MPD config
-    // wrk_mpdconf('/etc',$redis);
-    // usleep(500000);
+    runelog('reset mpdconf to defaults');
+    wrk_mpdconf($redis,'reset');
+    sleep(1);
     // system ENV files check and replace
-    // runelog("system ENV files check and replace",'');
-    //    wrk_sysEnvCheck($arch,1);
+    runelog("system ENV files check and replace",'');
+    wrk_sysEnvCheck($arch,1);
     runelog('--- RUNEAUDIO FIRST RUN PROCESS');
     // invoke rune_SY_wrk.php respawn
     sysCmd('systemctl restart rune_SY_wrk');
@@ -123,7 +124,7 @@ if ($playerid_db === '') {
     $hn = sysCmd('hostname');
     $redis->set('hostname', $hn[0]);
     // check ENV files
-    if ($arch != '--') {
+    if ($arch !== '--') {
         // wrk_sysOBEnvCheck($arch,0);
     }
     // start samba services
@@ -172,7 +173,7 @@ if ($redis->get('scrobbling_lastfm') === '1') {
 // Cmediafix startup check
 if ($redis->get('cmediafix') === '1') {
     $mpd = openMpdSocket('/run/mpd.sock');
-    sendMpdCommand($mpd,'cmediafix');
+    sendMpdCommand($mpd, 'cmediafix');
     closeMpdSocket($mpd);
 }
 // initialize OrionProfile
@@ -195,7 +196,6 @@ runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
 while (1) {
 // Connect to Redis backend
-// $redis->pconnect('127.0.0.1');
 $redis->pconnect('/tmp/redis.sock');
 // runelog('[wrk] loop marker ',microtime(true));
     // monitor loop
@@ -562,7 +562,7 @@ $redis->pconnect('/tmp/redis.sock');
         } // end foreach loop
     } // end if loop
     // unload CPU
-    usleep(500000);
+    usleep(1000000);
 } // end while loop
 // --- WORKER MAIN LOOP //
 // close Redis connection

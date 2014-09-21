@@ -32,7 +32,11 @@
  *
  */
 // Environment vars
-define('APP',$_SERVER['HOME'].'/app/');
+if ($_SERVER["DOCUMENT_ROOT"] !== '') {
+    define('APP',$_SERVER['HOME'].'/app/');
+} else {
+    define('APP','/var/www/app/');
+}
 // extend include path for Vendor Libs
 $libs = APP.'libs/vendor';
 set_include_path(get_include_path() . PATH_SEPARATOR . $libs);

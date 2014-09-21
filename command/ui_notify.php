@@ -27,7 +27,7 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: command/ui_notify.php
+ *  file: command/ui_notify
  *  version: 1.3
  *  coder: Simone De Gregori
  *
@@ -41,6 +41,7 @@ ini_set('error_log','/var/log/runeaudio/ui_notify.log');
 // push UI update to NGiNX channel
 function ui_render($channel, $data)
 {
+    // runelog('ui_render channel: '.$channel.', data: ',$data);
     curlPost('http://127.0.0.1/pub?id='.$channel,$data);
 }
 
@@ -81,10 +82,8 @@ $redis->connect('/tmp/redis.sock');
     usleep(500000);
 }
 if (isset($argv[3]) && $argv[3] === 'simplemessage') {
-    $output = array( 'title' => $argv[1], 'text' => $argv[2], 'type' => null);
-    ui_render('notify', json_encode($output));
+    $output = json_encode(array( 'title' => $argv[1], 'text' => $argv[2], 'type' => null));
+    ui_render('notify', $output);
 } else {
     ui_render('notify', $argv[1]);
 }
-// close Redis connection
-$redis->close();
