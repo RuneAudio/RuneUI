@@ -96,6 +96,76 @@ function redisDatastore($redis,$action) {
             $redis->set('lock_globalrandom', 0);
             $redis->set('lock_refresh_ao', 0);
             $redis->set('lock_wifiscan', 0);
+            // PHP precache (prime) scripts
+            $redis->del('php_opcache_prime');
+            $transaction = $redis->multi();
+            // RuneAudio Libs & config
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/config/config.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/runeaudio.php');
+            // RuneAudio Controllers
+            $transaction->sAdd('php_opcache_prime', '/srv/http/index.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/db/index.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/index.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/coverart_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/credits_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/debug_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/dev_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/login_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/mpd_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/network_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/playback_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/settings_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/sources_ctl.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/tun_ctl.php');
+            // RuneAudio Templates
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/credits.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/debug.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/default_lo.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/dev.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/error.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/footer.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/header.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/login.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/mpd.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/mpd_manual.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/network.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/network_edit.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/network_edit_manual.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/network_wlan.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/playback.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/settings.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/sources.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/templates/sources_edit.php');
+            // Vendor libs
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/autoload.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Engine.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Template.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Extension/Escape.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Extension/Batch.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Extension/ExtensionInterface.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Extension/Asset.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/league/plates/src/Extension/URI.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/autoload_namespaces.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/autoload_files.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/autoload_real.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/ClassLoader.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/autoload_classmap.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/composer/autoload_psr4.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.tag.id3v2.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/audioinfo.class.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.tag.id3v1.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/getid3.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.audio.ogg.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.tag.apetag.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/getid3.lib.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.audio.flac.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/getid3/module.tag.lyrics3.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/vendor/react/promise/src/React/Promise/functions.php');
+            // RuneAudio Commands
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/refresh_nics');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/ui_notify.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/opcache.php');
+            $transaction->exec();
             break;
         case 'check':
             // kernel
