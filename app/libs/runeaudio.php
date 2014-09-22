@@ -589,17 +589,25 @@ function parseFileStr($strFile, $delimiter, $negative = null)
     return $str;
 }
 
-function OpCacheCtl($basepath, $action)
+function OpCacheCtl($action, $basepath, $redis = null)
 {
-    if ($action === 'prime') $cmd = 'opcache_compile_file';
+    if ($action === 'prime' OR $action === 'primeall') $cmd = 'opcache_compile_file';
     if ($action === 'reset') $cmd = 'opcache_invalidate';
-    if (is_file($basepath)) {
-        if (parseFileStr($basepath,'.') === 'php' && $basepath != '/srv/http/command/cachectl.php' ) $cmd ($basepath);
+    if ($action === 'prime') {
+        $files = $redis->sMembers('php_opcache_prime');
+        foreach ($files as $file) {
+            opcache_compile_file($file);
+        }
     }
-    elseif(is_dir($basepath)) {
-        $scan = glob(rtrim($basepath,'/').'/*');
-        foreach($scan as $index=>$path) {
-            OpCacheCtl($path,$action);
+    if ($action === 'primeall' OR $action === 'reset') {
+        if (is_file($basepath)) {
+            if (parseFileStr($basepath,'.') === 'php' && $basepath !== '/srv/http/command/cachectl.php' ) $cmd ($basepath);
+        }
+        elseif(is_dir($basepath)) {
+            $scan = glob(rtrim($basepath,'/').'/*');
+            foreach($scan as $index=>$path) {
+                OpCacheCtl($path,$action);
+            }
         }
     }
 }

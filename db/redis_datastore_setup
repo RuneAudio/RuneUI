@@ -164,7 +164,11 @@ function redisDatastore($redis,$action) {
             // RuneAudio Commands
             $transaction->sAdd('php_opcache_prime', '/srv/http/command/refresh_nics');
             $transaction->sAdd('php_opcache_prime', '/srv/http/command/ui_notify.php');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/debug_collector');
             $transaction->sAdd('php_opcache_prime', '/srv/http/command/opcache.php');
+            // RuneAudio Workers
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/rune_PL_wrk');
+            $transaction->sAdd('php_opcache_prime', '/srv/http/command/rune_SY_wrk');
             $transaction->exec();
             break;
         case 'check':

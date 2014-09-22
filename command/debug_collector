@@ -212,7 +212,7 @@ function debug_data($redis)
     $output .= implode("\n", $command)."\n\n";
     unset($command);
     $output .= "###### PHP backend ######\n";
-    $output .= "php version:\t".phpVer()."\n";
+    $output .= "php version:\t".phpversion()."\n";
     $output .= "debug level:\t".$redis->get('debug')."\n";
     $output .= "\n";
     $output .= "\n";

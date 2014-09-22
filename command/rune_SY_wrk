@@ -32,25 +32,20 @@
  *  coder: Simone De Gregori
  *
  */
- // common include
+// common include
 $start = microtime(true);
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 ini_set('error_log', '/var/log/runeaudio/rune_SY_wrk.log');
 define('APP', '/srv/http/app/');
-opcache_reset();
 include('/srv/http/app/libs/runeaudio.php');
+// stop php-fpm
+sysCmd('systemctl stop php-fpm');
+// setup /run dir
+sysCmd('chmod 777 /run');
 // Connect to Redis backend
 $redis = new Redis();
-// $redis->connect('127.0.0.1');
 $redis->connect('/tmp/redis.sock');
-// prime PHP 5.5 Opcache
-//if ($redis->get('dev') === '0') {
-//    wrk_opcache('prime',$redis);
-//    sysCmd("curl -s -X GET 'http://localhost/command/cachectl.php?action=prime'");
-//}
-// check configuration datastore
-//redisDatastore($redis,'check');
 // read registered HW architecture
 $arch_db = $redis->get('hwplatformid');
 runelog('registered architecture: ', $arch_db);
@@ -64,8 +59,6 @@ sysCmd('echo "--------------- start: rune_SY_wrk.php ---------------" > /var/log
 runelog('WORKER rune_SY_wrk.php STARTING...');
 // INITIALIZE ENVIRONMENT --- //
 runelog('INITIALIZE ENVIRONMENT ---');
-// mount all sources
-wrk_sourcemount($redis, 'mountall');
 // check Architecture
 $arch = wrk_getHwPlatform();
 runelog('detected architecture: ', $arch);
@@ -129,14 +122,13 @@ if ($playerid_db === '') {
     }
     // start samba services
     if ($redis->get('dev') > 0) {
-        runelog("service: SAMBA start (DEV-Mode ON)",'');
+        runelog("service: SAMBA start (DEV-Mode ON)");
         // switch smb.conf (development)
         sysCmd('rm /etc/samba/smb.conf');
         sysCmd('ln -s /etc/samba/smb-dev.conf /etc/samba/smb.conf');
-        sysCmd('systemctl start nmbd');
         sysCmd('systemctl start smbd');
+        sysCmd('systemctl start nmbd');
     } else {
-        runelog("service: NMBD start",'');
         // switch smb.conf (production)
         sysCmd('rm /etc/samba/smb.conf');
         sysCmd('ln -s /etc/samba/smb-prod.conf /etc/samba/smb.conf');
@@ -180,10 +172,17 @@ if ($redis->get('cmediafix') === '1') {
 // runelog('env: SET KERNEL PROFILE',$redis->get('orionprofile'));
 // $cmd = "/var/www/command/orion_optimize.sh ".$redis->get('orionprofile')." ".$redis->get('hwplatformid') ;
 // sysCmd($cmd);
-// collect debug data
-sysCmdAsync('/var/www/command/debug_collector');
-// refresh nics status
-sysCmdAsync('/var/www/command/refresh_nics');
+// start php-fpm
+sysCmd('systemctl start php-fpm');
+// PHP 5.5 OPCache
+if ($redis->get('dev') === '1') {
+    // prime PHP OPCache
+    runelog('prime PHP OPCache');
+    // wrk_opcache('prime',$redis);
+    sysCmdAsync("curl -s -X GET 'http://localhost/command/cachectl.php?action=prime'");
+}
+// mount all sources
+wrk_sourcemount($redis, 'mountall');
 runelog('--- NORMAL STARTUP');
 // --- NORMAL STARTUP //
 $start4 = microtime(true);
@@ -192,6 +191,8 @@ runelog('WORKER rune_SY_wrk.php STARTED in '.$starttime.' seconds.');
 ui_notify_async('system worker', 'rune_SY_wrk started in '.$starttime.' seconds.');
 // close startup Redis connection
 $redis->close();
+// refresh nics status and collect debug data
+sysCmdAsync('/var/www/command/refresh_nics ; /var/www/command/debug_collector');
 runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
 while (1) {
@@ -403,17 +404,19 @@ $redis->pconnect('/tmp/redis.sock');
                 case 'poweroff':
                 runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
-                    sysCmd('/var/www/command/rune_shutdown shutdown');
                     // send notfy to UI
                     ui_notify_async('Shutdown', 'system shutdown in progress...', $jobID);
+                    sysCmd('/var/www/command/rune_shutdown');
+                    sysCmdAsync('poweroff');
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'reboot':
                 runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
-                    sysCmd('/var/www/command/rune_shutdown reboot');
                     // send notfy to UI
                     ui_notify_async('Reboot', 'system reboot in progress...', $jobID);
+                    sysCmd('/var/www/command/rune_shutdown');
+                    sysCmdAsync('reboot');
                     $redis->sRem('w_lock', $jobID);
                     break;
                 // case 'restore':

@@ -38,10 +38,13 @@ opcache_invalidate ('/srv/http/command/cachectl.php');
 if (isset($_GET['action'])) {
     switch ($_GET['action']) {
         case 'prime':
-            OpCacheCtl('/srv/http/', 'prime');
+            OpCacheCtl('prime', '/srv/http/', $redis);
+            break;
+        case 'primeall':
+            OpCacheCtl('primeall', '/srv/http/');
             break;
         case 'reset':
-            OpCacheCtl('/srv/http/', 'reset');
+            OpCacheCtl('reset', '/srv/http/');
             opcache_reset();
             runelog('cacheCTL RESET');
             echo "PHP OPCACHE CLEARED";

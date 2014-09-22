@@ -30,16 +30,7 @@
 #  version: 1.3
 #  coder: Simone De Gregori
 #
-#####################################
-# if [ "$1" != "" ]; then
-# mpc stop
-# systemctl stop mpd
-# umount -aft nfs
-# umount -aft cifs
-# fi
-# shutdown
-if [ "$1" == "shutdown" ]; then
-echo "Shutdown in progress..."
+echo "Stop MPD and unmount shares..."
 mpc stop
 systemctl stop nginx
 sleep 1
@@ -47,22 +38,3 @@ systemctl stop mpd
 sleep 1
 umount -aft nfs
 umount -aft cifs
-poweroff
-fi
-# reboot
-if [ "$1" == "reboot" ]; then
-mpc stop
-systemctl stop nginx
-sleep 1
-systemctl stop mpd
-sleep 1
-umount -aft nfs
-umount -aft cifs
-echo "Reboot in progress..."
-reboot
-fi
-if [ "$1" == "" ]; then
-echo "RuneAudio Shutdown Script"
-echo "Usage: $0 {shutdown|reboot}"
-exit 1
-fi
