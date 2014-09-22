@@ -1883,9 +1883,16 @@ if ($('#section-index').length) {
 		$('#webradio-add-button').click(function(){
 			var radioname = $('#webradio-add-name').val();
 			var radiourl = $('#webradio-add-url').val();
-			$.post('/db/?cmd=addradio', { 'radio[label]' : radioname, 'radio[url]' : radiourl }, function(data){
-				// console.log('SENT');
-			}, 'json');
+			if (radioname === '' || radiourl === '') {
+				renderMSG([{'title': 'Missing fields', 'text': 'Please fill both fields to continue', 'icon': 'fa fa-warning'}]);
+			} else {
+				$.post('/db/?cmd=addradio', { 'radio[label]' : radioname, 'radio[url]' : radiourl }, function(data){
+					// console.log('SENT');
+				}, 'json');
+				$('#modal-webradio-add').modal('hide');
+				$('#webradio-add-name').val('');
+				$('#webradio-add-url').val('');
+			}
 		});
 		
 		// edit webradio
@@ -2217,7 +2224,7 @@ if ($('#section-index').length) {
 			
 			// output interface select
 			$('#audio-output-interface').change(function(){
-				renderMSG([{ 'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'type': null, 'delay': 5000 }]);
+				renderMSG([{'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'delay': 5000 }]);
 				var output = $(this).val();
 				$.ajax({
 					type: 'POST',

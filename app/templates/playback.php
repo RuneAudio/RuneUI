@@ -251,7 +251,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
-                <button id="webradio-add-button" type="button" class="btn btn-primary btn-lg" data-dismiss="modal">Add to Library</button>
+                <button id="webradio-add-button" type="button" class="btn btn-primary btn-lg">Add to Library</button>
             </div>
         </div>
     </div>
