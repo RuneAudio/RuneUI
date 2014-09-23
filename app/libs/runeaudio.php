@@ -1592,7 +1592,6 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             $redis->hSet('mpdconf', 'user', 'mpd');
             $redis->hSet('mpdconf', 'db_file', '/var/lib/mpd/mpd.db');
             $redis->hSet('mpdconf', 'sticker_file', '/var/lib/mpd/sticker.sql');
-            $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
             $redis->hSet('mpdconf', 'pid_file', '/var/run/mpd/pid');
             $redis->hSet('mpdconf', 'music_directory', '/mnt/MPD');
             $redis->hSet('mpdconf', 'playlist_directory', '/var/lib/mpd/playlists');
@@ -1609,6 +1608,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             $redis->hSet('mpdconf', 'mixer_type', 'software');
             $redis->hSet('mpdconf', 'curl', 'yes');
             $redis->hSet('mpdconf', 'ffmpeg', 'yes');
+            $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
             wrk_mpdconf($redis, 'writecfg');
             break;
         case 'writecfg':
@@ -1645,7 +1645,6 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 }
                 if ($param === 'log_level' && $value !== 'none') {
                     $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
-                    $redis->save();
                 }
                 if ($param === 'state_file' && $value === 'no') {
                     $redis->hDel('mpdconf', 'state_file');
@@ -2066,113 +2065,13 @@ function wrk_playerID($arch)
 function wrk_sysAcl()
 {
     sysCmd('chown -R http.http /srv/http/');
-    sysCmd('chmod -R 755 /srv/http/db/redis_datastore_setup');
-    sysCmd('chmod -R 755 /srv/http/db/redis_acards_details');
     sysCmd('chmod 777 /run');
     sysCmd('chmod 644 $(find /srv/http/ -type f)');
     sysCmd('chmod 755 $(find /srv/http/ -type d)');
     sysCmd('chmod 755 /srv/http/command/*');
+    sysCmd('chmod 755 /srv/http/db/redis_datastore_setup');
+    sysCmd('chmod 755 /srv/http/db/redis_acards_details');
     sysCmd('chown -R mpd.audio /var/lib/mpd');
-}
-
-function wrk_sysEnvCheck($arch, $install)
-{
-    if ($arch == '01' OR $arch == '02' OR $arch == '03' OR $arch == '04' ) {
-         // /etc/rc.local
-         $a = '/etc/rc.local';
-         $b = '/var/www/_OS_SETTINGS/etc/rc.local';
-         if (md5_file($a) != md5_file($b)) {
-         sysCmd('cp '.$b.' '.$a);
-        }
-         // /etc/samba/smb.conf
-         $a = '/etc/samba/smb.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/samba/smb.conf';
-         if (md5_file($a) != md5_file($b)) {
-            sysCmd('cp '.$b.' '.$a.' ');
-         }
-         // /etc/nginx.conf
-         $a = '/etc/nginx/nginx.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/nginx/nginx.conf';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             // stop nginx
-             sysCmd('killall -9 nginx');
-             // start nginx
-             sysCmd('nginx');
-         }
-         // /etc/php5/cli/php.ini
-         $a = '/etc/php5/cli/php.ini';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/cli/php.ini';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-         // /etc/php5/fpm/php-fpm.conf
-         $a = '/etc/php5/fpm/php-fpm.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/fpm/php-fpm.conf';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-         // /etc/php5/fpm/php.ini
-         $a = '/etc/php5/fpm/php.ini';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/fpm/php.ini';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-        if ($install == 1) {
-             // /etc/php5/mods-available/apc.ini
-             sysCmd('cp /var/www/_OS_SETTINGS/etc/php5/mods-available/apc.ini /etc/php5/mods-available/apc.ini');
-             // /etc/php5/fpm/pool.d/ erase
-             sysCmd('rm /etc/php5/fpm/pool.d/*');
-             // /etc/php5/fpm/pool.d/ copy
-             sysCmd('cp /var/www/_OS_SETTINGS/etc/php5/fpm/pool.d/* /etc/php5/fpm/pool.d/');
-             $restartphp = 1;
-        }
-         // /etc/php5/fpm/pool.d/command.conf
-         $a = '/etc/php5/fpm/pool.d/command.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/fpm/pool.d/command.conf';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-         // /etc/php5/fpm/pool.d/db.conf
-         $a = '/etc/php5/fpm/pool.d/db.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/fpm/pool.d/db.conf';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-         // /etc/php5/fpm/pool.d/display.conf
-         $a = '/etc/php5/fpm/pool.d/display.conf';
-         $b = '/var/www/_OS_SETTINGS/etc/php5/fpm/pool.d/display.conf';
-         if (md5_file($a) != md5_file($b)) {
-             sysCmd('cp '.$b.' '.$a.' ');
-             $restartphp = 1;
-         }
-        // (RaspberryPi arch)
-        if ($arch == '01') {
-            $a = '/boot/cmdline.txt';
-            $b = '/var/www/_OS_SETTINGS/boot/cmdline.txt';
-            if (md5_file($a) != md5_file($b)) {
-            sysCmd('cp '.$b.' '.$a.' ');
-            // /etc/fstab
-            $a = '/etc/fstab';
-            $b = '/var/www/_OS_SETTINGS/etc/fstab_raspberry';
-            if (md5_file($a) != md5_file($b)) {
-                sysCmd('cp '.$b.' '.$a.' ');
-                $reboot = 1;
-                }
-            }
-        }
-        if (isset($restartphp) && $restartphp == 1) {
-            sysCmd('service php5-fpm restart');
-        }
-        if (isset($reboot) && $reboot == 1) {
-            sysCmd('reboot');
-        }
-    }
 }
 
 function wrk_NTPsync($ntpserver)

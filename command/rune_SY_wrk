@@ -41,6 +41,8 @@ define('APP', '/srv/http/app/');
 include('/srv/http/app/libs/runeaudio.php');
 // stop php-fpm
 sysCmd('systemctl stop php-fpm');
+// check MPD process
+sysCmd('pgrep mpd || systemctl start mpd');
 // setup /run dir
 sysCmd('chmod 777 /run');
 // Connect to Redis backend
@@ -70,8 +72,6 @@ if ($arch_db !== $arch) {
 if ($playerid_db === '') {
     // RUNEAUDIO FIRST RUN PROCESS --- //
     runelog('>>>>>>RUNEAUDIO FIRST RUN PROCESS ---');
-    // reset Redis datatore to defaults
-    // redisDatastore($redis,'reset');
     // reset critical file permissions to default
     runelog('reset critical file permissions to default');
     wrk_sysAcl();
@@ -84,9 +84,13 @@ if ($playerid_db === '') {
     wrk_netconfig($redis,'reset');
     // reset sourcecfg to defaults
     runelog('reset sourcecfg to defaults');
-    closeMpdSocket($mpd);
+    sysCmd('systemctl stop mpd');
     wrk_sourcecfg($redis,'reset');
+    // reset Webradios
+    $redis->del('webradios');
+    sysCmd('rm /mnt/MPD/Webradio/*');
     // reconnect to new instance of MPD
+    sysCmd('systemctl start mpd');
     $mpd = openMpdSocket('/run/mpd.sock', 0);
     // clear MPD database
     sendMpdCommand($mpd,'update');
@@ -96,10 +100,12 @@ if ($playerid_db === '') {
     wrk_mpdconf($redis,'reset');
     sleep(1);
     // system ENV files check and replace
-    runelog("system ENV files check and replace",'');
-    wrk_sysEnvCheck($arch,1);
+        // runelog("system ENV files check and replace",'');
+        // wrk_sysEnvCheck($arch,1);
+    // reset Redis Player Datastore
+    runelog('invoke Redis player datastore reset', sysCmd('/var/www/db/redis_datastore_setup reset'));
     runelog('--- RUNEAUDIO FIRST RUN PROCESS');
-    // invoke rune_SY_wrk.php respawn
+    // invoke rune_SY_wrk respawn
     sysCmd('systemctl restart rune_SY_wrk');
     // --- RUNEAUDIO FIRST RUN PROCESS //
 } else {
@@ -127,12 +133,15 @@ if ($playerid_db === '') {
         sysCmd('rm /etc/samba/smb.conf');
         sysCmd('ln -s /etc/samba/smb-dev.conf /etc/samba/smb.conf');
         sysCmd('systemctl start smbd');
+        sysCmd('pgrep smbd || systemctl start smbd');
         sysCmd('systemctl start nmbd');
+        sysCmd('pgrep nmbd || systemctl start nmbd');
     } else {
         // switch smb.conf (production)
         sysCmd('rm /etc/samba/smb.conf');
         sysCmd('ln -s /etc/samba/smb-prod.conf /etc/samba/smb.conf');
         sysCmd('systemctl start nmbd');
+        sysCmd('pgrep nmbd || systemctl start nmbd');
     }
 }
 // load i2smodule

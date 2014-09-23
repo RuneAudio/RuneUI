@@ -63,6 +63,7 @@ function redisDatastore($redis,$action) {
             $redis->hSet('jamendo', 'clientid', '5f3ed86c');
             $redis->hSet('jamendo', 'secret', '1afcdcb13eb5ce8f6e534ac4566a3ab9');
             $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
+            $redis->hSet('dirble', 'baseurl', 'http://api.dirble.com/v1/');
             // internal config hash control
             // $redis->set('mpdconfhash', '');
             // $redis->set('netconfhash', '');
@@ -80,9 +81,9 @@ function redisDatastore($redis,$action) {
             $redis->set('opcache', 1);
             $redis->set('buildversion', 'alpha-20140919');
             // HW platform data
-            $redis->set('playerid', '');
-            $redis->set('hwplatform', '');
-            $redis->set('hwplatformid', '');
+            // $redis->set('playerid', '');
+            // $redis->set('hwplatform', '');
+            // $redis->set('hwplatformid', '');
             // player control
             $redis->set('ao', 1);
             $redis->set('volume', 0);
@@ -92,6 +93,10 @@ function redisDatastore($redis,$action) {
             // network parameters
             $redis->hSet('resolvconf', 'timeout', '0.3');
             $redis->hSet('resolvconf', 'attempts', '1');
+            // proxy settings
+            $redis->hSet('proxy', 'host', '');
+            $redis->hSet('proxy', 'user', '');
+            $redis->hSet('proxy', 'pass', '');
             // lock keys
             $redis->set('lock_globalrandom', 0);
             $redis->set('lock_refresh_ao', 0);
