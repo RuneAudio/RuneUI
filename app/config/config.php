@@ -32,7 +32,11 @@
  *
  */
 // Environment vars
-define('APP',$_SERVER['HOME'].'/app/');
+if ($_SERVER["DOCUMENT_ROOT"] !== '') {
+    define('APP',$_SERVER['HOME'].'/app/');
+} else {
+    define('APP','/var/www/app/');
+}
 // extend include path for Vendor Libs
 $libs = APP.'libs/vendor';
 set_include_path(get_include_path() . PATH_SEPARATOR . $libs);
@@ -41,19 +45,24 @@ include(APP.'libs/runeaudio.php');
 // Connect to Redis backend
 $redis = new Redis(); 
 $redis->pconnect('127.0.0.1');
+//$redis->pconnect('/tmp/redis.sock');
 $devmode = $redis->get('dev');
 // LogSettings
 if ($redis->get('debug') > 0 ) {
-$activeLog=1;
+    $activeLog=1;
 } else {
-$activeLog=0;
+    $activeLog=0;
 }
-ini_set("log_errors" , $activeLog);
-ini_set("error_log" , "/var/log/runeaudio/runeui.log");
-ini_set("display_errors" , $activeLog);
-// datastore SQLite
-$db = 'sqlite:'.$_SERVER['HOME'].'/db/player.db';
-// debug
-runelog('--- [connection.php] >>> OPEN MPD SOCKET --- [connection.php] ---','');
+ini_set('log_errors', $activeLog);
+ini_set('error_log', '/var/log/runeaudio/runeui.log');
+ini_set('display_errors', $activeLog);
 // connect to MPD daemon
-$mpd = openMpdSocket('/run/mpd.sock');
+if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php') {
+    // debug
+    runelog('[connection.php] >>> OPEN MPD SOCKET [NORMAL MODE [0] (blocking)] <<<','');
+    $mpd = openMpdSocket('/run/mpd.sock', 0);
+} else {
+    // debug
+    runelog('[connection.php] >>> OPEN MPD SOCKET [BURST MODE [1] (blocking)] <<<','');
+    $mpd = openMpdSocket('/run/mpd.sock', 1);
+}

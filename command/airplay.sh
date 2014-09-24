@@ -25,13 +25,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with RuneAudio; see the file COPYING.  If not, see
 #  <http://www.gnu.org/licenses/gpl-3.0.txt>.
-# 
+#
 #  file: command/airplay.sh
 #  version: 1.3
 #  coder: Simone De Gregori
 #
 #####################################
-
 if mpc | grep -q "playing"; then
    /usr/bin/mpc pause
    exit
@@ -39,4 +38,3 @@ fi
 if mpc | grep -q "paused"; then
    /usr/bin/mpc play
 fi
-

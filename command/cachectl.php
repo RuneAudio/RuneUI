@@ -31,37 +31,32 @@
  *  coder: Simone De Gregori
  *
  */
-
 // common include
 include('/srv/http/app/config/config.php');
- 
-opcache_invalidate ( '/srv/http/command/cachectl.php' );
-
- 
+opcache_invalidate ('/srv/http/command/cachectl.php');
+// insect GET['action']
 if (isset($_GET['action'])) {
-
-	switch ($_GET['action']) {
-			
-			case 'prime':
-				OpCacheCtl('/srv/http/','prime');
-			break;
-			
-			case 'reset':
-				OpCacheCtl('/srv/http/','reset');
-			opcache_reset();
-			runelog('cacheCTL RESET','');
-			echo "PHP OPCACHE CLEARED";
-			break;
-					
-			case 'debug':
-			// opcache_reset();
-			echo "<pre>";
-			echo "OPcache status:\n";
-			print_r(opcache_get_status());
-			echo "OPcache configuration:\n";
-			print_r(opcache_get_configuration());
-			echo "</pre>";
-			break;
-
-	}
+    switch ($_GET['action']) {
+        case 'prime':
+            OpCacheCtl('prime', '/srv/http/', $redis);
+            break;
+        case 'primeall':
+            OpCacheCtl('primeall', '/srv/http/');
+            break;
+        case 'reset':
+            OpCacheCtl('reset', '/srv/http/');
+            opcache_reset();
+            runelog('cacheCTL RESET');
+            echo "PHP OPCACHE CLEARED";
+            break;
+        case 'debug':
+            // opcache_reset();
+            echo "<pre>";
+            echo "OPcache status:\n";
+            print_r(opcache_get_status());
+            echo "OPcache configuration:\n";
+            print_r(opcache_get_configuration());
+            echo "</pre>";
+            break;
+    }
 }

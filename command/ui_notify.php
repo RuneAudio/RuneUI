@@ -27,7 +27,7 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: command/ui_notify.php
+ *  file: command/ui_notify
  *  version: 1.3
  *  coder: Simone De Gregori
  *
@@ -39,52 +39,51 @@ ini_set('error_log','/var/log/runeaudio/ui_notify.log');
 
 // ---- functions -----
 // push UI update to NGiNX channel
-function ui_render($channel,$data) {
-curlPost('http://127.0.0.1/pub?id='.$channel,$data);
+function ui_render($channel, $data)
+{
+    // runelog('ui_render channel: '.$channel.', data: ',$data);
+    curlPost('http://127.0.0.1/pub?id='.$channel,$data);
 }
 
-function curlPost($url,$data,$proxy = null) {
+function curlPost($url,$data,$proxy = null)
+{
 $ch = curl_init($url);
-if (isset($proxy)) {
-$proxy['user'] === '' || curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
-curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
-//runelog('cURL proxy HOST: ',$proxy['host']);
-//runelog('cURL proxy USER: ',$proxy['user']);
-//runelog('cURL proxy PASS: ',$proxy['pass']);
+    if (isset($proxy)) {
+        $proxy['user'] === '' || curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
+        curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
+        //runelog('cURL proxy HOST: ',$proxy['host']);
+        //runelog('cURL proxy USER: ',$proxy['user']);
+        //runelog('cURL proxy PASS: ',$proxy['pass']);
+    }
+    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
+    $response = curl_exec($ch);
+    curl_close($ch);
+    return $response;
 }
- curl_setopt($ch, CURLOPT_TIMEOUT, 2);
- curl_setopt($ch, CURLOPT_POST, 1);
- curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
- curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
- curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
- curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
- $response = curl_exec($ch);
- curl_close($ch);
-return $response;
-}
-// ---- functions -----
-
+// ---- end functions -----
 if (isset($argv[2]) && !isset($argv[3])) {
 // Connect to Redis backend
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
-	if (!($redis->sIsMember('w_lock', $argv[2]))) {
-			usleep(800000);
-	} else {
-		do {
-			usleep(500000);
-		} while ($redis->sIsMember('w_lock', $argv[2]));
-	}
-	$redis->close();
+    if (!($redis->sIsMember('w_lock', $argv[2]))) {
+            usleep(800000);
+    } else {
+        do {
+            usleep(500000);
+        } while ($redis->sIsMember('w_lock', $argv[2]));
+    }
+    $redis->close();
 } else {
-usleep(500000);
+    usleep(500000);
 }
-
 if (isset($argv[3]) && $argv[3] === 'simplemessage') {
-	$output = array( 'title' => $argv[1], 'text' => $argv[2], 'type' => null);
-	ui_render('notify', json_encode($output));
+    $output = json_encode(array( 'title' => $argv[1], 'text' => $argv[2], 'type' => null));
+    ui_render('notify', $output);
 } else {
-	ui_render('notify', $argv[1]);
+    ui_render('notify', $argv[1]);
 }
-// close Redis connection
-$redis->close();

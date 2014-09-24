@@ -6,6 +6,8 @@ Before=shutdown.target reboot.target halt.target
 
 [Service]
 Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
 ExecStop=/var/www/command/rune_shutdown
 
 [Install]

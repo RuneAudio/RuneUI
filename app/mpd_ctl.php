@@ -31,75 +31,69 @@
  *  coder: Simone De Gregori
  *
  */
-
  if (isset($_POST)) {
-	// switch audio output
-	if (isset($_POST['ao'])) {
-		$jobID = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $_POST['ao'] ));
-	}
-	// reset MPD configuration
-	if (isset($_POST['reset'])) {
-		$jobID = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdcfg', 'action' => 'reset' ));
-	}
-	// update MPD configuration
-	if (isset($_POST['conf'])) {
-		$jobID = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $_POST['conf'] ));
-	}
-	// manual MPD configuration
-	if (isset($_POST['mpdconf'])) {
-		$jobID = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf'] ));
-	}
-	
+    // switch audio output
+    if (isset($_POST['ao'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $_POST['ao']));
+    }
+    // reset MPD configuration
+    if (isset($_POST['reset'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
+    }
+    // update MPD configuration
+    if (isset($_POST['conf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $_POST['conf']));
+    }
+    // manual MPD configuration
+    if (isset($_POST['mpdconf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
+    }
  }
- 
-waitSyWrk($redis,$jobID);
-
+waitSyWrk($redis, $jobID);
 // check integrity of /etc/network/interfaces
-if(!hashCFG('check_mpd',$redis)) {
-$template->mpdconf = file_get_contents('/etc/mpd.conf');
-// set manual config template
-$template->content = "mpd_manual";
+if(!hashCFG('check_mpd', $redis)) {
+    $template->mpdconf = file_get_contents('/etc/mpd.conf');
+    // set manual config template
+    $template->content = "mpd_manual";
 } else {
-
-$template->conf = $redis->hGetAll('mpdconf');
-$i2smodule = $redis->get('i2smodule');
-// debug
-// echo $i2smodule."\n";
-$acards = $redis->hGetAll('acards');
-// debug
-// print_r($acards);
-foreach ($acards as $card => $data) {
-$acard_data = json_decode($data);
-// debug
-// echo $card."\n";
-// print_r($acard_data);
-	if ($i2smodule !== 'none') {
-		$acards_details = $redis->hGet('acards_details',$i2smodule);
-	} else {
-		$acards_details = $redis->hGet('acards_details',$card);
-	}
-	if (!empty($acards_details)) {
-		$details = json_decode($acards_details);
-		// debug
-		// echo "acards_details\n";
-		// print_r($details);
-		if ($details->sysname === $card) {
-			if ($details->type === 'integrated_sub') {
-				$sub_interfaces = $redis->sMembers($card); 
-				foreach ($sub_interfaces as $int) {
-					$sub_int_details = json_decode($int);
-					// TODO !!! check
-					$audio_cards[] = $sub_int_details;
-				}
-			} 
-			if ($details->extlabel !== 'none') $acard_data->extlabel = $details->extlabel;
-		}
-	} 
-$audio_cards[] = $acard_data;
-}
-// debug
-// print_r($audio_cards);
-$template->acards = $audio_cards;
-$template->ao = $redis->get('ao');
-
+    $template->conf = $redis->hGetAll('mpdconf');
+    $i2smodule = $redis->get('i2smodule');
+    // debug
+    // echo $i2smodule."\n";
+    $acards = $redis->hGetAll('acards');
+    // debug
+    // print_r($acards);
+    foreach ($acards as $card => $data) {
+        $acard_data = json_decode($data);
+        // debug
+        // echo $card."\n";
+        // print_r($acard_data);
+        if ($i2smodule !== 'none') {
+            $acards_details = $redis->hGet('acards_details', $i2smodule);
+        } else {
+            $acards_details = $redis->hGet('acards_details', $card);
+        }
+        if (!empty($acards_details)) {
+            $details = json_decode($acards_details);
+            // debug
+            // echo "acards_details\n";
+            // print_r($details);
+            if ($details->sysname === $card) {
+                if ($details->type === 'integrated_sub') {
+                    $sub_interfaces = $redis->sMembers($card);
+                    foreach ($sub_interfaces as $int) {
+                        $sub_int_details = json_decode($int);
+                        // TODO !!! check
+                        $audio_cards[] = $sub_int_details;
+                    }
+                }
+                if ($details->extlabel !== 'none') $acard_data->extlabel = $details->extlabel;
+            }
+        }
+        $audio_cards[] = $acard_data;
+    }
+    // debug
+    // print_r($audio_cards);
+    $template->acards = $audio_cards;
+    $template->ao = $redis->get('ao');
 }

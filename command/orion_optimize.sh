@@ -32,7 +32,6 @@
 #
 #####################################
 ver="1.3"
-    
 ####################
 # common functions #
 ####################
@@ -40,21 +39,21 @@ mpdprio_nice () {
 count=1
 for pid in $(pgrep -w mpd); 
 do
-	if ((count == 3)) 
-	then
-		echo "### Set priority for: mpd-player thread ###";
-		renice -15 $pid;
-	fi
-	if ((count == 4))  
-	then
-		echo "### Set priority for: mpd-output thread ###";
-		renice -18 $pid;
-	fi
-	if ((count == 5))
-	then
-		echo "### Set priority for: mpd-decoder thread ###";
-		renice -16 $pid;
-	fi
+    if ((count == 3)) 
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice -15 $pid;
+    fi
+    if ((count == 4))  
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice -18 $pid;
+    fi
+    if ((count == 5))
+    then
+        echo "### Set priority for: mpd-decoder thread ###";
+        renice -16 $pid;
+    fi
 count=$((count+1))
 done
 }
@@ -63,21 +62,21 @@ mpdprio_default () {
 count=1
 for pid in $(pgrep -w mpd); 
 do
-	if ((count == 3)) 
-	then
-		echo "### Set priority for: mpd-player thread ###";
-		renice 20 $pid;
-	fi
-	if ((count == 4))  
-	then
-		echo "### Set priority for: mpd-output thread ###";
-		renice 20 $pid;
-	fi
-	if ((count == 5))
-	then
-		echo "### Set priority for: mpd-decoder thread ###";
-		renice 20 $pid;
-	fi
+    if ((count == 3)) 
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 4))  
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 5))
+    then
+        echo "### Set priority for: mpd-decoder thread ###";
+        renice 20 $pid;
+    fi
 count=$((count+1))
 done
 }
@@ -128,7 +127,7 @@ modKschedLatency () {
         sndusb_profile nrpacks=${u04}
         echo "USB nrpacks="${u04}
     fi
-	# Compulab Utilite
+    # Compulab Utilite
     if ((${hw} == "05")) 
     then
         echo ${s04} > /proc/sys/kernel/sched_latency_ns
@@ -231,13 +230,13 @@ ifconfig eth0 txqueuelen 4000
 echo 0 > /proc/sys/vm/swappiness
 #modKschedLatency hw=$2 s01=139950 s02=2000000 s03=2000000 s04=2000000 s05=2000000 u01=2 u02=2 u03=2 u04=2 u05=2
 if [ "$2" == "01" ]; then
-	echo 139950 > /proc/sys/kernel/sched_latency_ns
-	echo 950000 > /proc/sys/kernel/sched_rt_period_us
-	echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
-	echo 0 > /proc/sys/kernel/sched_autogroup_enabled
-	echo 1 > /proc/sys/kernel/sched_rr_timeslice_ms
-	echo 950000 > /proc/sys/kernel/sched_min_granularity_ns
-	echo 1000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+    echo 139950 > /proc/sys/kernel/sched_latency_ns
+    echo 950000 > /proc/sys/kernel/sched_rt_period_us
+    echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
+    echo 0 > /proc/sys/kernel/sched_autogroup_enabled
+    echo 1 > /proc/sys/kernel/sched_rr_timeslice_ms
+    echo 950000 > /proc/sys/kernel/sched_min_granularity_ns
+    echo 1000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
 fi
 sleep 2
 mpdprio_nice
@@ -251,14 +250,14 @@ ifconfig eth0 txqueuelen 4000
 echo 0 > /proc/sys/vm/swappiness
 #modKschedLatency hw=$2 s01=145655 s02=2000000 s03=2000000 s04=2000000 s05=2000000 u01=2 u02=2 u03=2 u04=2 u05=2
 if [ "$2" == "01" ]; then
-	echo 60 > /proc/sys/vm/swappiness
-	echo 145655 > /proc/sys/kernel/sched_latency_ns
-	echo 1 > /proc/sys/kernel/sched_rt_period_us
-	echo 1 > /proc/sys/kernel/sched_rt_runtime_us
-	echo 0 > /proc/sys/kernel/sched_autogroup_enabled
-	echo 100 > /proc/sys/kernel/sched_rr_timeslice_ms
-	echo 400000 > /proc/sys/kernel/sched_min_granularity_ns
-	echo 1 > /proc/sys/kernel/sched_wakeup_granularity_ns
+    echo 60 > /proc/sys/vm/swappiness
+    echo 145655 > /proc/sys/kernel/sched_latency_ns
+    echo 1 > /proc/sys/kernel/sched_rt_period_us
+    echo 1 > /proc/sys/kernel/sched_rt_runtime_us
+    echo 0 > /proc/sys/kernel/sched_autogroup_enabled
+    echo 100 > /proc/sys/kernel/sched_rr_timeslice_ms
+    echo 400000 > /proc/sys/kernel/sched_min_granularity_ns
+    echo 1 > /proc/sys/kernel/sched_wakeup_granularity_ns
 fi
 sleep 2
 mpdprio_nice

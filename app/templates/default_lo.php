@@ -5,9 +5,9 @@
 <?php $this->insert('footer') ?>
 <?php if (isset($this->dfooter)): ?>
 <div id="dfooter">
-	<code>
-			<?=$this->e($this->dfooter) ?>
-	</code>
+    <code>
+            <?=$this->e($this->dfooter) ?>
+    </code>
 </div>
 <?php endif ?>
 </body>

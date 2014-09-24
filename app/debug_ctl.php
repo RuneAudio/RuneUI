@@ -30,13 +30,9 @@
  *  version: 1.3
  *
  */
- 
 // ob_start();
 // echo debug_data($redis);
 // $debugdata = ob_get_clean();
-
-$jobID = wrk_control($redis,'newjob', $data = array( 'wrkcmd' => 'debug' ));
-
-waitSyWrk($redis,$jobID);
-
+$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'debug'));
+waitSyWrk($redis, $jobID);
 $template->debug = $redis->get('debugdata');

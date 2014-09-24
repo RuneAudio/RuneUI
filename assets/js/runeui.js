@@ -47,6 +47,7 @@ var GUI = {
 	json: 0,
 	libraryhome: '',
 	mode: 'websocket',
+	noticeUI: {},
 	playlist: null,
 	plugin: '',
 	state: '',
@@ -256,86 +257,71 @@ function randomScrollDB() {
 	customScroll('db', random);
 }
 
-// notify messages rendering
-function renderMSG(text) {
-	// console.log((notify.hide === undefined) ? 'undefined' : notify.hide);
-	// console.log(text);
-	var notify = text[0];
-	if (notify.type !== null) {
-		if (notify.type === 'kernelswitch') {
-			new PNotify({
-				title: notify.title,
-				text: notify.text,
-				icon: 'fa fa-refresh',
-				hide: false,
-				confirm: {
-					confirm: true,
-					buttons: [{
-						text: notify.btntext,
-						addClass: 'btn-default btn-block  uppercase',
-						click: function() {
-							$.post('/settings/', { 'syscmd' : 'reboot' });
-							$('#loader').removeClass('hide');
-						}
-					},
-					{
-						text: 'Cancel',
-						addClass: 'hide'
-					}]
+// custom complex notifies
+function customNotify(notify) {
+	if (notify.custom === 'kernelswitch') {
+		GUI.noticeUI.kernelswitch = new PNotify({
+			title: ('title' in notify) ? notify.title : '[missing title]',
+			text: ('text' in notify) ? notify.text : '[missing text]',
+			icon: 'fa fa-refresh',
+			hide: false,
+			confirm: {
+				confirm: true,
+				buttons: [{
+					text: notify.btntext,
+					addClass: 'btn-default btn-block  uppercase',
+					click: function() {
+						$.post('/settings/', { 'syscmd' : 'reboot' });
+						$('#loader').removeClass('hide');
+					}
 				},
-				buttons: {
-					closer: false,
-					sticker: false
-				}
-			});
-		}
-		return;
+				{
+					text: 'Cancel',
+					addClass: 'hide'
+				}]
+			},
+			buttons: {
+				closer: false,
+				sticker: false
+			}
+		});
 	}
-	new PNotify({
-		title: notify.title,
-		text: notify.text,
-		icon: (notify.icon === undefined) ? 'fa fa-check' : notify.icon,
-		opacity: (notify.opacity === undefined) ? 0.9 : notify.opacity,
-		hide: (notify.hide === undefined),
-		delay: (notify.delay === undefined) ? 8000 : notify.delay
-	});
 }
 
-// client side notify
-function notify(command, msg) {
-	switch (command) {
-		case 'add':
-			new PNotify({
-				title: 'Added to playlist',
-				text: msg,
-				icon: 'icon-ok',
-				opacity: 0.9
-			});
-		break;
-		case 'addreplaceplay':
-			new PNotify({
-				title: 'Playlist cleared<br> Added to playlist',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
-		case 'update':
-			new PNotify({
-				title: 'Update path: ',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
-		case 'remove':
-			new PNotify({
-				title: 'Removed from playlist',
-				text: msg,
-				icon: 'icon-remove',
-				opacity: 0.9
-			});
-		break;
+// notify messages rendering
+function renderMSG(text) {
+	// console.log(text);
+	var notify = text[0];
+	if ('custom' in notify && notify.custom !== null) {
+		customNotify(notify);
+		return;
+	}
+	var noticeOptions = {
+		title: ('title' in notify) ? notify.title : '[missing title]',
+		text: ('text' in notify) ? notify.text : '[missing text]',
+		icon: (notify.icon === undefined) ? 'fa fa-check' : notify.icon,
+		opacity: (notify.opacity === undefined) ? 0.9 : notify.opacity,
+		hide: (notify.hide === undefined && notify.permanotice === undefined),
+		buttons: {
+			closer: (notify.permanotice === undefined),
+			sticker: (notify.permanotice === undefined)
+		},
+		delay: (notify.delay === undefined) ? 8000 : notify.delay,
+		mouse_reset: false
+	};
+	if ('permanotice' in notify) {
+		if (GUI.noticeUI[notify.permanotice] === undefined) {
+			GUI.noticeUI[notify.permanotice] = new PNotify(noticeOptions);
+		} else {
+			if ('permaremove' in notify) {
+				GUI.noticeUI[notify.permanotice].remove();
+				GUI.noticeUI[notify.permanotice] = undefined;
+			} else {
+				GUI.noticeUI[notify.permanotice].open();
+			}
+		}
+	} else {
+		new PNotify(noticeOptions);
 	}
 }
 
@@ -539,7 +525,7 @@ function updateGUI() {
 		if (GUI.currentalbum !== currentalbumstring) {
 			if (radioname === null || radioname === undefined || radioname === '') {
 				var covercachenum = Math.floor(Math.random()*1001);
-				$('#cover-art').css('background-image','url(/coverart2/?v=' + covercachenum + ')');
+				$('#cover-art').css('background-image','url(/coverart/?v=' + covercachenum + ')');
 			} else {
 				$('#cover-art').css('background-image','url(assets/img/cover-radio.jpg');
 			}
@@ -1423,6 +1409,12 @@ if ($('#section-index').length) {
 		
 		// PNotify init options
 		PNotify.prototype.options.styling = 'fontawesome';
+		PNotify.prototype.options.stack.dir1 = 'up';
+		PNotify.prototype.options.stack.dir2 = 'left';
+		PNotify.prototype.options.stack.firstpos1 = 90;
+		PNotify.prototype.options.stack.firstpos2 = 50;
+		PNotify.prototype.options.stack.spacing1 = 10;
+		PNotify.prototype.options.stack.spacing2 = 10;
 		// open notify channel
 		notifyChannel();
 		
@@ -1532,7 +1524,6 @@ if ($('#section-index').length) {
 				id = parseInt(id.replace('pl-', ''));
 				cmd = 'deleteid ' + id;
 				// var path = $(this).parent().data('path');
-				// notify('remove', '');
 				sendCmd(cmd);
 			} else {
 				// play queue entry
@@ -1759,7 +1750,6 @@ if ($('#section-index').length) {
 					cmd: 'addplay',
 					path: path
 				});
-				// notify('add', path);
 			}
 		});
 
@@ -1801,28 +1791,24 @@ if ($('#section-index').length) {
 					cmd: 'add',
 					path: path
 				});
-				// notify('add', path);
 			}
 			if (dataCmd === 'addplay') {
 				getDB({
 					cmd: 'addplay',
 					path: path
 				});
-				// notify('add', path);
 			}
 			if (dataCmd === 'addreplaceplay') {
 				getDB({
 					cmd: 'addreplaceplay',
 					path: path
 				});
-				// notify('addreplaceplay', path);
 			}
 			if (dataCmd === 'update') {
 				getDB({
 					cmd: 'update',
 					path: path
 				});
-				// notify('update', path);
 			}
 			if (dataCmd === 'bookmark') {
 				getDB({
@@ -1897,9 +1883,16 @@ if ($('#section-index').length) {
 		$('#webradio-add-button').click(function(){
 			var radioname = $('#webradio-add-name').val();
 			var radiourl = $('#webradio-add-url').val();
-			$.post('/db/?cmd=addradio', { 'radio[label]' : radioname, 'radio[url]' : radiourl }, function(data){
-				// console.log('SENT');
-			}, 'json');
+			if (radioname === '' || radiourl === '') {
+				renderMSG([{'title': 'Missing fields', 'text': 'Please fill both fields to continue', 'icon': 'fa fa-warning'}]);
+			} else {
+				$.post('/db/?cmd=addradio', { 'radio[label]' : radioname, 'radio[url]' : radiourl }, function(data){
+					// console.log('SENT');
+				}, 'json');
+				$('#modal-webradio-add').modal('hide');
+				$('#webradio-add-name').val('');
+				$('#webradio-add-url').val('');
+			}
 		});
 		
 		// edit webradio
@@ -2231,7 +2224,7 @@ if ($('#section-index').length) {
 			
 			// output interface select
 			$('#audio-output-interface').change(function(){
-				renderMSG([{ 'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'type': null, 'delay': 5000 }]);
+				renderMSG([{'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'delay': 5000 }]);
 				var output = $(this).val();
 				$.ajax({
 					type: 'POST',

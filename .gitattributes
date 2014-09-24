@@ -1,0 +1,51 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+* text=input
+
+# Explicitly declare text files we want to always be normalized and converted 
+# to native line endings on checkout.
+*.php text
+*.txt text
+*.ini text
+*.dist text
+*.twig text
+*.html text
+*.htm text
+*.json text
+*.log text
+*.yml text
+*.rb text
+*.csv text
+*.xml text
+*.ci text
+*.js text
+*.css text
+*.cache text
+*.meta text
+*.phar text
+app/console text
+console text
+vendors text
+.gitignore text
+behat text
+Capfile text
+deps text
+*.lock text
+*.md text
+*.markdown text
+.htaccess text
+*.sh text
+*.pl text
+*.cgi text
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.gif binary
+*.jpg binary
+*.db binary
+*.jar binary
+*.ico binary
+.gitkeep binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary

@@ -31,13 +31,12 @@
  *  coder: Simone De Gregori
  *
  */
- 
- // disable main template output
+// disable main template output
 $tplfile = 0;
 $proxy = $redis->hGetall('proxy');
 if ($proxy['enable'] === '1') {
-	echo curlGet(substr($_SERVER["REQUEST_URI"], 5),$proxy);
+    echo curlGet(substr($_SERVER["REQUEST_URI"], 5), $proxy);
 } else {
-	echo curlGet(substr($_SERVER["REQUEST_URI"], 5));
+    echo curlGet(substr($_SERVER["REQUEST_URI"], 5));
 }
  
