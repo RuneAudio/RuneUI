@@ -67,7 +67,7 @@ if (isset($_POST)) {
 waitSyWrk($redis,$jobID);
 $template->nics = wrk_netconfig($redis, 'getnics');
 $template->wlan_autoconnect = $redis->Get('wlan_autoconnect');
-if ($redis->hExists('wlan_profiles', $template->uri(4))) $template->stored = 1;
+if ($redis->hExists('wlan_profiles', urldecode($template->uri(4)))) $template->stored = 1;
 if (isset($template->action)) {
     // check if we are into interface details (ex. http://runeaudio/network/edit/eth0)
     if (isset($template->arg)) {
@@ -112,7 +112,7 @@ if (isset($template->action)) {
                 foreach ($template->wlans->{$template->uri(3)} as $key => $value) {
                     // if we are in a stored profile, retrieve his details
                     if ($template->stored) {
-                        $template->profile_{$template->uri(4)} = json_decode($redis->hGet('wlan_profiles', $template->uri(4)));
+                        $template->profile_{urldecode($template->uri(4))} = json_decode($redis->hGet('wlan_profiles', urldecode($template->uri(4))));
                     }
                     // check if we are in a connected profile
                     if ($template->uri(4) === $value->ESSID) {

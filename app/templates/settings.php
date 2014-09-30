@@ -66,6 +66,7 @@
                 <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
                 <div class="col-sm-10">
                     <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-arch-3.12.28-2-ARCH" <?php if($this->kernel === 'linux-arch-3.12.28-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.28-arch</option>
                         <option value="linux-rune-3.12.19-2-ARCH" <?php if($this->kernel === 'linux-rune-3.12.19-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.19-rune</option>
                         <option value="linux-rune-3.12.13-rt21_wosa" <?php if($this->kernel === 'linux-rune-3.12.13-rt21_wosa'): ?> selected <?php endif ?>>RTLinux kernel 3.12.13-rt&nbsp;&nbsp;(Wolfson Audio Card)</option>
                     </select>

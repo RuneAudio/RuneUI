@@ -1535,6 +1535,20 @@ function wrk_i2smodule($redis, $args)
 function wrk_kernelswitch($redis, $args)
 {
     switch($args) {
+        case 'linux-arch-3.12.28-2-ARCH':
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_rune.txt');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
+            break;
         case 'linux-rune-3.12.19-2-ARCH':
             $file = '/boot/config.txt';
             $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');

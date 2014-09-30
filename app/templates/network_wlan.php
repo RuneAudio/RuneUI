@@ -4,13 +4,14 @@
     <form class="form-horizontal" action="/network/edit/<?=$this->uri(3) ?>" method="post" data-parsley-validate>
         <?php if($this->addprofile !== 1): ?>
         <fieldset>
+            <!-- CHECK! -->
             <?php if($this->stored === 1 && $this->nic->currentssid !== $this->{$this->uri(4)}->{'ESSID'}): ?>
             <legend><?=$this->title ?> <span class="<?php if($this->action === 'add'): ?>hide<?php endif; ?>">(<a href="#wifiprofile-delete-modal" data-toggle="modal">delete this profile</a>)</span></legend>
             <?php endif; ?>
             <div class="boxed">
                 <table class="info-table">
                     <tbody>
-                        <tr><th>Network SSID:</th><td><strong><?=$this->uri(4) ?></strong></td></tr>
+                        <tr><th>Network SSID:</th><td><strong><?=urldecode($this->uri(4)) ?></strong></td></tr>
                         <?php if ($this->nic->currentssid === $this->{$this->uri(4)}->{'ESSID'}): ?>
                         <tr><th>Status:</th><td><i class="fa fa-check green sx"></i>connected</td></tr>
                         <?php endif; ?>
@@ -115,8 +116,8 @@
                     <button class="btn btn-default btn-lg" data-dismiss="modal" aria-hidden="true">Cancel</button>
                     <button type="submit" class="btn btn-primary btn-lg" name="action" value="remove">Remove</button>
                     <input type="hidden" name="wifiprofile[action]" value="delete">
-                    <input type="hidden" name="wifiprofile[ssid]" value="<?=$this->profile_{$this->uri(4)}->ssid ?>">
-                    <input type="hidden" name="wifiprofile[id]" value="<?=$this->profile_{$this->uri(4)}->id ?>">
+                    <input type="hidden" name="wifiprofile[ssid]" value="<?=$this->profile_{urldecode($this->uri(4))}->ssid ?>">
+                    <input type="hidden" name="wifiprofile[id]" value="<?=$this->profile_{urldecode($this->uri(4))}->id ?>">
                 </div>
             </div>
         </div>
