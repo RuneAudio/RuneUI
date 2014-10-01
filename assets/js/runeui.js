@@ -2159,6 +2159,17 @@ if ($('#section-index').length) {
 					$('#proxyBox').removeClass('boxed-group');
 				}
 			});
+            
+            // show/hide UPnP/dlna name form
+			$('#dlna').change(function(){
+				if ($(this).prop('checked')) {
+					$('#dlnaName').removeClass('hide');
+					$('#dlnaBox').addClass('boxed-group');
+				} else {
+					$('#dlnaName').addClass('hide');
+					$('#dlnaBox').removeClass('boxed-group');
+				}
+			});
 
 		}
 		

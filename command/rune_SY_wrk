@@ -144,8 +144,9 @@ if ($playerid_db === '') {
         sysCmd('pgrep nmbd || systemctl start nmbd');
     }
 }
+$kernel = $redis->get('kernel');
 // load i2smodule
-if ($redis->get('i2smodule') !== 'none'  && $redis->get('kernel') === 'linux-rune-3.12.19-2-ARCH') {
+if ($redis->get('i2smodule') !== 'none'  &&  ($kernel === 'linux-rune-3.12.19-2-ARCH' OR $kernel === 'linux-arch-rpi_3.12.26-1-ARCH' OR $kernel === 'linux-arch-rpi_3.12.28-1-ARCH')) {
     wrk_i2smodule($redis, $redis->get('i2smodule'));
 }
 // refesh audio hardware status (soundcards and MPD config)
@@ -154,6 +155,11 @@ wrk_mpdconf($redis,'refresh');
 if ($redis->hget('airplay', 'enable') === '1') {
     runelog("service: SHAIRPORT start",'');
     sysCmd('systemctl start shairport');
+}
+// start upmpdcli
+if ($redis->hget('dlna', 'enable') === '1') {
+    runelog("service: UPMPDCLI start",'');
+    sysCmd('systemctl start upmpdcli');
 }
 // start udevil
 if ($redis->get('udevil') === '1') {
@@ -259,6 +265,11 @@ $redis->pconnect('/tmp/redis.sock');
                     }
                     $redis->sRem('w_lock', $jobID);
                     break;
+                case 'backup':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    wrk_backup();
+                    $redis->sRem('w_lock', $jobID);
+                    break;
                 case 'clearimg':
                     runelog('wrk_SY: ', $job->wrkcmd);
                     // Clean IMG
@@ -273,6 +284,38 @@ $redis->pconnect('/tmp/redis.sock');
                 case 'debug':
                     runelog('wrk_SY: ', $job->wrkcmd);
                     sysCmd('/var/www/command/debug_collector');
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+                case 'dlna':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    if ($job->args !== $redis->hGet('dlna', 'name')) {
+                        $redis->hSet('dlna', 'name', $job->args);
+                        // update upmpdcli startup config
+                        wrk_upmpdcli($redis, $redis->hGet('dlna', 'name'));
+                        $restart = 1;
+                    }
+                    // start upmpdcli
+                    if ($job->action === 'start') {
+                        runelog('service: UPMPDCLI start');
+                        // start or re-start upmpdcli service
+                        if (isset($restart)) {
+                            sysCmd('systemctl restart upmpdcli');
+                        } else {
+                            sysCmd('systemctl start upmpdcli');
+                        }
+                        $redis->hSet('dlna', 'enable', 1);
+                        // send notfy to UI
+                        ui_notify_async('UPnP / dlna', 'UPnP / dlna feature enabled', $jobID);
+                    }
+                    // stop upmpdcli
+                    if ($job->action === 'stop') {
+                        runelog('service: UPMPDCLI stop');
+                        sysCmd('systemctl stop upmpdcli');
+                        $redis->hSet('dlna', 'enable', 0);
+                        // send notfy to UI
+                        ui_notify_async('UPnP / dlna', 'UPnP / dlna feature disabled', $jobID);
+                    }
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'hostname':

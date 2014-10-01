@@ -79,6 +79,15 @@ if (isset($_POST)) {
             // create worker job (stop shairport)
             $redis->hGet('airplay','enable') === '0' || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'airplay', 'action' => 'stop', 'args' => $_POST['features']['airplay']['name']));
         }
+        if ($_POST['features']['dlna']['enable'] == 1) {
+            if ($redis->hGet('dlna','enable') !== $_POST['features']['dlna']['enable'] OR $redis->hGet('dlna','name') !== $_POST['features']['dlna']['name']) {
+                // create worker job (start upmpdcli)
+                $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'dlna', 'action' => 'start', 'args' => $_POST['features']['dlna']['name']));
+            }
+        } else {
+            // create worker job (stop upmpdcli)
+            $redis->hGet('dlna','enable') === '0' || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'dlna', 'action' => 'stop', 'args' => $_POST['features']['dlna']['name']));
+        }
         if ($_POST['features']['udevil'] == 1) {
             // create worker job (start udevil)
             $redis->get('udevil') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'udevil', 'action' => 'start'));
@@ -118,6 +127,7 @@ if (isset($_POST)) {
         if ($_POST['syscmd'] == 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
         if ($_POST['syscmd'] == 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
         if ($_POST['syscmd'] == 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
+        if ($_POST['syscmd'] == 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
     }
 }
 waitSyWrk($redis,$jobID);
@@ -125,6 +135,7 @@ $template->hostname = $redis->get('hostname');
 $template->ntpserver = $redis->get('ntpserver');
 $template->orionprofile = $redis->get('orionprofile');
 $template->airplay = $redis->hGetAll('airplay');
+$template->dlna = $redis->hGetAll('dlna');
 $template->udevil = $redis->get('udevil');
 $template->coverart = $redis->get('coverart');
 $template->globalrandom = $redis->get('globalrandom');

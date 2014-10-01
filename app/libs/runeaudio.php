@@ -906,10 +906,10 @@ function wrk_backup($bktype)
 {
     if ($bktype === 'dev') {
         $filepath = "/run/totalbackup_".date('Y-m-d').".tar.gz";
-        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /boot/cmdline.txt /var/www /etc";
+        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /boot/cmdline.txt /var/www /etc /var/lib/redis/rune.rdb";
     } else {
         $filepath = "/run/backup_".date('Y-m-d').".tar.gz";
-        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/www/db/player.db";
+        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/lib/redis/rune.rdb";
     }
     sysCmd($cmdstring);
     return $filepath;
@@ -2124,6 +2124,26 @@ function wrk_changeHostname($redis, $newhostname)
     // restart SAMBA << TODO: use systemd!!!
     sysCmd('killall -HUP smbd && killall -HUP nmbd');
     // TODO: restart MiniDLNA
+}
+
+function wrk_upmpdcli($redis, $name = null)
+{
+    if (!isset($name)) {
+        $name = $redis->hGet('dlna', 'name');
+    }
+    $file = '/usr/lib/systemd/system/upmpdcli.service';
+    $newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/bin/upmpdcli -d '.$redis->hGet('dlna', 'logfile').' -l '.$redis->hGet('dlna', 'loglevel').' -f '.$name);
+    runelog('upmpdcli.service :', $newArray);
+    // Commit changes to /usr/lib/systemd/system/upmpdcli.service
+    $fp = fopen($file, 'w');
+    fwrite($fp, implode("", $newArray));
+    fclose($fp);
+    // update systemd
+    sysCmd('systemctl daemon-reload');
+    if ($redis->hGet('dlna','enable') === '1') {
+        runelog('restart upmpdcli');
+        sysCmd('systemctl restart upmpdcli');
+    }
 }
 
 function alsa_findHwMixerControl($cardID)

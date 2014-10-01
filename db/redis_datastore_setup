@@ -46,7 +46,13 @@ function redisDatastore($redis,$action) {
             // player features
             $redis->set('hostname', 'runeaudio');
             $redis->set('ntpserver', 'pool.ntp.org');
-            $redis->set('airplay', 1);
+            $redis->hSet('airplay', 'enable', 1);
+            $redis->hSet('airplay', 'name', 'runeaudio');
+            $redis->hSet('dlna', 'enable', 1);
+            $redis->hSet('dlna', 'name', 'runeaudio');
+            $redis->hSet('dlna', 'queue', 1);
+            $redis->hSet('dlna', 'logfile', '/var/log/runeaudio/upmpdcli.log');
+            $redis->hSet('dlna', 'loglevel', 6);
             $redis->set('udevil', 1);
             $redis->set('upnp', 0);
             $redis->set('spotify', 0);   
@@ -185,7 +191,12 @@ function redisDatastore($redis,$action) {
             $redis->get('hostname') || $redis->set('hostname', 'runeaudio');
             $redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
             $redis->hGet('airplay', 'enable') || $redis->hSet('airplay', 'enable', 1);
-            $redis->hGet('airplay', 'name') || $redis->hSet('airplay', 'name', 'runeaudio');
+            $redis->hGet('airplay', 'name') || $redis->hSet('airplay', 'name', 'runeaudio');            
+            $redis->hGet('dlna', 'enable') || $redis->hSet('dlna', 'enable', 1);
+            $redis->hGet('dlna', 'name') || $redis->hSet('dlna', 'name', 'runeaudio');
+            $redis->hGet('dlna', 'queue') || $redis->hSet('dlna', 'queue', 1);
+            $redis->hGet('dlna', 'logfile') || $redis->hSet('dlna', 'logfile', '/var/log/runeaudio/upmpdcli.log');
+            $redis->hGet('dlna', 'loglevel') || $redis->hSet('dlna', 'loglevel', 0);
             $redis->get('upnp') || $redis->set('upnp', 0);
             $redis->get('spotify') || $redis->set('spotify', 0);
             $redis->get('udevil') || $redis->set('udevil', 1);
