@@ -2029,6 +2029,12 @@ if ($('#section-index').length) {
 		
 		// PNotify init options
 		PNotify.prototype.options.styling = 'fontawesome';
+		PNotify.prototype.options.stack.dir1 = 'up';
+		PNotify.prototype.options.stack.dir2 = 'left';
+		PNotify.prototype.options.stack.firstpos1 = 90;
+		PNotify.prototype.options.stack.firstpos2 = 50;
+		PNotify.prototype.options.stack.spacing1 = 10;
+		PNotify.prototype.options.stack.spacing2 = 10;
 		// open notify channel
 		notifyChannel();
 		
