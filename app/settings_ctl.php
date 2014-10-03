@@ -42,7 +42,7 @@ if (isset($_POST)) {
         }
         $redis->get('hostname') == $_POST['hostname'] || $jobID[] = wrk_control($redis, 'newjob', $data = array( 'wrkcmd' => 'hostname', 'args' => $args ));        
     }
-    // ----- NTP SERVER -----
+    // ----- TIME SETTINGS -----
     if (isset($_POST['ntpserver'])) {
         if (empty($_POST['ntpserver'])) {
         $args = 'pool.ntp.org';
@@ -50,6 +50,10 @@ if (isset($_POST)) {
         $args = $_POST['ntpserver'];
         }
         $redis->get('ntpserver') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ntpserver', 'args' => $args));        
+    }
+    if (isset($_POST['timezone'])) {      
+        $args = $_POST['timezone'];
+        $redis->get('timezone') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'timezone', 'args' => $args));        
     }
     // ----- KERNEL -----
     if (isset($_POST['kernel'])) {        
@@ -105,15 +109,23 @@ if (isset($_POST)) {
         } else {
             $redis->get('globalrandom') == 0 || $redis->set('globalrandom', 0);
         }
-        if ($_POST['features']['scrobbling_lastfm'] == 1) {
-            // create worker job (start shairport)
-            // $redis->get('scrobbling_lastfm') == 1 && $_POST['features']['lastfm']['user'] != $redis->hGet('lastfm', 'user') && $_POST['features']['lastfm']['pass'] != $redis->hGet('lastfm', 'pass') || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'scrobbling_lastfm', 'action' => 'start', 'args' => $_POST['features']['lastfm']));
-            if (($_POST['features']['lastfm']['user'] != $redis->hGet('lastfm', 'user') OR $_POST['features']['lastfm']['pass'] != $redis->hGet('lastfm', 'pass')) OR $redis->get('scrobbling_lastfm') != $_POST['features']['scrobbling_lastfm']) {
-                $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'scrobbling_lastfm', 'action' => 'start', 'args' => $_POST['features']['lastfm']));
+        if ($_POST['features']['lastfm']['enable'] == 1) {
+            // create worker job (start mpdscribble)
+            if (($_POST['features']['lastfm']['user'] != $redis->hGet('lastfm', 'user') OR $_POST['features']['lastfm']['pass'] != $redis->hGet('lastfm', 'pass')) OR $redis->hGet('lastfm', 'enable') != $_POST['features']['lastfm']['enable']) {
+                $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'lastfm', 'action' => 'start', 'args' => $_POST['features']['lastfm']));
             }
         } else {
-            // create worker job (stop shairport)
-            $redis->get('scrobbling_lastfm') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'scrobbling_lastfm', 'action' => 'stop'));
+            // create worker job (stop mpdscribble)
+            $redis->hGet('lastfm','enable') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'lastfm', 'action' => 'stop'));
+        }
+        if ($_POST['features']['spotify']['enable'] == 1) {
+            // create worker job (start mpdscribble)
+            if (($_POST['features']['spotify']['user'] != $redis->hGet('spotify', 'user') OR $_POST['features']['spotify']['pass'] != $redis->hGet('spotify', 'pass')) OR $redis->hGet('spotify', 'enable') != $_POST['features']['spotify']['enable']) {
+                $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'spotify', 'action' => 'start', 'args' => $_POST['features']['spotify']));
+            }
+        } else {
+            // create worker job (stop spotify)
+            $redis->hGet('spotify','enable') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'spotify', 'action' => 'stop'));
         }
     }
     // ----- C-MEDIA FIX -----
@@ -133,16 +145,17 @@ if (isset($_POST)) {
 waitSyWrk($redis,$jobID);
 $template->hostname = $redis->get('hostname');
 $template->ntpserver = $redis->get('ntpserver');
+$template->timezone = $redis->get('timezone');
 $template->orionprofile = $redis->get('orionprofile');
 $template->airplay = $redis->hGetAll('airplay');
 $template->dlna = $redis->hGetAll('dlna');
 $template->udevil = $redis->get('udevil');
 $template->coverart = $redis->get('coverart');
 $template->globalrandom = $redis->get('globalrandom');
-$template->scrobbling_lastfm = $redis->get('scrobbling_lastfm');
-$template->lastfm = getLastFMauth($redis);
+$template->lastfm = $redis->hGetAll('lastfm');
 $template->cmediafix = $redis->get('cmediafix');
-$template->proxy = $redis->hGetall('proxy');
+$template->proxy = $redis->hGetAll('proxy');
+$template->spotify = $redis->hGetAll('spotify');
 $template->hwplatformid = $redis->get('hwplatformid');
 $template->i2smodule = $redis->get('i2smodule');
 $template->kernel = $redis->get('kernel');

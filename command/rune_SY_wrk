@@ -306,7 +306,7 @@ $redis->pconnect('/tmp/redis.sock');
                         }
                         $redis->hSet('dlna', 'enable', 1);
                         // send notfy to UI
-                        ui_notify_async('UPnP / dlna', 'UPnP / dlna feature enabled', $jobID);
+                        ui_notify_async('UPnP / DLNA', 'UPnP / DLNA feature enabled', $jobID);
                     }
                     // stop upmpdcli
                     if ($job->action === 'stop') {
@@ -314,7 +314,7 @@ $redis->pconnect('/tmp/redis.sock');
                         sysCmd('systemctl stop upmpdcli');
                         $redis->hSet('dlna', 'enable', 0);
                         // send notfy to UI
-                        ui_notify_async('UPnP / dlna', 'UPnP / dlna feature disabled', $jobID);
+                        ui_notify_async('UPnP / DLNA', 'UPnP / DLNA feature disabled', $jobID);
                     }
                     $redis->sRem('w_lock', $jobID);
                     break;
@@ -344,6 +344,38 @@ $redis->pconnect('/tmp/redis.sock');
                     runelog('env: SWITCH KERNEL',$job->args);
                     if (wrk_kernelswitch($redis,$job->args)) {
                         ui_notify_async('Kernel switch', $job->args.' selected successfully.', $jobID);
+                    }
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+                case 'lastfm':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    if ($job->action === 'start') {
+                        if ($job->args->user != $redis->hGet('lastfm', 'user') OR $job->args->pass != $redis->hGet('lastfm', 'pass')) {
+                        // mpdscribble.conf
+                        $file = '/etc/mpdscribble.conf';
+                        $newArray = wrk_replaceTextLine($file, '', 'username =', 'username = '.$job->args->user, 'last.fm', 2);
+                        $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'last.fm', 3);
+                        // Commit changes to /etc/mpdscribble.conf
+                        $fp = fopen($file, 'w');
+                        fwrite($fp, implode("", $newArray));
+                        fclose($fp);
+                        // write LastFM auth data to Redis datastore
+                        setLastFMauth($redis, $job->args);
+                        }
+                        sysCmd('systemctl stop mpdscribble');
+                        runelog('service: MPDSCRIBBLE start');
+                        sysCmd('systemctl start mpdscribble');
+                        // send notfy to UI
+                        ui_notify_async('Last.FM scrobbling', 'mpdscribble daemon started', $jobID);
+                        $redis->hSet('lastfm', 'enable', 1);
+                    }
+                    if ($job->action === 'stop') {
+                        runelog('service: MPDSCRIBBLE stop');
+                        sysCmd('systemctl stop mpdscribble');
+                        // send notfy to UI
+                        ui_notify_async('Last.FM scrobbling', 'mpdscribble daemon stopped', $jobID);
+                        $redis->hSet('lastfm', 'enable', 0);
                     }
                     $redis->sRem('w_lock', $jobID);
                     break;
@@ -476,35 +508,36 @@ $redis->pconnect('/tmp/redis.sock');
                     // wrk_restore("/run/".$job->args);
                     // $redis->sRem('w_lock', $jobID);
                     // break;
-                case 'scrobbling_lastfm':
+                case 'spotify':
                     runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
                     if ($job->action === 'start') {
-                        if ($job->args->user != $redis->hGet('lastfm', 'user') OR $job->args->pass != $redis->hGet('lastfm', 'pass')) {
-                        // mpdscribble.conf
-                        $file = '/etc/mpdscribble.conf';
-                        $newArray = wrk_replaceTextLine($file, '', 'username =', 'username = '.$job->args->user, 'last.fm', 2);
-                        $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'last.fm', 3);
-                        // Commit changes to /etc/mpdscribble.conf
+                        if ($job->args->user !== $redis->hGet('spotify', 'user') OR $job->args->pass !== $redis->hGet('spotify', 'pass')) {
+                        // spopd.conf
+                        $file = '/etc/spop/spopd.conf';
+                        $newArray = wrk_replaceTextLine($file, '', 'spotify_username =', 'spotify_username = '.$job->args->user, 'spotify_auth', 2);
+                        $newArray = wrk_replaceTextLine('', $newArray, 'spotify_password =', 'spotify_password = '.$job->args->pass, 'spotify_auth', 3);
+                        // Commit changes to /etc/spop/spopd.conf
                         $fp = fopen($file, 'w');
                         fwrite($fp, implode("", $newArray));
                         fclose($fp);
-                        // write LastFM auth data to Redis datastore
-                        setLastFMauth($redis, $job->args);
+                        // write Spotify auth data to Redis datastore
+                        $redis->hSet('spotify', 'user', $job->args->user);
+                        $redis->hSet('spotify', 'pass', $job->args->pass); 
                         }
-                        sysCmd('systemctl stop mpdscribble');
-                        runelog('service: MPDSCRIBBLE start');
-                        sysCmd('systemctl start mpdscribble');
+                        sysCmd('systemctl stop spopd');
+                        runelog('service: SPOPD start');
+                        sysCmd('systemctl start spopd');
                         // send notfy to UI
-                        ui_notify_async('Last.FM scrobbling', 'mpdscribble daemon started', $jobID);
-                        $redis->set('scrobbling_lastfm', 1);
+                        ui_notify_async('Spotify', 'Spotify client started', $jobID);
+                        $redis->hSet('spotify', 'enable',  1);
                     }
                     if ($job->action === 'stop') {
-                        runelog('service: MPDSCRIBBLE stop');
-                        sysCmd('systemctl stop mpdscribble');
+                        runelog('service: SPOPD stop');
+                        sysCmd('systemctl stop spopd');
                         // send notfy to UI
-                        ui_notify_async('Last.FM scrobbling', 'mpdscribble daemon stopped', $jobID);
-                        $redis->set('scrobbling_lastfm', 0);
+                        ui_notify_async('Spotify', 'Spotify client stopped', $jobID);
+                        $redis->hSet('spotify', 'enable',  0);
                     }
                     $redis->sRem('w_lock', $jobID);
                     break;
@@ -517,6 +550,14 @@ $redis->pconnect('/tmp/redis.sock');
                 case 'sysAcl':
                     runelog('wrk_SY: ', $job->wrkcmd);
                     wrk_sysAcl();
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+                case 'timezone':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    sysCmd('timedatectl set-timezone '.$job->args);
+                    $redis->set('timezone', $job->args);
+                    ui_notify_async('Timezone', 'Timezone updated.<br>Current timezone: '.$job->args, $jobID);
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'udevil':
@@ -617,7 +658,7 @@ $redis->pconnect('/tmp/redis.sock');
         } // end foreach loop
     } // end if loop
     // unload CPU
-    usleep(1000000);
+    usleep(250000);
 } // end while loop
 // --- WORKER MAIN LOOP //
 // close Redis connection

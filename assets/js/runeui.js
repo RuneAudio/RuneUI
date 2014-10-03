@@ -390,7 +390,10 @@ function renderLibraryHome() {
 		} else if (obj.Dirble !== undefined && obj.Dirble !== '') {
 		// Dirble block
 			content += '<div id="home-dirble" class="home-block" data-plugin="Dirble" data-path="Dirble"><i class="fa fa-globe"></i><h3>Dirble <span id="home-count-dirble">(' + obj.Dirble + ')</span></h3>radio stations open directory</div>';
-		}
+		} else if (obj.Spotify !== undefined && obj.Spotify !== '') {
+        // Spotify block
+            content += '<div id="home-spotify" class="home-block" data-plugin="Spotify" data-path="Spotify"><i class="fa fa fa-spotify"></i><h3>Spotify<span id="home-count-spotify"></span></h3>music for everyone</div>';
+        }
 		content += '</div>';
 	}
 	// Jamendo (static)
@@ -2168,6 +2171,17 @@ if ($('#section-index').length) {
 				} else {
 					$('#dlnaName').addClass('hide');
 					$('#dlnaBox').removeClass('boxed-group');
+				}
+			});
+            
+            // show/hide Spotify auth form
+			$('#spotify').change(function(){
+				if ($(this).prop('checked')) {
+					$('#spotifyAuth').removeClass('hide');
+					$('#spotifyBox').addClass('boxed-group');
+				} else {
+					$('#spotifyAuth').addClass('hide');
+					$('#spotifyBox').removeClass('boxed-group');
 				}
 			});
 

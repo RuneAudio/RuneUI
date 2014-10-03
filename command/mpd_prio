@@ -52,6 +52,7 @@ do
     fi
 count=$((count+1))
 done
+renice -18 $(pgrep -w spopd)
 renice 20 $(pgrep -w rune_SY_wrk)
 renice 20 $(pgrep -w rune_PL_wrk)
 renice 20 $(pgrep -w php-fpm)
@@ -98,6 +99,7 @@ do
     fi
 count=$((count+1))
 done
+renice 0 $(pgrep -w spopd)
 renice 0 $(pgrep -w rune_SY_wrk)
 renice 0 $(pgrep -w rune_PL_wrk)
 renice 0 $(pgrep -w php-fpm)

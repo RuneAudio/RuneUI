@@ -267,10 +267,10 @@ function getPlayQueue($sock)
     return $playqueue;
 }
 
-function getTemplate($template)
-{
-    return str_replace("\"","\\\"",implode("",file($template)));
-}
+// function getTemplate($template)
+// {
+    // return str_replace("\"","\\\"",implode("",file($template)));
+// }
 
 function getMpdOutputs($mpd)
 {
@@ -380,7 +380,7 @@ class globalRandom extends Thread
         $mpd = openMpdSocket('/run/mpd.sock');
             // if ($this->status['consume'] == 0 OR $this->status['random'] == 0) {
             if ($this->status['random'] == 0) {
-            // sendMpdCommand($mpd,'consume 1');
+                // sendMpdCommand($mpd,'consume 1');
                 sendMpdCommand($mpd,'random 1');
             }
             $path = randomSelect($mpd);
@@ -1527,6 +1527,13 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
             break;
+        case 'raspi2splay4':
+            sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_wm8804').usleep(300000);
+            sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
+            sysCmd('modprobe snd_soc_hifiberry_dacplus');
+            break;
     }
     $redis->set('i2smodule', $args);
     wrk_mpdconf($redis, 'refresh');
@@ -2319,7 +2326,8 @@ function ui_libraryHome($redis, $mpd)
     $dirblecfg = $redis->hGetAll('dirble');
     $dirble = json_decode(curlGet($dirblecfg['baseurl'].'amountStation/apikey/'.$dirblecfg['apikey'], $proxy));
     // runelog('dirble: ',$dirble);
-
+    // Spotify
+    $spotify = $redis->hGet('spotify', 'enable');
     // Bookmarks
     $redis_bookmarks = $redis->hGetAll('bookmarks');
     $bookmarks = array();
@@ -2329,7 +2337,7 @@ function ui_libraryHome($redis, $mpd)
         $bookmarks[] = array('bookmark' => $key, 'name' => $bookmark->name, 'path' => $bookmark->path);
     }
     // runelog('bookmarks: ',$bookmarks);
-    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount))));
+    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('Spotify' => $spotify))));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
@@ -2369,6 +2377,17 @@ function ui_lastFM_coverart($artist, $album, $lastfm_apikey, $proxy)
 function ui_render($channel, $data)
 {
     curlPost('http://127.0.0.1/pub?id='.$channel, $data);
+}
+
+function ui_timezone() {
+  $zones_array = array();
+  $timestamp = time();
+  foreach(timezone_identifiers_list() as $key => $zone) {
+    date_default_timezone_set($zone);
+    $zones_array[$key]['zone'] = $zone;
+    $zones_array[$key]['diff_from_GMT'] = 'UTC/GMT ' . date('P', $timestamp);
+  }
+  return $zones_array;
 }
 
 function ui_update($redis ,$mpd)

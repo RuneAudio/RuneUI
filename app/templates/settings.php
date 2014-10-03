@@ -14,7 +14,20 @@
                 <label class="control-label col-sm-2" for="ntpserver">NTP server</label>
                 <div class="col-sm-10">
                     <input class="form-control input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
-                    <span class="help-block">Set your reference time sync server <i>(NTP server)</i></span>
+                    <span class="help-block">Set your reference time sync server <i>(NTP server)</i>.</span>
+                </div>
+            </div>
+            <div class="form-group">
+            <label class="control-label col-sm-2" for="timezone">Timezone</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="timezone" data-style="btn-default btn-lg">
+                    <?php foreach(ui_timezone() as $t): ?>
+                      <option value="<?=$t['zone'] ?>" <?php if($this->timezone === $t['zone']): ?> selected <?php endif; ?>>
+                        <?=$t['zone'].' - '.$t['diff_from_GMT'] ?>
+                      </option>
+                    <?php endforeach; ?>
+                    </select>
+                    <span class="help-block">Set the system timezone.</span>
                 </div>
             </div>
             <!-- <div <?php if($this->proxy['enable'] === 1): ?>class="boxed-group"<?php endif ?> id="proxyBox">
@@ -66,11 +79,12 @@
                 <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
                 <div class="col-sm-10">
                     <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
-                        <option value="linux-arch-3.12.28-2-ARCH" <?php if($this->kernel === 'linux-arch-3.12.28-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.28-arch</option>
-                        <option value="linux-rune-3.12.19-2-ARCH" <?php if($this->kernel === 'linux-rune-3.12.19-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.19-rune</option>
-                        <option value="linux-rune-3.12.13-rt21_wosa" <?php if($this->kernel === 'linux-rune-3.12.13-rt21_wosa'): ?> selected <?php endif ?>>RTLinux kernel 3.12.13-rt&nbsp;&nbsp;(Wolfson Audio Card)</option>
+                        <option value="linux-arch-3.12.26-2-ARCH" <?php if($this->kernel === 'linux-arch-3.12.26-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.26-2&nbsp;&nbsp;&nbsp;ARCH&nbsp;[RuneAudio v0.3-beta]</option>
+                        <option value="linux-rune-3.12.19-2-ARCH" <?php if($this->kernel === 'linux-rune-3.12.19-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.19-2&nbsp;&nbsp;&nbsp;RUNE&nbsp;[RuneAudio v0.3-alpha]</option>
+                        <option value="linux-arch-3.6.11-18-ARCH+" <?php if($this->kernel === 'linux-arch-3.6.11-18-ARCH+'): ?> selected <?php endif ?>>Linux kernel 3.6.11-18&nbsp;&nbsp;&nbsp;ARCH+&nbsp;[RuneAudio v0.1-beta/v0.2-beta]</option>
+                        <option value="linux-rune-3.12.13-rt21_wosa" <?php if($this->kernel === 'linux-rune-3.12.13-rt21_wosa'): ?> selected <?php endif ?>>Linux kernel 3.12.13-rt&nbsp;&nbsp;&nbsp;RUNE-RT&nbsp;[Wolfson Audio Card]</option>
                     </select>
-                    <span class="help-block">Switch Linux Kernel version (REBOOT REQUIRED). <strong>Linux kernel 3.12.19-rune</strong> is the default RuneAudio optimized kernel, <strong>RTLinux kernel 3.12.13-rt</strong> is an EXPERIMENTAL kernel (not suitable for all configurations); it is optimized for <strong>Wolfson Audio Card</strong> support and it is the default option for that type of soundcard.</span>
+                    <span class="help-block">Switch Linux Kernel version (REBOOT REQUIRED). <strong>Linux kernel 3.12.26-2</strong> is the default kernel in the current release, <strong>Linux kernel 3.12.19-2</strong> is the kernel used in RuneAudio v0.3-alpha, <strong>Linux kernel 3.6.11-18</strong> is the kernel used in RuneAudio v0.1-beta/v0.2-beta (it has no support for I&#178;S), <strong>Linux kernel 3.12.13-rt</strong> is an EXPERIMENTAL kernel (not suitable for all configurations), it is optimized for <strong>Wolfson Audio Card</strong> support and it is the default option for that type of soundcard.</span>
                 </div>
                 <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
                 <div class="col-sm-10">
@@ -82,8 +96,9 @@
                         <option value="hifiberrydac" <?php if($this->i2smodule === 'hifiberrydac'): ?> selected <?php endif ?>>HiFiBerry DAC</option>
                         <option value="hifiberrydacplus" <?php if($this->i2smodule === 'hifiberrydacplus'): ?> selected <?php endif ?>>HiFiBerry DAC+</option>
                         <option value="hifiberrydigi" <?php if($this->i2smodule === 'hifiberrydigi'): ?> selected <?php endif ?>>HiFiBerry Digi / Digi+</option>
-                        <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC</option>
+                        <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC / Pi-DAC+</option>
                         <option value="raspi2splay3" <?php if($this->i2smodule === 'raspi2splay3'): ?> selected <?php endif ?>>RaspI2SPlay3</option>
+                        <option value="raspi2splay4" <?php if($this->i2smodule === 'raspi2splay4'): ?> selected <?php endif ?>>RaspI2SPlay4</option>
                         <?php else: ?>
                         <option value="wolfsonaudiocard"  selected >Wolfson Audio Card</option>
                         <?php endif ?>
@@ -145,23 +160,51 @@
                     </div>
                 </div>
             </div>
+            <div <?php if($this->spotify['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="spotifyBox">
+                <div class="form-group">
+                    <label for="spotify" class="control-label col-sm-2"><i class="fa fa fa-spotify"></i> Spotify</label>
+                    <div class="col-sm-10">
+                        <label class="switch-light well" onclick="">
+                            <input id="spotify" name="features[spotify][enable]" type="checkbox" value="1"<?php if($this->spotify['enable'] === '1'): ?> checked="checked" <?php endif ?>>
+                            <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
+                        </label>
+                        <span class="help-block">Enable Spotify client [EXPERIMENTAL]. You must have a <strong><a href="https://www.spotify.com/uk/premium/" target="_blank">Spotify PREMIUM</a></strong> account.</span>
+                    </div>
+                </div>
+                <div class="<?php if($this->spotify['enable'] != 1): ?>hide<?php endif ?>" id="spotifyAuth">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="spotify-usr">Username</label>
+                        <div class="col-sm-10">
+                            <input class="form-control input-lg" type="text" id="spotify_user" name="features[spotify][user]" value="<?php echo $this->spotify['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
+                            <span class="help-block">Insert your Spotify <i>username</i></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="spotify-pasw">Password</label>
+                        <div class="col-sm-10">
+                            <input class="form-control input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <span class="help-block">Insert your Spotify <i>password</i> (case sensitive)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div <?php if($this->dlna['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="dlnaBox">
                 <div class="form-group">
-                    <label for="dlna" class="control-label col-sm-2">UPnP / dlna</label>
+                    <label for="dlna" class="control-label col-sm-2">UPnP / DLNA</label>
                     <div class="col-sm-10">
                         <label class="switch-light well" onclick="">
                             <input id="dlna" name="features[dlna][enable]" type="checkbox" value="1"<?php if($this->dlna['enable'] == 1): ?> checked="checked" <?php endif ?>>
                             <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
                         </label>
-                        <span class="help-block">Toggle the capability of receiving wireless streaming of audio via UPnP / dlna protocol</span>
+                        <span class="help-block">Toggle the capability of receiving wireless streaming of audio via UPnP / DLNA protocol</span>
                     </div>
                 </div>
                 <div class="<?php if($this->dlna['enable'] != 1): ?>hide<?php endif ?>" id="dlnaName">
                     <div class="form-group">
-                        <label class="control-label col-sm-2" for="dlna-name">UPnP / dlna name</label>
+                        <label class="control-label col-sm-2" for="dlna-name">UPnP / DLNA name</label>
                         <div class="col-sm-10">
                             <input class="form-control input-lg" type="text" id="dlna_name" name="features[dlna][name]" value="<?php echo $this->dlna['name']; ?>" data-trigger="change" placeholder="runeaudio">
-                            <span class="help-block">UPnP / dlna broadcast name</span>
+                            <span class="help-block">UPnP / DLNA broadcast name</span>
                         </div>
                     </div>
                 </div>
@@ -206,18 +249,18 @@
                     <span class="help-block">Toggle the AP-Mode WiFi feature (default SSID: RuneAudio)</span>
                 </div>
             </div> -->
-            <div <?php if($this->scrobbling_lastfm === '1'): ?>class="boxed-group"<?php endif ?> id="lastfmBox">
+            <div <?php if($this->lastfm['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="lastfmBox">
                 <div class="form-group">
-                    <label for="scrobbling_lastfm" class="control-label col-sm-2">Last.fm scrobbling</label>
+                    <label for="lastfm" class="control-label col-sm-2"><i class="fa fa fa-lastfm-square"></i> Last.fm</label>
                     <div class="col-sm-10">
                         <label class="switch-light well" onclick="">
-                            <input id="scrobbling-lastfm" name="features[scrobbling_lastfm]" type="checkbox" value="1"<?php if($this->scrobbling_lastfm == 1): ?> checked="checked" <?php endif ?>>
+                            <input id="scrobbling-lastfm" name="features[lastfm][enable]" type="checkbox" value="1"<?php if($this->lastfm['enable'] === '1'): ?> checked="checked" <?php endif ?>>
                             <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
                         </label>
                         <span class="help-block">Send to Last.fm informations about the music you are listening to (requires a Last.fm account)</span>
                     </div>
                 </div>
-                <div class="<?php if($this->scrobbling_lastfm != 1): ?>hide<?php endif ?>" id="lastfmAuth">
+                <div class="<?php if($this->lastfm['enable'] != 1): ?>hide<?php endif ?>" id="lastfmAuth">
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="lastfm-usr">Username</label>
                         <div class="col-sm-10">
