@@ -152,12 +152,12 @@ if ($redis->get('i2smodule') !== 'none'  &&  ($kernel === 'linux-rune-3.12.19-2-
 // refesh audio hardware status (soundcards and MPD config)
 wrk_mpdconf($redis,'refresh');
 // start shairport
-if ($redis->hget('airplay', 'enable') === '1') {
+if ($redis->hGet('airplay', 'enable') === '1') {
     runelog("service: SHAIRPORT start",'');
     sysCmd('systemctl start shairport');
 }
 // start upmpdcli
-if ($redis->hget('dlna', 'enable') === '1') {
+if ($redis->hGet('dlna', 'enable') === '1') {
     runelog("service: UPMPDCLI start",'');
     sysCmd('systemctl start upmpdcli');
 }
@@ -167,7 +167,7 @@ if ($redis->get('udevil') === '1') {
     sysCmd('systemctl start udevil');
 }
 // start mpdscribble
-if ($redis->get('scrobbling_lastfm') === '1') {
+if ($redis->hGet('lastfm','enable') === '1') {
     runelog("service: MPDSCRIBBLE start",'');
     sysCmd('systemctl start mpdscribble');
 }
@@ -363,6 +363,20 @@ $redis->pconnect('/tmp/redis.sock');
                         // write LastFM auth data to Redis datastore
                         setLastFMauth($redis, $job->args);
                         }
+                        // check if spotify is configured
+                        if ($redis->hGet('spotify','enable') === '1') {
+                            // spopd.conf
+                            $file = '/etc/spop/spopd.conf';
+                            $newArray = wrk_replaceTextLine($file, '', 'username =', 'username = '.$job->args->user, 'Last.FM', 3);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'Last.FM', 4);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'Last.FM', 4);
+                            $newArray = wrk_replaceTextLine('', $newArray, '#plugins =', 'plugins = scrobble', '# Various plugins', 2);
+                            // commit changes to /etc/spop/spopd.conf
+                            $fp = fopen($file, 'w');
+                            fwrite($fp, implode("", $newArray));
+                            fclose($fp);
+                            sysCmd('systemctl restart spopd');
+                        }
                         sysCmd('systemctl stop mpdscribble');
                         runelog('service: MPDSCRIBBLE start');
                         sysCmd('systemctl start mpdscribble');
@@ -373,6 +387,17 @@ $redis->pconnect('/tmp/redis.sock');
                     if ($job->action === 'stop') {
                         runelog('service: MPDSCRIBBLE stop');
                         sysCmd('systemctl stop mpdscribble');
+                        // check if spotify is configured
+                        if ($redis->hGet('spotify','enable') === '1') {
+                            // spopd.conf
+                            $file = '/etc/spop/spopd.conf';
+                            $newArray = wrk_replaceTextLine($file, '', 'plugins =', '#plugins = scrobble', '# Various plugins', 2);
+                            // commit changes to /etc/spop/spopd.conf
+                            $fp = fopen($file, 'w');
+                            fwrite($fp, implode("", $newArray));
+                            fclose($fp);
+                            sysCmd('systemctl restart spopd');
+                        }
                         // send notfy to UI
                         ui_notify_async('Last.FM scrobbling', 'mpdscribble daemon stopped', $jobID);
                         $redis->hSet('lastfm', 'enable', 0);
@@ -517,7 +542,17 @@ $redis->pconnect('/tmp/redis.sock');
                         $file = '/etc/spop/spopd.conf';
                         $newArray = wrk_replaceTextLine($file, '', 'spotify_username =', 'spotify_username = '.$job->args->user, 'spotify_auth', 2);
                         $newArray = wrk_replaceTextLine('', $newArray, 'spotify_password =', 'spotify_password = '.$job->args->pass, 'spotify_auth', 3);
-                        // Commit changes to /etc/spop/spopd.conf
+                        // check if last.fm is configured
+                        if ($redis->hGet('lastfm','enable') === '1') {
+                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', 'username = '.$redis->hGet('lastfm','user'), 'Last.FM', 3);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$redis->hGet('lastfm','pass'), 'Last.FM', 4);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', 'plugins = scrobble', '# Various plugins', 2);
+                        } else {
+                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', '#username = user', 'Last.FM', 3);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', '#password = pass', 'Last.FM', 4);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', '#plugins = scrobble', '# Various plugins', 2);
+                        }
+                        // commit changes to /etc/spop/spopd.conf
                         $fp = fopen($file, 'w');
                         fwrite($fp, implode("", $newArray));
                         fclose($fp);
