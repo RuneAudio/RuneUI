@@ -4,18 +4,18 @@
   "launch_path": "/",
   "description": "Remote control for your RuneAudio system!",
   "icons": {
-    "16": "/images/logo16.png",
-    "32": "/images/logo32.png",
-    "48": "/images/logo48.png",
-    "60": "/images/logo60.png",
-    "64": "/images/logo64.png",
-    "90": "/images/logo90.png",
-    "120": "/images/logo120.png",
-    "128": "/images/logo128.png"
+    "16": "/images/favicon-16x16.png",
+    "32": "/images/favicon-32x32.png",
+    "48": "/images/favicon-48x48.png",
+    "60": "/images/favicon-60x60.png",
+    "64": "/images/favicon-64x64.png",
+    "90": "/images/favicon-90x90.png",
+    "120": "/images/favicon-120x120.png",
+    "128": "/images/favicon-128x128.png"
   },
   "developer": {
     "name": "RuneAudio",
-    "url": "http://runeaudio.com"
+    "url": "http://www.runeaudio.com"
   },
   "installs_allowed_from": [
     "*"
