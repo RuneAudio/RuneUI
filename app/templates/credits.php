@@ -14,7 +14,8 @@
             <h2>Main contributors</h2>
             <strong>Cristian Pascottini</strong> <span class="help-block">- RuneUI Javascript optimizations</span><br>
             <strong>Valerio Battaglia</strong> <span class="help-block">- RuneUI Javascript optimizations</span><br>
-            <strong>Francesco Casarsa</strong> <span class="help-block">- Shairport patch</span>
+            <strong>Francesco Casarsa</strong> <span class="help-block">- Shairport patch</span><br>
+            <strong>Frank Friedmann</strong> <span class="help-block">- RuneOS porting for Cubietruck</span>
             
         </div>
         <div class="col-md-4">
@@ -50,13 +51,14 @@
     <strong>RuneOS</strong>    <span class="help-block">- copyright (C) 2013-2014 – Simone De Gregori (aka Orion) &amp; Carmelo San Giovanni (aka Um3ggh1U)</span></p>
     <h2>RuneUI credits</h2>
     <p><strong>PHP language v5.5</strong> by <a href="http://php.net/credits.php" target="_blank" rel="nofollow">PHP Team</a><br><a href="http://php.net/" target="_blank" rel="nofollow">http://php.net</a></p>
-    <p><strong>PHP pthreads</strong> by <a href="https://github.com/krakjoe" target="_blank" rel="nofollow">Joe Watkins</a><br><a title="PHP pthreads" href="http://pthreads.org" target="_blank" rel="nofollow">http://pthreads.org</a></p>
-    <p><strong>PHP reader</strong> class by <a href="http://fi.linkedin.com/in/svollbehr" target="_blank" rel="nofollow">Sven Vollbehr</a><br><a title="PHP Reader" href="https://code.google.com/p/php-reader/" target="_blank" rel="nofollow">https://code.google.com/p/php-reader</a></p>
-    <p><strong>PHP redis</strong> class by <a href="https://twitter.com/alfonsojimenez" target="_blank" rel="nofollow">Alfonso Jimenez</a>, <a href="https://twitter.com/bouafif_nasr" target="_blank" rel="nofollow">Nasreddine Bouafif</a> and <a href="https://twitter.com/yowgi" target="_blank" rel="nofollow">Nicolas Favre-Felix</a><br><a title="PHP Redis" href="https://github.com/nicolasff/phpredis" target="_blank" rel="nofollow">https://github.com/nicolasff/phpredis</a></p>
-    <p><strong>Redis</strong> advanced key-value store by <a href="https://twitter.com/antirez" target="_blank" rel="nofollow">Salvatore Sanfilippo</a> and <a href="https://twitter.com/pnoordhuis" target="_blank" rel="nofollow">Pieter Noordhuis<br></a><a title="Redis" href="http://redis.io" target="_blank" rel="nofollow">http://redis.io</a></p>
     <p><strong>NGiNX</strong><br>
     <a href="http://nginx.org/" target="_blank" rel="nofollow">http://nginx.org</a></p>
     <p><strong>NGiNX Push Stream Module</strong><br><a href="http://wiki.nginx.org/HttpPushStreamModule" target="_blank" rel="nofollow">http://wiki.nginx.org/HttpPushStreamModule</a></p>
+    <p><strong>Redis</strong> advanced key-value store by <a href="https://twitter.com/antirez" target="_blank" rel="nofollow">Salvatore Sanfilippo</a> and <a href="https://twitter.com/pnoordhuis" target="_blank" rel="nofollow">Pieter Noordhuis<br></a><a title="Redis" href="http://redis.io" target="_blank" rel="nofollow">http://redis.io</a></p>
+    <p><strong>PHP redis</strong> class by <a href="https://twitter.com/alfonsojimenez" target="_blank" rel="nofollow">Alfonso Jimenez</a>, <a href="https://twitter.com/bouafif_nasr" target="_blank" rel="nofollow">Nasreddine Bouafif</a> and <a href="https://twitter.com/yowgi" target="_blank" rel="nofollow">Nicolas Favre-Felix</a><br><a title="PHP Redis" href="https://github.com/nicolasff/phpredis" target="_blank" rel="nofollow">https://github.com/nicolasff/phpredis</a></p>
+    <p><strong>PHP pthreads</strong> by <a href="https://github.com/krakjoe" target="_blank" rel="nofollow">Joe Watkins</a><br><a title="PHP pthreads" href="http://pthreads.org" target="_blank" rel="nofollow">http://pthreads.org</a></p>
+    <p><strong>getID3</strong> class by <a href="https://github.com/JamesHeinrich" target="_blank" rel="nofollow">by James Heinrich</a><br><a title="getID3" href="http://www.getid3.org" target="_blank" rel="nofollow">http://www.getid3.org</a></p>
+    <p><strong>PHP reader</strong> class by <a href="http://fi.linkedin.com/in/svollbehr" target="_blank" rel="nofollow">Sven Vollbehr</a><br><a title="PHP Reader" href="https://code.google.com/p/php-reader/" target="_blank" rel="nofollow">https://code.google.com/p/php-reader</a></p>
     <p><strong>jQuery Knob</strong> by <a href="http://anthonyterrien.com/" target="_blank" rel="nofollow">Anthony Terrien</a><br><a href="https://github.com/aterrien/jQuery-Knob" target="_blank" rel="nofollow">https://github.com/aterrien/jQuery-Knob</a></p>
     <p><strong>jQuery Countdown</strong> by <a href="http://keith-wood.name/" target="_blank" rel="nofollow">Keith Wood</a><br><a href="http://keith-wood.name/countdown.html" target="_blank" rel="nofollow">http://keith-wood.name/countdown.html</a></p>
     <p><strong>jQuery scrollTo</strong> by <a href="http://flesler.blogspot.com/" target="_blank" rel="nofollow">Ariel Flesler</a><br><a href="http://flesler.blogspot.it/2007/10/jqueryscrollto.html" target="_blank" rel="nofollow">http://flesler.blogspot.it/2007/10/jqueryscrollto.html</a></p>
@@ -74,6 +76,8 @@
     <h2>RuneOS credits</h2>
     <p>ArchLinux (base distro)<br><a href="https://www.archlinux.org/" target="_blank" rel="nofollow">https://www.archlinux.org</a></p>
     <p><strong>MPD</strong> &#8211; Music Player Daemon by Max Kellermann &amp; Avuton Olrich<br><a href="http://www.musicpd.org/" target="_blank" rel="nofollow">http://www.musicpd.org</a></p>
-    <p>MiniDLNA by Justin Maggard<br><a href="http://minidlna.sourceforge.net/" target="_blank" rel="nofollow">http://minidlna.sourceforge.net</a></p>
     <p>Shairport by James &#8220;abrasive&#8221; Laird<br><a href="https://github.com/abrasive/shairport" target="_blank" rel="nofollow">https://github.com/abrasive/shairport</a></p>
+    <p>Spop by Thomas Jost<br><a href="https://github.com/Schnouki/spop" target="_blank" rel="nofollow">https://github.com/Schnouki/spop</a></p>
+    <p>Upmpdcli by Jean-Francois Dockes<br><a href="http://www.lesbonscomptes.com/upmpdcli/upmpdcli.html" target="_blank" rel="nofollow">http://www.lesbonscomptes.com/upmpdcli/upmpdcli.html</a></p>
+    <p>MiniDLNA by Justin Maggard<br><a href="http://minidlna.sourceforge.net/" target="_blank" rel="nofollow">http://minidlna.sourceforge.net</a></p>
 </div>
