@@ -1,7 +1,11 @@
 <div class="container">
     <h1>Settings</h1>
-    <form class="form-horizontal" action="" method="post" role="form">
+    <form class="form-horizontal" action="" method="post" role="form"> 
         <fieldset>
+            <legend>System status</legend>
+            <div class="form-group" id="systemstatus">
+                <pre id="systemstatus"><?=$this->sysstate ?></pre>
+            </div>
             <legend>Environment</legend>
             <div class="form-group" id="environment">
                 <label class="control-label col-sm-2" for="hostname">Player hostname</label>
