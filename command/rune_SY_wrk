@@ -267,7 +267,8 @@ $redis->pconnect('/tmp/redis.sock');
                     break;
                 case 'backup':
                     runelog('wrk_SY: ', $job->wrkcmd);
-                    wrk_backup();
+                    $backup = wrk_backup();
+                    $redis->hSet('w_msg', $jobID, $backup);
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'clearimg':

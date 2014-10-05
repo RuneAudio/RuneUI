@@ -757,6 +757,7 @@ function recursiveDelete($str)
 
 function pushFile($filepath)
 {
+runelog('pushFile(): filepath', $filepath);
     if (file_exists($filepath)) {
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
@@ -909,7 +910,7 @@ function wrk_backup($bktype)
         $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /boot/cmdline.txt /var/www /etc /var/lib/redis/rune.rdb";
     } else {
         $filepath = "/run/backup_".date('Y-m-d').".tar.gz";
-        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/lib/redis/rune.rdb";
+        $cmdstring = "tar -czf ".$filepath." /var/lib/mpd /etc/mpd.conf /var/lib/redis/rune.rdb /etc/netctl /etc/mpdscribble.conf /etc/spop";
     }
     sysCmd($cmdstring);
     return $filepath;

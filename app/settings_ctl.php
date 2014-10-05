@@ -136,19 +136,24 @@ if (isset($_POST)) {
     }
     // ----- SYSTEM COMMANDS -----
     if (isset($_POST['syscmd'])){
-        if ($_POST['syscmd'] == 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
-        if ($_POST['syscmd'] == 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
-        if ($_POST['syscmd'] == 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
-        if ($_POST['syscmd'] == 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
+        if ($_POST['syscmd'] === 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
+        if ($_POST['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
+        if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
+        if ($_POST['syscmd'] === 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
     }
 }
 waitSyWrk($redis,$jobID);
+// push backup file
+if ($_POST['syscmd'] === 'backup') {
+    pushFile($redis->hGet('w_msg', $jobID[0]));
+    $redis->hDel('w_msg', $jobID[0]);
+}
 // collect system status
 $template->sysstate = "active kernel:\t".file_get_contents('/proc/version')."\n";
 $template->sysstate .= "system time:\t".implode('\n', sysCmd('date'))."\n\n";
+$template->sysstate .= "system uptime:\t".date('H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ))."\n\n";
 $template->sysstate .= "HW platform:\t".$redis->get('hwplatform')." (".$redis->get('hwplatformid').")\n\n";
 $template->sysstate .= "playerID:\t".$redis->get('playerid')."\n";
-
 $template->hostname = $redis->get('hostname');
 $template->ntpserver = $redis->get('ntpserver');
 $template->timezone = $redis->get('timezone');
