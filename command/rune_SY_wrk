@@ -146,8 +146,13 @@ if ($playerid_db === '') {
 }
 $kernel = $redis->get('kernel');
 // load i2smodule
-if ($redis->get('i2smodule') !== 'none'  &&  ($kernel === 'linux-rune-3.12.19-2-ARCH' OR $kernel === 'linux-arch-rpi_3.12.26-1-ARCH' OR $kernel === 'linux-arch-rpi_3.12.28-1-ARCH')) {
-    wrk_i2smodule($redis, $redis->get('i2smodule'));
+if ($redis->get('i2smodule') !== 'none') {
+    switch($arch_db) {
+        case '01':
+            if ($kernel !== 'linux-rune-3.6.11-18-ARCH+') $loadi2s = true;
+            break;
+    }
+    if ($loadi2s === true) wrk_i2smodule($redis, $redis->get('i2smodule'));
 }
 // refesh audio hardware status (soundcards and MPD config)
 wrk_mpdconf($redis,'refresh');
