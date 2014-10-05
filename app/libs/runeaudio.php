@@ -1888,6 +1888,17 @@ function wrk_shairport($redis, $ao, $name = null)
     $fp = fopen($file, 'w');
     fwrite($fp, implode("", $newArray));
     fclose($fp);
+    // update libao.conf
+    $file = '/etc/libao.conf';
+    $newArray = wrk_replaceTextLine($file, '', 'dev=', 'dev='.$acard->device);
+    // Commit changes to /etc/libao.conf
+    $fp = fopen($file, 'w');
+    fwrite($fp, implode("", $newArray));
+    fclose($fp);
+    if ($redis->hGet('spotify','enable') === '1') {
+        runelog('restart spopd');
+        sysCmd('systemctl restart spopd');
+    }
     // update systemd
     sysCmd('systemctl daemon-reload');
     if ($redis->hGet('airplay','enable') === '1') {
