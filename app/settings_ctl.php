@@ -151,7 +151,7 @@ if ($_POST['syscmd'] === 'backup') {
 // collect system status
 $template->sysstate = "active kernel:\t".file_get_contents('/proc/version')."\n";
 $template->sysstate .= "system time:\t".implode('\n', sysCmd('date'))."\n\n";
-$template->sysstate .= "system uptime:\t".date('H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ))."\n\n";
+$template->sysstate .= "system uptime:\t".date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ))."\n\n";
 $template->sysstate .= "HW platform:\t".$redis->get('hwplatform')." (".$redis->get('hwplatformid').")\n\n";
 $template->sysstate .= "playerID:\t".$redis->get('playerid')."\n";
 $template->hostname = $redis->get('hostname');

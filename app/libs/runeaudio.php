@@ -1359,7 +1359,7 @@ function wrk_audioOutput($redis, $action, $args = null)
     switch ($action) {
         case 'refresh':
             $redis->Del('acards');
-            $redis->Save();
+            // $redis->Save();
             // $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ']' -f 1");
             // $acards = sysCmd("cat /proc/asound/cards | grep : | cut -d '[' -f 2 | cut -d ':' -f 2");
             $acards = sysCmd("cat /proc/asound/cards | grep : | cut -b 1-3,21-");
@@ -1455,7 +1455,7 @@ function wrk_audioOutput($redis, $action, $args = null)
                 // acards loop
                 runelog('<<--------------------------- card: '.$card.' index: '.$card_index.' (finish) ---------------------------<<');
             }
-            $redis->Save();
+            // $redis->Save();
             break;
         case 'setdetails':
             $redis->hSet('acards_details', $args['card'], json_encode($args['details']));
@@ -1543,7 +1543,7 @@ function wrk_i2smodule($redis, $args)
 function wrk_kernelswitch($redis, $args)
 {
     switch($args) {
-        case 'linux-arch-3.12.28-2-ARCH':
+        case 'linux-arch-rpi_3.12.26-1-ARCH':
             $file = '/boot/config.txt';
             $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
             // Commit changes to /boot/config.txt
@@ -1551,13 +1551,13 @@ function wrk_kernelswitch($redis, $args)
             $return = fwrite($fp, implode("", $newArray));
             fclose($fp);
             $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_rune.txt');
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-arch-rpi_3.12.26-1-ARCH.txt');
             // Commit changes to /boot/config.txt
             $fp = fopen($file, 'w');
             $return = fwrite($fp, implode("", $newArray));
             fclose($fp);
             break;
-        case 'linux-rune-3.12.19-2-ARCH':
+        case 'linux-rune-rpi_3.12.19-2-ARCH':
             $file = '/boot/config.txt';
             $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
             // Commit changes to /boot/config.txt
@@ -1565,13 +1565,13 @@ function wrk_kernelswitch($redis, $args)
             $return = fwrite($fp, implode("", $newArray));
             fclose($fp);
             $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_rune.txt');
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-rpi_3.12.19-2-ARCH.txt');
             // Commit changes to /boot/config.txt
             $fp = fopen($file, 'w');
             $return = fwrite($fp, implode("", $newArray));
             fclose($fp);
             break;
-        case 'linux-rune-3.12.13-rt21_wosa':
+        case 'linux-rune-rpi_3.12.13-rt21_wosa':
             $file = '/boot/config.txt';
             $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
             // Commit changes to /boot/config.txt
@@ -1579,7 +1579,21 @@ function wrk_kernelswitch($redis, $args)
             $return = fwrite($fp, implode("",$newArray));
             fclose($fp);
             $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_wosa.txt');
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-rpi_3.12.13-rt21_wosa.txt');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("", $newArray));
+            fclose($fp);
+            break;        
+        case 'linux-rune-3.6.11-18-ARCH+':
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
+            // Commit changes to /boot/config.txt
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, implode("",$newArray));
+            fclose($fp);
+            $file = '/boot/config.txt';
+            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-3.6.11-18-ARCH+.txt');
             // Commit changes to /boot/config.txt
             $fp = fopen($file, 'w');
             $return = fwrite($fp, implode("", $newArray));
@@ -2311,7 +2325,7 @@ function ui_status($mpd, $status)
     return $status;
 }
 
-function ui_libraryHome($redis, $mpd)
+function ui_libraryHome($redis)
 {
     // Network mounts
     $networkmounts = countDirs('/mnt/MPD/NAS');
@@ -2328,7 +2342,7 @@ function ui_libraryHome($redis, $mpd)
     $dirble = json_decode(curlGet($dirblecfg['baseurl'].'amountStation/apikey/'.$dirblecfg['apikey'], $proxy));
     // runelog('dirble: ',$dirble);
     // Spotify
-    $spotify = $redis->hGet('spotify', 'enable');
+    $activePlayer = $redis->get('activePlayer');
     // Bookmarks
     $redis_bookmarks = $redis->hGetAll('bookmarks');
     $bookmarks = array();
@@ -2338,7 +2352,7 @@ function ui_libraryHome($redis, $mpd)
         $bookmarks[] = array('bookmark' => $key, 'name' => $bookmark->name, 'path' => $bookmark->path);
     }
     // runelog('bookmarks: ',$bookmarks);
-    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('Spotify' => $spotify))));
+    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
@@ -2393,7 +2407,7 @@ function ui_timezone() {
 
 function ui_update($redis ,$mpd)
 {
-    ui_libraryHome($redis, $mpd);
+    ui_libraryHome($redis);
     if ($redis->get('pl_length') !== '0') {
         sendMpdCommand($mpd, 'swap 0 0');
     } else {

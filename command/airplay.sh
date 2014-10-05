@@ -33,8 +33,10 @@
 #####################################
 if mpc | grep -q "playing"; then
    /usr/bin/mpc pause
+   redis-cli set activePlayer airplay && switch_player
    exit
 fi
 if mpc | grep -q "paused"; then
    /usr/bin/mpc play
+   redis-cli set activePlayer mpd && switch_player
 fi

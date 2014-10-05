@@ -390,14 +390,41 @@ function renderLibraryHome() {
 		} else if (obj.Dirble !== undefined && obj.Dirble !== '') {
 		// Dirble block
 			content += '<div id="home-dirble" class="home-block" data-plugin="Dirble" data-path="Dirble"><i class="fa fa-globe"></i><h3>Dirble <span id="home-count-dirble">(' + obj.Dirble + ')</span></h3>radio stations open directory</div>';
-		} else if (obj.Spotify !== undefined && obj.Spotify !== '') {
-        // Spotify block
-            content += '<div id="home-spotify" class="home-block" data-plugin="Spotify" data-path="Spotify"><i class="fa fa fa-spotify"></i><h3>Spotify<span id="home-count-spotify"></span></h3>music for everyone</div>';
+		} else if (obj.ActivePlayer !== undefined && obj.ActivePlayer !== '') {
+        // TODO: put out of this code block
+        content += '<div id="home-spotify" class="home-block" data-plugin="Spotify" data-path="Spotify"><i class="fa fa fa-spotify"></i><h3>Spotify<span id="home-count-spotify"></span></h3>music for everyone</div>';  
+        // check playback backend
+          if (obj.ActivePlayer === 'mpd') {
+            $('#player-mpd').addClass('btn-primary');
+            $('#player-spotify').removeClass('btn-primary');
+            $('#player-dlna').removeClass('btn-primary');
+            $('#player-airplay').removeClass('btn-primary');
+          }
+          if (obj.ActivePlayer === 'spotify') {
+            $('#player-mpd').removeClass('btn-primary');
+            $('#player-spotify').addClass('btn-primary');
+            $('#player-dlna').removeClass('btn-primary');
+            $('#player-airplay').removeClass('btn-primary');
+          }
+          if (obj.ActivePlayer === 'dlna') {
+            $('#player-mpd').removeClass('btn-primary');
+            $('#player-spotify').removeClass('btn-primary');
+            $('#player-dlna').addClass('btn-primary');
+            $('#player-airplay').removeClass('btn-primary');
+          }
+          if (obj.ActivePlayer === 'airplay') {
+            $('#player-mpd').removeClass('btn-primary');
+            $('#player-spotify').removeClass('btn-primary');
+            $('#player-dlna').removeClass('btn-primary');
+            $('#player-airplay').addClass('btn-primary');
+          }
         }
 		content += '</div>';
 	}
+    // Spotify (static)
+	// content += '<div class="col-md-4 col-sm-6"><div id="home-spotify" class="home-block" data-plugin="Spotify" data-path="Spotify"><i class="fa fa fa-spotify"></i><h3>Spotify<span id="home-count-spotify"></span></h3>music for everyone</div></div>';  
 	// Jamendo (static)
-	content += '<div class="col-md-4 col-sm-6"><div id="home-jamendo" class="home-block" data-plugin="Jamendo" data-path="Jamendo"><i class="fa fa-play-circle-o"></i><h3>Jamendo<span id="home-count-jamendo"></span></h3>world\'s largest platform for free music</div></div>';
+	content += '<div class="col-md-4 col-sm-6"><div id="home-jamendo" class="home-block" data-plugin="Jamendo" data-path="Jamendo"><i class="fa fa-play-circle-o"></i><h3>Jamendo<span id="home-count-jamendo"></span></h3>world\'s largest platform for free music</div></div>';      
 	document.getElementById('home-blocks').innerHTML = content;
 	loadingSpinner('db', 'hide');
 	$('span', '#db-currentpath').html('');

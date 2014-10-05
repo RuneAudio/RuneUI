@@ -27,6 +27,10 @@
                 <div class="col-sm-<?=$this->colspan ?> coverart">
                     <img id="cover-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="transparent-square">
                     <a href="#" id="social-overlay-open" class="btn btn-default" title="Share this track"><i class="fa fa-share"></i></a>
+                    <a href="#" id="player-airplay" class="btn btn-default" title="Airplay"><i class="fa fa-caret-square-o-up"></i></a>
+                    <a href="#" id="player-dlna" class="btn btn-default" title="DLNA">dlna</a>
+                    <a href="#" id="player-spotify" class="btn btn-default" title="Spotify"><i class="fa fa-spotify"></i></a>
+                    <a href="#" id="player-mpd" class="btn btn-default" title="MPD">MPD</a>
                 </div>
                 <?php endif ?>
                 <div class="col-sm-<?=$this->colspan ?> volume <?=$this->volume['divclass'] ?>">
