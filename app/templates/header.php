@@ -14,8 +14,9 @@
 	<link rel="apple-touch-icon" sizes="120x120" href="<?=$this->asset('/img/apple-touch-icon-120x120.png')?>">
 	<link rel="apple-touch-icon" sizes="76x76" href="<?=$this->asset('/img/apple-touch-icon-76x76.png')?>">
 	<link rel="apple-touch-icon" sizes="152x152" href="<?=$this->asset('/img/apple-touch-icon-152x152.png')?>">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?=$this->asset('/img/apple-touch-icon-180x180.png')?>">
 	<meta name="apple-mobile-web-app-title" content="RuneAudio">
-	<link rel="icon" type="image/png" href="<?=$this->asset('/img/favicon-196x196.png')?>" sizes="196x196">
+	<link rel="icon" type="image/png" href="<?=$this->asset('/img/favicon-192x192.png')?>" sizes="192x192">
 	<link rel="icon" type="image/png" href="<?=$this->asset('/img/favicon-160x160.png')?>" sizes="160x160">
 	<link rel="icon" type="image/png" href="<?=$this->asset('/img/favicon-96x96.png')?>" sizes="96x96">
 	<link rel="icon" type="image/png" href="<?=$this->asset('/img/favicon-16x16.png')?>" sizes="16x16">
