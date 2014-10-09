@@ -32,8 +32,9 @@
  *
  */
 
-// Predefined MPD Response messages
-define("MPD_GREETING", "OK MPD 0.18.0\n");
+// Predefined MPD & SPOP Response messages
+// define("MPD_GREETING", "OK MPD 0.18.0\n");
+// define("SPOP_GREETING", "spop 0.0.1\n");
 
 function openMpdSocket($path, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
@@ -267,10 +268,229 @@ function getPlayQueue($sock)
     return $playqueue;
 }
 
-// function getTemplate($template)
-// {
-    // return str_replace("\"","\\\"",implode("",file($template)));
-// }
+// Spotify support
+function openSpopSocket($host, $port, $type = null)
+// connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
+{
+    $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    // create non blocking socket connection
+    if ($type === 1 OR $type === 2) {
+        if ($type === 2) {
+            socket_set_nonblock($sock);
+            runelog('opened **BURST MODE 2 (non blocking)** socket resource: ',$sock);
+        } else {
+            runelog('opened **BURST MODE (blocking)** socket resource: ',$sock);
+        }
+        $sock = array('resource' => $sock, 'type' => $type);
+        $connection = socket_connect($sock['resource'], $host, $port);
+        if ($connection) {
+            // skip SPOP greeting response (first 14 bytes)
+            $header = socket_read($sock['resource'], 11, PHP_NORMAL_READ);
+            runelog("[open][".$sock['resource']."]\t>>>>>> OPEN SPOP SOCKET <<<<<< greeting response: ".$header."<<<<<<",'');
+            return $sock;
+        } else {
+            runelog("[error][".$sock['resource']."]\t>>>>>> SPOP SOCKET ERROR: ".socket_last_error($sock['resource'])." <<<<<<",'');
+            // ui_notify('SPOP sock: '.$sock.'','socket error = '.socket_last_error($sock));
+            return false;
+        }
+    // create blocking socket connection
+    } else {
+        runelog('opened **NORMAL MODE (blocking)** socket resource: ',$sock);
+        $connection = socket_connect($sock, $host, $port);
+        if ($connection) {
+            // skip SPOP greeting response (first 14 bytes)
+            $header = socket_read($sock, 11, PHP_NORMAL_READ);
+            runelog("[open][".$sock."]\t<<<<<<<<<<<< OPEN SPOP SOCKET ---- SPOP greeting response: ".$header.">>>>>>>>>>>>",'');
+            return $sock;
+        } else {
+            runelog("[error][".$sock."]\t<<<<<<<<<<<< SPOP SOCKET ERROR: ".socket_strerror(socket_last_error($sock))." >>>>>>>>>>>>",'');
+            // ui_notify('SPOP sock: '.$sock.'','socket error = '.socket_last_error($sock));
+            return false;
+        }
+    }
+}
+
+function closeSpopSocket($sock)
+{
+    if (isset($sock['resource'])) {
+      $sock = $sock['resource'];
+    }
+    sendSpopCommand($sock, 'bye');
+    // socket_shutdown($sock, 2);
+    // debug
+    runelog("[close][".$sock."]\t<<<<<< CLOSE SPOP SOCKET (".socket_strerror(socket_last_error($sock)).") >>>>>>",'');
+    socket_close($sock);
+}
+
+
+function sendSpopCommand($sock, $cmd)
+{
+    if (isset($sock['resource'])) {
+      $sock = $sock['resource'];
+    }
+    if ($cmd == 'cmediafix') {
+        socket_write($sock, 'toggle\n', strlen('toggle\n'));
+        usleep(500000);
+        socket_write($sock, 'toggle\n', strlen('toggle\n'));
+    } else {
+        $cmd = $cmd."\n";
+        socket_write($sock, $cmd, strlen($cmd));
+    }
+    runelog("SPOP COMMAND: (socket=".$sock.")", $cmd);
+    //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
+}
+
+// detect end of SPOP response
+function checkSpopEOR($chunk)
+{
+    if (strpos($chunk, "\n") !== false) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function readSpopResponse($sock)
+{
+    // initialize vars
+    $output = '';
+    $read = '';
+    $read_monitor = array();
+    $write_monitor  = NULL;
+    $except_monitor = NULL;
+    // debug
+    // socket monitoring
+    // iteration counter
+    // $i = 0;
+    // timestamp
+    // $starttime = microtime(true);
+    // runelog('START timestamp:', $starttime);
+    if ($sock['type'] === 2) {
+        // handle burst mode 2 (nonblocking) socket session
+        $buff = 1024;
+        $end = 0;
+        while($end === 0) {
+            $read = socket_read($sock['resource'], $buff);
+            if (checkSpopEOR($read) === true) {
+                ob_start();
+                echo $read;
+                // flush();
+                ob_flush();
+                ob_end_clean();
+                $end = 1;
+                break;
+            }
+            if (strpos($read, "\n")) {
+                ob_start();
+                echo $read;
+                // flush();
+                ob_flush();
+                ob_end_clean();
+            } else {
+                continue;               
+            }
+            usleep(200);
+        }
+    } elseif ($sock['type'] === 1) {
+    // handle burst mode 1 (blocking) socket session
+    $read_monitor = array($sock['resource']);
+    $buff = 1310720;
+    // debug
+    // $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, NULL);
+    // runelog('socket_activity (pre-loop):', $socket_activity);
+        do {
+            // debug
+            // $i++;
+            // $elapsed = microtime(true);
+            // read data from socket
+            $read = socket_read($sock['resource'], $buff);
+            // debug
+            // runelog('socket_read status', $read);
+            if ($read === '' OR $read === false) {
+                $output = socket_strerror(socket_last_error($sock));
+                // debug
+                runelog('socket disconnected!!!', $output);
+                break; 
+            }
+            $output .= $read;
+            // usleep(200);
+            // debug
+            // runelog('_1_socket_activity (in-loop): iteration='.$i.' ', $socket_activity);
+            // runelog('_1_buffer length:', strlen($output));
+            // runelog('_1_iteration:', $i);
+            // runelog('_1_timestamp:', $elapsed);
+        } while (checkSpopEOR($read) === false);
+        // debug
+        // runelog('END timestamp:', $elapsed);
+        // runelog('RESPONSE length:', strlen($output));
+        // runelog('EXEC TIME:', $elapsed - $starttime);
+        return $output;
+    } else {
+        // handle normal mode (blocking) socket session
+        $read_monitor = array($sock);
+        $buff = 4096;
+        // debug
+        // $socket_activity = socket_select($read_monitor, $write_monitor, $except_monitor, NULL);
+        // runelog('socket_activity (pre-loop):', $socket_activity);
+        do {
+            // debug
+            // $i++;
+            // $elapsed = microtime(true);
+            $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            // debug
+            // runelog('socket_read status', $read);
+            if ($read === '' OR $read === false) {
+                $output = socket_strerror(socket_last_error($sock));
+                // debug
+                runelog('socket disconnected!!!', $output);
+                break; 
+            }
+            $output .= $read;
+            // usleep(200);
+            // debug
+            // runelog('read buffer content (0 mode)', $read);
+            // runelog('_0_buffer length:', strlen($output));
+            // runelog('_0_iteration:', $i);
+            // runelog('_0_timestamp:', $elapsed);
+        } while (checkSpopEOR($read) === false);
+        // debug
+        // runelog('END timestamp:', $elapsed);
+        // runelog('RESPONSE length:', strlen($output));
+        // runelog('EXEC TIME:', $elapsed - $starttime);
+        return $output;
+    }
+}
+
+function sendSpopIdle($sock)
+{
+    sendSpopCommand($sock,'idle');
+    $response = readSpopResponse($sock);
+    return $response;
+}
+
+function monitorSpopState($sock)
+{
+    if ($change = sendSpopIdle($sock)) {
+        $status = _parseSpopStatusResponse(SpopStatus($sock));
+        runelog('monitorSpopState()', $status);
+        return $status;
+    }
+}
+
+function SpopStatus($sock)
+{
+    sendSpopCommand($sock, "status");
+    $status = readSpopResponse($sock);
+    return $status;
+}
+
+function getSpopPlayQueue($sock)
+{
+    sendSpopCommand($sock, 'qpls');
+    $playqueue = readSpopResponse($sock);
+    //return _parseFileListResponse($playqueue);
+    return $playqueue;
+}
 
 function getMpdOutputs($mpd)
 {
@@ -538,6 +758,70 @@ function _parseStatusResponse($resp)
         // if ($audio_format[2] > 2) $plistArray['audio_channels'] = "Multichannel";
     }
     return $plistArray;
+}
+
+function _parseSpopStatusResponse($resp)
+{
+if (is_null($resp)) {
+        return null;
+    } else {
+/*        
+OK MPD 0.18.0
+status
+volume: 74
+repeat: 1
+random: 0
+single: 0
+consume: 0
+playlist: 38
+playlistlength: 1
+mixrampdb: 0.000000
+state: play
+song: 0
+songid: 1
+time: 12:292
+elapsed: 12.469
+bitrate: 700
+audio: 44100:16:2
+updating_db: 4
+nextsong: 0
+nextsongid: 1
+
+OK MPD 0.18.0
+playlistinfo 0
+file: USB/Musica/01 Prinçesa.flac
+Last-Modified: 2013-11-23T21:36:07Z
+Time: 293
+Artist: Fabrizio De André
+Title: Prinçesa
+Album: Anime salve
+Date: 1996
+Track: 01
+Disc: 1
+Pos: 0
+Id: 1
+*/    
+        $status = array();
+        $resp = json_decode($resp);
+        if ($resp->status === "playing") $status['state'] = "play";
+        if ($resp->status === "paused") $status['state'] = "pause";
+        if ($resp->repeat === false) $status['repeat'] = 0;
+        if ($resp->repeat === true) $status['repeat'] = 1;
+        if ($resp->shuffle === false) $status['random'] = 0;
+        if ($resp->shuffle === true) $status['random'] = 1;
+        $status['playlistlength'] = $resp->total_tracks;
+        $status['currentartist'] = $resp->artist;
+        $status['currentalbum'] = $resp->album;
+        $status['currentsong'] = $resp->title;
+        $status['song'] = $resp->current_track;
+        $status['elapsed'] = $resp->position;
+        $status['time'] = $resp->duration / 1000;
+        $status['volume'] = 100;
+        $status['song_percent'] = round(100 - (($status['time'] - $status['elapsed']) * 100 / $status['time']));
+        $status['uri'] = $resp->uri;
+        $status['popularity'] = $resp->popularity;        
+        return $status;
+    }
 }
 
 function _parseOutputsResponse($input, $active)
@@ -2416,16 +2700,27 @@ function ui_timezone() {
   return $zones_array;
 }
 
-function ui_update($redis ,$mpd)
+function ui_update($redis ,$sock)
 {
     ui_libraryHome($redis);
-    if ($redis->get('pl_length') !== '0') {
-        sendMpdCommand($mpd, 'swap 0 0');
-    } else {
-        sendMpdCommand($mpd, 'clear');
+    switch ($redis->get('activePlayer')) {
+        case 'MPD':
+            if ($redis->get('pl_length') !== '0') {
+                sendMpdCommand($sock, 'swap 0 0');
+            } else {
+                sendMpdCommand($sock, 'clear');
+            }
+            // return MPD response
+            return readMpdResponse($sock);
+            break;
+        case 'Spotify':
+            sendSpopCommand($sock, 'repeat');
+            sendSpopCommand($sock, 'repeat');
+             // return SPOP response
+            return readSpopResponse($sock);
+            break;
     }
-    // return MPD response
-    return readMpdResponse($mpd);
+   
 }
 
 function ui_mpd_response($mpd, $notify = null)

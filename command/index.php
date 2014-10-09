@@ -41,7 +41,13 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
         // debug
         // runelog('MPD command: ',$_GET['cmd']);
         if ($_GET['cmd'] === 'renderui') {
-           $response = ui_update($redis, $mpd);
+            if ($redis->get('activePlayer') === 'Spotify') {
+                $socket = $spop;
+            }
+            if ($redis->get('activePlayer') === 'MPD') {
+                $socket = $mpd;
+            }
+            $response = ui_update($redis, $socket);
         } else if ($_GET['cmd'] === 'wifiscan') {
             wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wificfg', 'action' => 'scan'));
             echo 'wlan scan queued';
@@ -54,6 +60,10 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
         if (!$response) $response = readMpdResponse($mpd);
         echo $response;
     }
+} else if (isset($_GET['switchplayer']) && $_GET['switchplayer'] != '') {
+    // switch player engine
+    $redis->set('activePlayer', $_GET['switchplayer']);
+    ui_libraryHome($redis);
 } else {
     echo 'MPD COMMAND INTERFACE<br>';
     echo 'INTERNAL USE ONLY<br>';

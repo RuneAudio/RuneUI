@@ -47,6 +47,8 @@ $engine->loadExtension(new \League\Plates\Extension\URI($_SERVER['REQUEST_URI'])
 $template = new \League\Plates\Template($engine);
 // set devmode
 $template->dev = $devmode;
+// activePlayer
+$template->activeplayer = $redis->get('activePlayer');
 // allowed controllers
 $controllers = array(
     'credits',

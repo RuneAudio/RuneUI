@@ -149,11 +149,11 @@ if ($_POST['syscmd'] === 'backup') {
     $redis->hDel('w_msg', $jobID[0]);
 }
 // collect system status
-$template->sysstate = "active kernel:\t".file_get_contents('/proc/version')."\n";
-$template->sysstate .= "system time:\t".implode('\n', sysCmd('date'))."\n\n";
-$template->sysstate .= "system uptime:\t".date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ))."\n\n";
-$template->sysstate .= "HW platform:\t".$redis->get('hwplatform')." (".$redis->get('hwplatformid').")\n\n";
-$template->sysstate .= "playerID:\t".$redis->get('playerid')."\n";
+$template->sysstate['kernel'] = file_get_contents('/proc/version');
+$template->sysstate['time'] = implode('\n', sysCmd('date'));
+$template->sysstate['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
+$template->sysstate['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
+$template->sysstate['playerID'] = $redis->get('playerid');
 $template->hostname = $redis->get('hostname');
 $template->ntpserver = $redis->get('ntpserver');
 $template->timezone = $redis->get('timezone');

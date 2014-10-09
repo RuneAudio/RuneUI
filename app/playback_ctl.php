@@ -38,7 +38,7 @@ if ($redis->get('coverart') == 1) {
     $template->coverart = 0;
     $template->colspan = 6;
 }
-if ($redis->get('volume') == 1) {
+if ($redis->get('volume') == 1 && $redis->get('activePlayer') !== 'Spotify') {
     $template->volume['color'] = '#0095D8';
     $template->volume['readonly'] = 'false';
 } else {

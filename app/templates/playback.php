@@ -2,11 +2,13 @@
     <!-- PLAYBACK PANEL -->
     <div id="playback" class="tab-pane active">
         <div class="container txtmid">
-            <span id="currentartist"></span>
+			<span id="currentartist"></span>
             <span id="currentsong"></span>
             <span id="currentalbum"></span>
-            <span id="playlist-position">&nbsp;</span>
-            <span id="format-bitrate"></span>
+			<div id="overlay-playsource-open" title="View and change playback source">
+				<span id="playlist-position"><button class="btn btn-default btn-xs">MPD</button><span></span></span>
+				<span id="format-bitrate"></span>
+			</div>
             <div class="knobs row">
                 <div class="col-sm-<?=$this->colspan ?>">
                     <div id="timeknob">
@@ -26,11 +28,8 @@
                 <?php if ($this->coverart == 1): ?>
                 <div class="col-sm-<?=$this->colspan ?> coverart">
                     <img id="cover-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="transparent-square">
-                    <a href="#" id="social-overlay-open" class="btn btn-default" title="Share this track"><i class="fa fa-share"></i></a>
-                    <a href="#" id="player-airplay" class="btn btn-default" title="Airplay"><i class="fa fa-caret-square-o-up"></i></a>
-                    <a href="#" id="player-dlna" class="btn btn-default" title="DLNA">dlna</a>
-                    <a href="#" id="player-spotify" class="btn btn-default" title="Spotify"><i class="fa fa-spotify"></i></a>
-                    <a href="#" id="player-mpd" class="btn btn-default" title="MPD">MPD</a>
+                    <button id="overlay-social-open" class="btn btn-default" type="button" title="Share this track"><i class="fa fa-share"></i></button>
+                    <!--<a href="#" id="overlay-playsource-open" class="btn btn-default" title="Play source">MPD</a>-->
                 </div>
                 <?php endif ?>
                 <div class="col-sm-<?=$this->colspan ?> volume <?=$this->volume['divclass'] ?>">
@@ -300,7 +299,7 @@
         </div>
     </div>
 </div>
-<div id="social-overlay" class="overlay-scale closed">
+<div id="overlay-social" class="overlay-scale closed">
     <nav>
         <ul>
             <li><span>Share this track</span></li>
@@ -308,7 +307,19 @@
             <li><a id="urlFacebook" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="btn btn-default btn-lg btn-block share-facebook" href="#"><i class="fa fa-facebook sx"></i> Share on Facebook</a></li>
             <li><a id="urlGooglePlus" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="btn btn-default btn-lg btn-block share-google-plus" href="#"><i class="fa fa-google-plus sx"></i> Share on Google+</a></li>
             <li><a id="support-us" class="btn btn-default btn-lg btn-block" href="http://www.runeaudio.com/support-us/" target="_blank"><i class="fa fa-heart sx"></i> Support RuneAudio</a></li>
-            <li><button type="button" class="overlay-close btn btn-link"><i class="fa fa-times"></i> close this layer</button></li>
+            <li><button id="overlay-social-close" class="btn btn-link" type="button"><i class="fa fa-times"></i> close this layer</button></li>
+        </ul>
+    </nav>
+</div>
+<div id="overlay-playsource" class="overlay-scale closed">
+    <nav>
+        <ul>
+            <li><span>Playback source</span></li>
+			<li><a href="javascript:;" id="playsource-mpd" class="btn btn-default btn-lg btn-block" title="Switch to MPD"><i class="fa fa-linux sx"></i> MPD</a></li>
+			<li><a href="javascript:;" id="playsource-spotify" class="btn btn-default btn-lg btn-block inactive" title="Switch to Spotify"><i class="fa fa-spotify sx"></i> <span>spop</span> Spotify</a></li>
+			<li><a href="javascript:;" id="playsource-airplay" class="btn btn-default btn-lg btn-block inactive"><i class="fa fa-apple sx"></i> <span>ShairPort</span> Airplay</a></li>
+			<li><a href="javascript:;" id="playsource-dlna" class="btn btn-default btn-lg btn-block inactive"><i class="fa fa-puzzle-piece sx"></i> <span>upmpdcli</span> DLNA</a></li>
+            <li><button id="overlay-playsource-close" class="btn btn-link" type="button"><i class="fa fa-times"></i> close this layer</button></li>
         </ul>
     </nav>
 </div>

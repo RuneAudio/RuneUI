@@ -2,11 +2,14 @@
     <h1>Settings</h1>
     <form class="form-horizontal" action="" method="post" role="form"> 
         <fieldset>
-            <legend>System status</legend>
-            <div class="form-group" id="systemstatus">
-                <pre id="systemstatus"><?=$this->sysstate ?></pre>
-            </div>
             <legend>Environment</legend>
+			<div class="form-group" id="systemstatus">
+                <label class="control-label col-sm-2">Check system status</label>
+                <div class="col-sm-10">
+                    <a class="btn btn-default btn-lg" href="#modal-sysinfo" data-toggle="modal"><i class="fa fa-info-circle sx"></i>show status</a>
+                    <span class="help-block">See information regarding the system and its status.</span>
+                </div>
+            </div>
             <div class="form-group" id="environment">
                 <label class="control-label col-sm-2" for="hostname">Player hostname</label>
                 <div class="col-sm-10">
@@ -166,7 +169,7 @@
             </div>
             <div <?php if($this->spotify['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="spotifyBox">
                 <div class="form-group">
-                    <label for="spotify" class="control-label col-sm-2"><i class="fa fa fa-spotify"></i> Spotify</label>
+                    <label for="spotify" class="control-label col-sm-2">Spotify</label>
                     <div class="col-sm-10">
                         <label class="switch-light well" onclick="">
                             <input id="spotify" name="features[spotify][enable]" type="checkbox" value="1"<?php if($this->spotify['enable'] === '1'): ?> checked="checked" <?php endif ?>>
@@ -320,7 +323,7 @@
                     <input class="btn btn-primary btn-lg" type="submit" name="syscmd" value="backup" id="syscmd-backup">
                 </div>
             </div>
-                    </fieldset>
+		</fieldset>
     </form>
     <!--
     <form class="form-horizontal" method="post">
@@ -344,4 +347,31 @@
         </fieldset>
     </form>
     -->
+</div>
+<div id="modal-sysinfo" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-sysinfo-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">System status</h3>
+            </div>
+            <div class="modal-body">
+				<strong>Active kernel</strong>
+				<p><?=$this->sysstate['kernel'] ?></p>
+				<strong>System time</strong>
+				<p><?=$this->sysstate['time'] ?><br>
+				<em>refresh page to update</em></p>
+				<strong>System uptime</strong>
+				<p><?=$this->sysstate['uptime'] ?><br>
+				<em>refresh page to update</em></p>
+				<strong>HW platform</strong>
+				<p><?=$this->sysstate['HWplatform'] ?></p>
+				<strong>playerID</strong>
+				<p><?=$this->sysstate['playerID'] ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>

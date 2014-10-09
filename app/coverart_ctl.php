@@ -41,6 +41,11 @@ $lastfm_apikey = $redis->get('lastfm_apikey');
 $proxy = $redis->hGetall('proxy');
 // connect to MPD daemon
 $mpd2 = openMpdSocket('/run/mpd.sock', 0);
+// Spotify
+if ($redis->get('activePlayer') === 'Spotify') {
+    runelog('rune_PL_wrk: open SPOP socket');
+    $spop = openSpopSocket('localhost', 6602, 1);
+}
 // direct output bypass template system
 $tplfile = 0;
 // output switch
@@ -62,7 +67,7 @@ $request_coverfile = substr($request_uri, strrpos($request_uri, "/") + 1);
 runelog("HTTP GET (request_coverfile)", $request_coverfile);
 $current_mpd_folder = substr(substr($currentpath, 0, strrpos($currentpath, "/")), 9);
 runelog("MPD (current_mpd_folder)", $current_mpd_folder);
-if (substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $request_folder) {
+if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $request_folder) && $template->activeplayer === 'MPD') {
     // extact song details
     if (isset($curTrack[0]['Title'])) {
         $status['currentartist'] = $curTrack[0]['Artist'];
@@ -169,9 +174,23 @@ if (substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $reque
         $output = 1;
     }
 } else {
-    // redirect to /covers NGiNX location
-    $local_cover_url =  'http://'.$_SERVER["SERVER_ADDR"].'/covers/'.$request_folder.'/'.$request_coverfile;
-    runelog("coverart: redirect to local-coverart (url): ", $local_cover_url);
-    header('Location: '.$local_cover_url, true, 301);
+    if ($template->activeplayer === 'Spotify') {
+        sendSpopCommand($spop, 'image');
+        $spotify_cover = readSpopResponse($spop);
+        $spotify_cover = json_decode($spotify_cover);
+        $spotify_cover = base64_decode($spotify_cover->data);
+        $bufferinfo = new finfo(FILEINFO_MIME);
+        $spotify_cover_mime = $bufferinfo->buffer($spotify_cover);
+        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header('Expires: 0'); // Proxies.
+        header('Content-Type: '.$spotify_cover_mime);
+        echo $spotify_cover;
+    } else {
+        // redirect to /covers NGiNX location
+        $local_cover_url =  'http://'.$_SERVER["SERVER_ADDR"].'/covers/'.$request_folder.'/'.$request_coverfile;
+        runelog("coverart: redirect to local-coverart (url): ", $local_cover_url);
+        header('Location: '.$local_cover_url, true, 301);
+    }
 }
 runelog("\n--------------------- coverart (end) ---------------------");
