@@ -174,6 +174,13 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     echo curlGet('http://api.jamendo.com/v3.0/radios/stream?client_id='.$apikey.'&format=json&name='.$_POST['args'], $proxy);
                 }
                 break;
+            case 'spotify':
+                if (isset($_POST['plid'])) {
+                    echo spopDB($spop, $_POST['plid']);
+                } else {
+                    echo spopDB($spop);
+                }
+                break;
             case 'addradio':
                 // input array= $_POST['radio']['label'] $_POST['radio']['url']
                     wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'webradio', 'action' => 'add', 'args' => $_POST['radio']));

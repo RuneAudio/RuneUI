@@ -268,29 +268,6 @@ function getPlayQueue($sock)
     return $playqueue;
 }
 
-function getSpopQueue($sock)
-{
-    $queue = '';
-    sendSpopCommand($sock, 'qls');
-    $playqueue = readSpopResponse($sock);
-    //return _parseFileListResponse($playqueue);
-    $pl = json_decode($playqueue);
-    foreach ($pl->tracks as $track) {
-        $queue .= "file: ".$track->uri."\n";
-        $queue .= "Time: ".($track->duration / 1000)."\n";
-        $queue .= "Track: ".$track->index."\n";
-        $queue .= "Title: ".$track->title."\n";
-        $queue .= "Artist: ".$track->artist."\n";
-        $queue .= "AlbumArtist: ".$track->artist."\n";
-        $queue .= "Album: ".$track->album."\n";
-        $queue .= "Date:\n";
-        $queue .= "Genre:\n";
-        $queue .= "Pos: ".$track->index."\n";
-        $queue .= "Id: ".$track->index."\n";
-    }
-    return $queue;
-}
-
 // Spotify support
 function openSpopSocket($host, $port, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
@@ -513,6 +490,43 @@ function getSpopPlayQueue($sock)
     $playqueue = readSpopResponse($sock);
     //return _parseFileListResponse($playqueue);
     return $playqueue;
+}
+
+function getSpopQueue($sock)
+{
+    $queue = '';
+    sendSpopCommand($sock, 'qls');
+    $playqueue = readSpopResponse($sock);
+    //return _parseFileListResponse($playqueue);
+    $pl = json_decode($playqueue);
+    foreach ($pl->tracks as $track) {
+        $queue .= "file: ".$track->uri."\n";
+        $queue .= "Time: ".($track->duration / 1000)."\n";
+        $queue .= "Track: ".$track->index."\n";
+        $queue .= "Title: ".$track->title."\n";
+        $queue .= "Artist: ".$track->artist."\n";
+        $queue .= "AlbumArtist: ".$track->artist."\n";
+        $queue .= "Album: ".$track->album."\n";
+        $queue .= "Date:\n";
+        $queue .= "Genre:\n";
+        $queue .= "Pos: ".$track->index."\n";
+        $queue .= "Id: ".$track->index."\n";
+    }
+    return $queue;
+}
+
+function spopDB($sock, $query = null)
+{
+    if (isset($plid)) {
+        sendSpopCommand($sock,"ls ".$plid);
+        break;
+    } else {
+        sendSpopCommand($sock, 'ls');
+        break;
+    }
+    $response = readSpopResponse($sock);
+    // return _parseFileListResponse($response);
+    return $response;
 }
 
 function getMpdOutputs($mpd)
@@ -788,59 +802,38 @@ function _parseSpopStatusResponse($resp)
 if (is_null($resp)) {
         return null;
     } else {
-/*        
-OK MPD 0.18.0
-status
-volume: 74
-repeat: 1
-random: 0
-single: 0
-consume: 0
-playlist: 38
-playlistlength: 1
-mixrampdb: 0.000000
-state: play
-song: 0
-songid: 1
-time: 12:292
-elapsed: 12.469
-bitrate: 700
-audio: 44100:16:2
-updating_db: 4
-nextsong: 0
-nextsongid: 1
-
-OK MPD 0.18.0
-playlistinfo 0
-file: USB/Musica/01 Prinçesa.flac
-Last-Modified: 2013-11-23T21:36:07Z
-Time: 293
-Artist: Fabrizio De André
-Title: Prinçesa
-Album: Anime salve
-Date: 1996
-Track: 01
-Disc: 1
-Pos: 0
-Id: 1
-*/    
         $status = array();
         $resp = json_decode($resp);
         if ($resp->status === "playing") $status['state'] = "play";
+        if ($resp->status === "stopped") $status['state'] = "stop";
         if ($resp->status === "paused") $status['state'] = "pause";
-        if ($resp->repeat === false) $status['repeat'] = '0';
-        if ($resp->repeat === true) $status['repeat'] = '1';
-        if ($resp->shuffle === false) $status['random'] = '0';
-        if ($resp->shuffle === true) $status['random'] = '1';
+        if ($resp->repeat === false) {
+            $status['repeat'] = '0';
+        } else {
+            $status['repeat'] = '1';
+        }
+        if ($resp->shuffle === false) {
+            $status['random'] = '0';
+        } else {
+            $status['random'] = '1';
+        }
         $status['playlistlength'] = $resp->total_tracks;
         $status['currentartist'] = $resp->artist;
         $status['currentalbum'] = $resp->album;
         $status['currentsong'] = $resp->title;
         $status['song'] = $resp->current_track -1;
-        $status['elapsed'] = $resp->position;
+        if (isset($resp->position)) {
+            $status['elapsed'] = $resp->position;
+        } else {
+            $status['elapsed'] = 0;
+        }
         $status['time'] = $resp->duration / 1000;
         $status['volume'] = 100;
-        $status['song_percent'] = round(100 - (($status['time'] - $status['elapsed']) * 100 / $status['time']));
+        if ($resp->status === "stopped") {
+            $status['song_percent'] = 0;
+        } else {
+            $status['song_percent'] = round(100 - (($status['time'] - $status['elapsed']) * 100 / $status['time']));
+        }
         $status['uri'] = $resp->uri;
         $status['popularity'] = $resp->popularity;        
         return $status;
@@ -2718,7 +2711,7 @@ function ui_timezone() {
   foreach(timezone_identifiers_list() as $key => $zone) {
     date_default_timezone_set($zone);
     $zones_array[$key]['zone'] = $zone;
-    $zones_array[$key]['diff_from_GMT'] = 'UTC/GMT ' . date('P', $timestamp);
+    $zones_array[$key]['diff_from_GMT'] = 'GMT ' . date('P', $timestamp);
   }
   return $zones_array;
 }
