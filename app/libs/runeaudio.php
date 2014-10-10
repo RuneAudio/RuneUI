@@ -813,7 +813,7 @@ Id: 1
         $status['currentartist'] = $resp->artist;
         $status['currentalbum'] = $resp->album;
         $status['currentsong'] = $resp->title;
-        $status['song'] = $resp->current_track;
+        $status['song'] = $resp->current_track -1;
         $status['elapsed'] = $resp->position;
         $status['time'] = $resp->duration / 1000;
         $status['volume'] = 100;

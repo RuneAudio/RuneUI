@@ -146,8 +146,9 @@ if (!$mpd OR !$spop) {
                 ui_update($redis, $spop);
             }
             // $status = _parseSpopStatusResponse(spopStatus($spop));
-            $status =  monitorSpopState($spop);
-            ui_render('playback', json_encode($status));
+            $status =  json_encode(monitorSpopState($spop));
+            ui_render('playback', $status);
+            runelog('rune_PL_wrk: UI JSON', $status);
             runelog('rune_PL_wrk: close SPOP socket');
             closeSpopSocket($spop);
         }

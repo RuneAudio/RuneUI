@@ -31,42 +31,45 @@
  *  coder: Simone De Gregori
  *
  */
+// direct output bypass template system
+$tplfile = 0;
 runelog("\n--------------------- coverart (start) ---------------------");
 // turn off output buffering
 ob_implicit_flush(0);
-include('getid3/audioinfo.class.php');
-// get Last.FM api-key
-$lastfm_apikey = $redis->get('lastfm_apikey');
-// get HTTP proxy settings
-$proxy = $redis->hGetall('proxy');
-// connect to MPD daemon
-$mpd2 = openMpdSocket('/run/mpd.sock', 0);
-// Spotify
+// --------------------- MPD ---------------------
+if ($template->activeplayer === 'MPD') {
+    // output switch
+    $output = 0;
+    include('getid3/audioinfo.class.php');
+    // get Last.FM api-key
+    $lastfm_apikey = $redis->get('lastfm_apikey');
+    // get HTTP proxy settings
+    $proxy = $redis->hGetall('proxy');
+    // connect to MPD daemon
+    $mpd2 = openMpdSocket('/run/mpd.sock', 0);
+    // fetch MPD status
+    $status = _parseStatusResponse(MpdStatus($mpd2));
+    $curTrack = getTrackInfo($mpd2, $status['song']);
+    $mpdRoot = "/mnt/MPD/";
+    $trackMpdPath = findPLposPath($status['song'], $mpd2);
+    $currentpath = $mpdRoot.$trackMpdPath;
+    closeMpdSocket($mpd2);
+    // debug
+    runelog("MPD current path", $currentpath);
+    $request_uri = urldecode($_SERVER['REQUEST_URI']);
+    runelog("HTTP GET request_uri (urldecoded)", $request_uri);
+    $request_folder = substr(substr($request_uri, 0, strrpos($request_uri, "/")), 10);
+    runelog("HTTP GET (request_folder)", $request_folder);
+    $request_coverfile = substr($request_uri, strrpos($request_uri, "/") + 1);
+    runelog("HTTP GET (request_coverfile)", $request_coverfile);
+    $current_mpd_folder = substr(substr($currentpath, 0, strrpos($currentpath, "/")), 9);
+    runelog("MPD (current_mpd_folder)", $current_mpd_folder);
+}
+// --------------------- Spotify ---------------------
 if ($redis->get('activePlayer') === 'Spotify') {
     runelog('rune_PL_wrk: open SPOP socket');
     $spop = openSpopSocket('localhost', 6602, 1);
 }
-// direct output bypass template system
-$tplfile = 0;
-// output switch
-$output = 0;
-// fetch MPD status
-$status = _parseStatusResponse(MpdStatus($mpd2));
-$curTrack = getTrackInfo($mpd2, $status['song']);
-$mpdRoot = "/mnt/MPD/";
-$trackMpdPath = findPLposPath($status['song'], $mpd2);
-$currentpath = $mpdRoot.$trackMpdPath;
-closeMpdSocket($mpd2);
-// debug
-runelog("MPD current path", $currentpath);
-$request_uri = urldecode($_SERVER['REQUEST_URI']);
-runelog("HTTP GET request_uri (urldecoded)", $request_uri);
-$request_folder = substr(substr($request_uri, 0, strrpos($request_uri, "/")), 10);
-runelog("HTTP GET (request_folder)", $request_folder);
-$request_coverfile = substr($request_uri, strrpos($request_uri, "/") + 1);
-runelog("HTTP GET (request_coverfile)", $request_coverfile);
-$current_mpd_folder = substr(substr($currentpath, 0, strrpos($currentpath, "/")), 9);
-runelog("MPD (current_mpd_folder)", $current_mpd_folder);
 if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $request_folder) && $template->activeplayer === 'MPD') {
     // extact song details
     if (isset($curTrack[0]['Title'])) {
@@ -175,10 +178,20 @@ if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $requ
     }
 } else {
     if ($template->activeplayer === 'Spotify') {
-        sendSpopCommand($spop, 'image');
-        $spotify_cover = readSpopResponse($spop);
-        $spotify_cover = json_decode($spotify_cover);
-        $spotify_cover = base64_decode($spotify_cover->data);
+        $count = 1;
+        do {
+            sendSpopCommand($spop, 'image');
+            unset($spotify_cover);
+            $spotify_cover = readSpopResponse($spop);
+            $spotify_cover = json_decode($spotify_cover);
+            usleep(500000);
+            runelog('coverart (spotify): retry n: '.$count, $spotify_cover->status);
+            if ($spotify_cover->status === 'ok') {
+                $spotify_cover = base64_decode($spotify_cover->data);
+                break;
+            }
+            $count++;
+        } while ($count !== 10);
         $bufferinfo = new finfo(FILEINFO_MIME);
         $spotify_cover_mime = $bufferinfo->buffer($spotify_cover);
         header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
