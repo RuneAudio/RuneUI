@@ -699,7 +699,8 @@ $redis->pconnect('/tmp/redis.sock');
         } // end foreach loop
     } // end if loop
     // unload CPU
-    usleep(250000);
+    // usleep(250000);
+    usleep(500000);
 } // end while loop
 // --- WORKER MAIN LOOP //
 // close Redis connection

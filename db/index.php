@@ -35,6 +35,8 @@
 include($_SERVER['HOME'].'/app/config/config.php');
 ini_set('display_errors', 1);
 error_reporting('E_ALL');
+// check current player backend
+$activePlayer = $redis->get('activePlayer');
 if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
     if ( !$mpd ) {
         echo 'Error Connecting to MPD daemon ';
@@ -52,22 +54,26 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 // $mpd2 = openMpdSocket('/run/mpd.sock', 2);
                 // getPlayQueue($mpd2);
                 // closeMpdSocket($mpd2);
-                echo getPlayQueue($mpd);
+                if ($activePlayer === 'MPD') {
+                    echo getPlayQueue($mpd);
+                } elseif ($activePlayer === 'Spotify') {
+                    echo getSpopQueue($spop);
+                }
                 break;
             case 'add':
                 if (isset($_POST['path'])) {
                     addQueue($mpd, $_POST['path']);
-                // send MPD response to UI
-                ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
+                    // send MPD response to UI
+                    ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
                 }
                 break;
             case 'addplay':
                 if (isset($_POST['path'])) {
-                $status = _parseStatusResponse(MpdStatus($mpd));
-                $pos = $status['playlistlength'] ;
-                addQueue($mpd, $_POST['path'], 1, $pos);
-                // send MPD response to UI
-                ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
+                    $status = _parseStatusResponse(MpdStatus($mpd));
+                    $pos = $status['playlistlength'] ;
+                    addQueue($mpd, $_POST['path'], 1, $pos);
+                    // send MPD response to UI
+                    ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
                 }
                 break;
             case 'addreplaceplay':
@@ -197,5 +203,7 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
 }
 // close MPD connection
 closeMpdSocket($mpd);
+// close MPD connection
+closeSpopSocket($spop);
 // close Redis connection
 $redis->close();

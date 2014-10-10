@@ -268,6 +268,29 @@ function getPlayQueue($sock)
     return $playqueue;
 }
 
+function getSpopQueue($sock)
+{
+    $queue = '';
+    sendSpopCommand($sock, 'qls');
+    $playqueue = readSpopResponse($sock);
+    //return _parseFileListResponse($playqueue);
+    $pl = json_decode($playqueue);
+    foreach ($pl->tracks as $track) {
+        $queue .= "file: ".$track->uri."\n";
+        $queue .= "Time: ".($track->duration / 1000)."\n";
+        $queue .= "Track: ".$track->index."\n";
+        $queue .= "Title: ".$track->title."\n";
+        $queue .= "Artist: ".$track->artist."\n";
+        $queue .= "AlbumArtist: ".$track->artist."\n";
+        $queue .= "Album: ".$track->album."\n";
+        $queue .= "Date:\n";
+        $queue .= "Genre:\n";
+        $queue .= "Pos: ".$track->index."\n";
+        $queue .= "Id: ".$track->index."\n";
+    }
+    return $queue;
+}
+
 // Spotify support
 function openSpopSocket($host, $port, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
@@ -805,10 +828,10 @@ Id: 1
         $resp = json_decode($resp);
         if ($resp->status === "playing") $status['state'] = "play";
         if ($resp->status === "paused") $status['state'] = "pause";
-        if ($resp->repeat === false) $status['repeat'] = 0;
-        if ($resp->repeat === true) $status['repeat'] = 1;
-        if ($resp->shuffle === false) $status['random'] = 0;
-        if ($resp->shuffle === true) $status['random'] = 1;
+        if ($resp->repeat === false) $status['repeat'] = '0';
+        if ($resp->repeat === true) $status['repeat'] = '1';
+        if ($resp->shuffle === false) $status['random'] = '0';
+        if ($resp->shuffle === true) $status['random'] = '1';
         $status['playlistlength'] = $resp->total_tracks;
         $status['currentartist'] = $resp->artist;
         $status['currentalbum'] = $resp->album;
