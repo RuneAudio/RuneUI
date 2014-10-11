@@ -33,7 +33,7 @@
  */
 // common include
 include($_SERVER['HOME'].'/app/config/config.php');
-ini_set('display_errors', 1);
+ini_set('display_errors', -1);
 error_reporting('E_ALL');
 // check current player backend
 $activePlayer = $redis->get('activePlayer');
@@ -175,8 +175,8 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 }
                 break;
             case 'spotify':
-                if (isset($_POST['plid'])) {
-                    echo spopDB($spop, $_POST['plid']);
+                if (isset($_GET['plid'])) {
+                    echo spopDB($spop, $_GET['plid']);
                 } else {
                     echo spopDB($spop);
                 }

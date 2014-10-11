@@ -515,17 +515,14 @@ function getSpopQueue($sock)
     return $queue;
 }
 
-function spopDB($sock, $query = null)
+function spopDB($sock, $plid = null)
 {
     if (isset($plid)) {
         sendSpopCommand($sock,"ls ".$plid);
-        break;
     } else {
         sendSpopCommand($sock, 'ls');
-        break;
     }
     $response = readSpopResponse($sock);
-    // return _parseFileListResponse($response);
     return $response;
 }
 
@@ -717,7 +714,6 @@ function _parseFileListResponse($resp)
         // $plistFile = "";
         $plCounter = -1;
         while ($plistLine) {
-            // TODO: testing!!! (synology @eaDir garbage filtering)
             // list ( $element, $value ) = explode(": ",$plistLine);
             if (!strpos($plistLine,'@eaDir')) list ($element, $value) = explode(': ', $plistLine);
             if ($element === 'file' OR $element === 'playlist') {
@@ -2653,6 +2649,8 @@ function ui_libraryHome($redis)
     $dirble = json_decode(curlGet($dirblecfg['baseurl'].'amountStation/apikey/'.$dirblecfg['apikey'], $proxy));
     // runelog('dirble: ',$dirble);
     // Spotify
+    $spotify = $redis->hGet('spotify', 'enable');
+    // Check current player backend
     $activePlayer = $redis->get('activePlayer');
     // Bookmarks
     $redis_bookmarks = $redis->hGetAll('bookmarks');
@@ -2663,7 +2661,8 @@ function ui_libraryHome($redis)
         $bookmarks[] = array('bookmark' => $key, 'name' => $bookmark->name, 'path' => $bookmark->path);
     }
     // runelog('bookmarks: ',$bookmarks);
-    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
+    // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
+    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
