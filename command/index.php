@@ -63,6 +63,10 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
             } elseif ($activePlayer === 'Spotify') {
                 // MPD -> SPOP command conversion
                 if ($_GET['cmd'] === 'pause') $_GET['cmd'] = 'toggle';
+                if ($_GET['cmd'] === 'clear') {
+                    $_GET['cmd'] = 'qclear';
+                    $redis->hIncrBy('spotify', 'plversion', 1);
+                }
                 if (strpos($_GET['cmd'], 'repeat') === 0) $_GET['cmd'] = 'repeat';
                 if (strpos($_GET['cmd'], 'random') === 0) $_GET['cmd'] = 'shuffle';
                 if (strpos($_GET['cmd'], 'seek') === 0) {
@@ -76,14 +80,16 @@ if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
                 if (strpos($_GET['cmd'], 'deleteid') === 0) {
                     $remove_track = explode(" ", $_GET['cmd']);
                     $_GET['cmd'] = 'qrm '.$remove_track[1];
+                    $redis->hIncrBy('spotify', 'plversion', 1);
                 }
                 sendSpopCommand($spop, $_GET['cmd']);
+                $redis->hSet('spotify', 'lastcmd', $_GET['cmd']);
                 if (!$response) $response = readSpopResponse($spop);
             }
         }
         echo $response;
     }
-} elseif (isset($_GET['switchplayer']) && $_GET['switchplayer'] != '') {
+} elseif (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
     // switch player engine
     $redis->set('activePlayer', $_GET['switchplayer']);
     ui_libraryHome($redis);

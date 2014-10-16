@@ -58,6 +58,8 @@ function redisDatastore($redis,$action) {
             $redis->hSet('spotify', 'enable', 0);
             $redis->hSet('spotify', 'user', 'user');
             $redis->hSet('spotify', 'pass', 'pass'); 
+            $redis->hSet('spotify', 'plversion', 1);
+            $redis->hSet('spotify', 'lastcmd', '');            
             $redis->set('coverart', 1);
             $redis->set('playmod', 0);
             $redis->set('ramplay', 0);
@@ -205,6 +207,8 @@ function redisDatastore($redis,$action) {
             $redis->hGet('spotify', 'enable') || $redis->hSet('spotify', 'enable', 0);
             $redis->hGet('spotify', 'user') || $redis->hSet('spotify', 'user', 'user');
             $redis->hGet('spotify', 'pass') || $redis->hSet('spotify', 'pass', 'pass');
+            $redis->hGet('spotify', 'plversion') || $redis->hSet('spotify', 'plversion', 1);
+            $redis->hGet('spotify', 'lastcmd') || $redis->hSet('spotify', 'lastcmd', '');
             $redis->get('udevil') || $redis->set('udevil', 1);
             $redis->get('coverart') || $redis->set('coverart', 1);
             $redis->get('playmod') || $redis->set('playmod', 0);

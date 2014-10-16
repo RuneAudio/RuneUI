@@ -66,6 +66,6 @@ if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php') {
     runelog('[connection.php] >>> OPEN MPD SOCKET [BURST MODE [1] (blocking)] <<<','');
     $mpd = openMpdSocket('/run/mpd.sock', 1);
 }
-if ($redis->get('activePlayer') === 'Spotify') {
+if ($redis->hGet('spotify', 'enable') === '1') {
     $spop = openSpopSocket('localhost', 6602, 1);
 }

@@ -175,11 +175,48 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 }
                 break;
             case 'spotify':
-                if (isset($_GET['plid'])) {
-                    echo spopDB($spop, $_GET['plid']);
+                if (isset($_POST['plid'])) {
+                    echo spopDB($spop, $_POST['plid']);
                 } else {
                     echo spopDB($spop);
                 }
+                break;
+            case 'spadd':
+                if ($_POST['querytype'] === 'spotify-playlist') {
+                    sendSpopCommand($spop, 'add '.$_POST['path']);
+                } else {
+                    $path = explode('-', $_POST['path']);
+					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                }
+                $redis->hSet('spotify', 'lastcmd', 'add');
+                $redis->hIncrBy('spotify', 'plversion', 1);
+                break;
+            case 'spaddplay':
+                 if ($_POST['querytype'] === 'spotify-playlist') {
+                    sendSpopCommand($spop, 'add '.$_POST['path']);
+                } else {
+                    $path = explode('-', $_POST['path']);
+					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                }
+                $trackid = json_decode(readSpopResponse($spop));
+                $redis->hSet('spotify', 'lastcmd', 'add');
+                $redis->hIncrBy('spotify', 'plversion', 1);
+                usleep(300000);
+				sendSpopCommand($spop, 'goto '.($trackid->total_tracks));
+                break;
+            case 'spaddreplaceplay':
+                sendSpopCommand($spop, 'qclear');
+				if ($_POST['querytype'] === 'spotify-playlist') {
+                    sendSpopCommand($spop, 'add '.$_POST['path']);
+                } else {
+                    $path = explode('-', $_POST['path']);
+					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                }
+                $trackid = json_decode(readSpopResponse($spop));
+                $redis->hSet('spotify', 'lastcmd', 'add');
+                $redis->hIncrBy('spotify', 'plversion', 1);
+                usleep(300000);
+				sendSpopCommand($spop, 'goto '.($trackid->total_tracks));
                 break;
             case 'addradio':
                 // input array= $_POST['radio']['label'] $_POST['radio']['url']

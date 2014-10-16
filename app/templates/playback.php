@@ -129,9 +129,9 @@
                 <button id="pl-lastPage" class="btn btn-default" type="button" title="Scroll to the bottom"><i class="fa fa-angle-double-down"></i></button>
             </div>
             <div id="pl-manage">
-                <button id="pl-list" class="btn btn-default <?php if ($this->activePlayer === 'Spotify'): ?>disabled<?php endif; ?>" type="button" title="Manage playlists"><i class="fa fa-file-text-o"></i></button>
-                <button class="btn btn-default <?php if ($this->activePlayer === 'Spotify'): ?>disabled<?php endif; ?>" type="button" title="Save current queue as playlist" data-toggle="modal" data-target="#modal-pl-save"><i class="fa fa-save"></i></button>
-                <button class="btn btn-default <?php if ($this->activePlayer === 'Spotify'): ?>disabled<?php endif; ?>" type="button" title="Clear the playing queue" data-toggle="modal" data-target="#modal-pl-clear"><i class="fa fa-trash-o"></i></button>
+                <button id="pl-manage-list" class="btn btn-default" type="button" title="Manage playlists"><i class="fa fa-file-text-o"></i></button>
+                <button id="pl-manage-save" class="btn btn-default" type="button" title="Save current queue as playlist" data-toggle="modal" data-target="#modal-pl-save"><i class="fa fa-save"></i></button>
+                <button id="pl-manage-clear" class="btn btn-default" type="button" title="Clear the playing queue" data-toggle="modal" data-target="#modal-pl-clear"><i class="fa fa-trash-o"></i></button>
             </div>
             <div id="pl-currentpath" class="hide">
                 <i class="fa fa-folder-open"></i>
@@ -164,6 +164,20 @@
             <li><a href="javascript:;" data-cmd="wraddplay"><i class="fa fa-play sx"></i> Add and play</a></li>
             <li><a href="javascript:;" data-cmd="wraddreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
             <li><a href="javascript:;" data-cmd="wrsave"><i class="fa fa-microphone sx"></i> Save in My Webradios</a></li>
+        </ul>
+    </div>
+	<div id="context-menu-spotify-pl" class="context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:;" data-cmd="spadd" data-type="spotify-playlist"><i class="fa fa-plus-circle sx"></i> Add</a></li>
+            <li><a href="javascript:;" data-cmd="spaddplay" data-type="spotify-playlist"><i class="fa fa-play sx"></i> Add and play</a></li>
+            <li><a href="javascript:;" data-cmd="spaddreplaceplay" data-type="spotify-playlist"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
+        </ul>
+    </div>
+	<div id="context-menu-spotify" class="context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:;" data-cmd="spadd" data-type="spotify-track"><i class="fa fa-plus-circle sx"></i> Add</a></li>
+            <li><a href="javascript:;" data-cmd="spaddplay" data-type="spotify-track"><i class="fa fa-play sx"></i> Add and play</a></li>
+            <li><a href="javascript:;" data-cmd="spaddreplaceplay" data-type="spotify-track"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
         </ul>
     </div>
     <div id="context-menu-webradio" class="context-menu">
