@@ -86,16 +86,16 @@
                 <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
                 <div class="col-sm-10">
                     <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
-                        <option value="linux-arch-3.12.26-2-ARCH" <?php if($this->kernel === 'linux-arch-3.12.26-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.26-2&nbsp;&nbsp;&nbsp;ARCH&nbsp;[RuneAudio v0.3-beta]</option>
-                        <option value="linux-rune-3.12.19-2-ARCH" <?php if($this->kernel === 'linux-rune-3.12.19-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.19-2&nbsp;&nbsp;&nbsp;RUNE&nbsp;[RuneAudio v0.3-alpha]</option>
-                        <option value="linux-arch-3.6.11-18-ARCH+" <?php if($this->kernel === 'linux-arch-3.6.11-18-ARCH+'): ?> selected <?php endif ?>>Linux kernel 3.6.11-18&nbsp;&nbsp;&nbsp;ARCH+&nbsp;[RuneAudio v0.1-beta/v0.2-beta]</option>
-                        <option value="linux-rune-3.12.13-rt21_wosa" <?php if($this->kernel === 'linux-rune-3.12.13-rt21_wosa'): ?> selected <?php endif ?>>Linux kernel 3.12.13-rt&nbsp;&nbsp;&nbsp;RUNE-RT&nbsp;[Wolfson Audio Card]</option>
+                        <option value="linux-arch-rpi_3.12.26-1-ARCH" <?php if($this->kernel === 'linux-arch-rpi_3.12.26-1-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.26-1&nbsp;&nbsp;&nbsp;ARCH&nbsp;[RuneAudio v0.3-beta]</option>
+                        <option value="linux-rune-rpi_3.12.19-2-ARCH" <?php if($this->kernel === 'linux-rune-rpi_3.12.19-2-ARCH'): ?> selected <?php endif ?>>Linux kernel 3.12.19-2&nbsp;&nbsp;&nbsp;RUNE&nbsp;[RuneAudio v0.3-alpha]</option>
+                        <option value="linux-rune-rpi_3.6.11-18-ARCH+" <?php if($this->kernel === 'linux-rune-rpi_3.6.11-18-ARCH+'): ?> selected <?php endif ?>>Linux kernel 3.6.11-18&nbsp;&nbsp;&nbsp;ARCH+&nbsp;[RuneAudio v0.1-beta/v0.2-beta]</option>
+                        <option value="linux-rune-rpi_3.12.13-rt21_wosa" <?php if($this->kernel === 'linux-rune-rpi_3.12.13-rt21_wosa'): ?> selected <?php endif ?>>Linux kernel 3.12.13-rt&nbsp;&nbsp;&nbsp;RUNE-RT&nbsp;[Wolfson Audio Card]</option>
                     </select>
                     <span class="help-block">Switch Linux Kernel version (REBOOT REQUIRED). <strong>Linux kernel 3.12.26-2</strong> is the default kernel in the current release, <strong>Linux kernel 3.12.19-2</strong> is the kernel used in RuneAudio v0.3-alpha, <strong>Linux kernel 3.6.11-18</strong> is the kernel used in RuneAudio v0.1-beta/v0.2-beta (it has no support for I&#178;S), <strong>Linux kernel 3.12.13-rt</strong> is an EXPERIMENTAL kernel (not suitable for all configurations), it is optimized for <strong>Wolfson Audio Card</strong> support and it is the default option for that type of soundcard.</span>
                 </div>
                 <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
                 <div class="col-sm-10">
-                    <select class="selectpicker" name="i2smodule" data-style="btn-default btn-lg" <?php if($this->kernel === 'linux-rune-3.12.13-rt21_wosa'): ?>disabled<?php endif; ?>>
+                    <select class="selectpicker" name="i2smodule" data-style="btn-default btn-lg" <?php if($this->kernel === 'linux-rune-rpi_3.12.13-rt21_wosa' OR $this->kernel === 'linux-rune-rpi_3.6.11-18-ARCH+'): ?>disabled<?php endif; ?>>
                         <?php if($this->kernel !== 'linux-rune-3.12.13-rt21_wosa'): ?>
                         <option value="none" <?php if($this->i2smodule === 'none'): ?> selected <?php endif ?>>I&#178;S disabled (default)</option>
                         <option value="berrynos" <?php if($this->i2smodule === 'berrynos'): ?> selected <?php endif ?>>G2Labs BerryNOS</option>

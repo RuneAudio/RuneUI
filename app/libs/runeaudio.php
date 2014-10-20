@@ -1442,6 +1442,8 @@ $updateh = 0;
         // start netctl profile for wired nics
         if ($args->wireless !== '1') sysCmd('netctl start '.$args->name);
         sysCmd('systemctl restart mpd');
+        // set process priority
+        sysCmdAsync('sleep 1 && rune_prio nice');
     }
     // update hash if necessary
     $updateh === 0 || $redis->set($args->name.'_hash', md5_file('/etc/netctl/'.$args->name));
@@ -1862,64 +1864,19 @@ function wrk_i2smodule($redis, $args)
 
 function wrk_kernelswitch($redis, $args)
 {
-    switch($args) {
-        case 'linux-arch-rpi_3.12.26-1-ARCH':
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-arch-rpi_3.12.26-1-ARCH.txt');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            break;
-        case 'linux-rune-rpi_3.12.19-2-ARCH':
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-rpi_3.12.19-2-ARCH.txt');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            break;
-        case 'linux-rune-rpi_3.12.13-rt21_wosa':
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("",$newArray));
-            fclose($fp);
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-rpi_3.12.13-rt21_wosa.txt');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            break;        
-        case 'linux-rune-3.6.11-18-ARCH+':
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("",$newArray));
-            fclose($fp);
-            $file = '/boot/config.txt';
-            $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_linux-rune-3.6.11-18-ARCH+.txt');
-            // Commit changes to /boot/config.txt
-            $fp = fopen($file, 'w');
-            $return = fwrite($fp, implode("", $newArray));
-            fclose($fp);
-            break;
-    }
+    $file = '/boot/config.txt';
+    $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
+    // Commit changes to /boot/config.txt
+    $fp = fopen($file, 'w');
+    $return = fwrite($fp, implode("", $newArray));
+    fclose($fp);
+    $file = '/boot/config.txt';
+    $newArray = wrk_replaceTextLine($file, '', 'cmdline=', 'cmdline=cmdline_'.$args.'.txt');
+    // Commit changes to /boot/config.txt
+    $fp = fopen($file, 'w');
+    $return = fwrite($fp, implode("", $newArray));
+    fclose($fp);
+
     if ($return) {
         $redis->set('kernel', $args);
         $redis->save();
@@ -2171,6 +2128,8 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 if ($redis->get('scrobbling_lastfm') === '1') {
                     sysCmd('systemctl restart mpdscribble');
                 }
+                // set process priority
+                sysCmdAsync('sleep 1 && rune_prio nice');
             }
             break;
         case 'stop':
@@ -2218,7 +2177,7 @@ function wrk_shairport($redis, $ao, $name = null)
     $fp = fopen($file, 'w');
     fwrite($fp, implode("", $newArray));
     fclose($fp);
-    if ($redis->hGet('spotify','enable') === '1') {
+    if ($redis->get('activePlayer') === 'Spotify') {
         runelog('restart spopd');
         sysCmd('systemctl restart spopd');
     }
@@ -2228,6 +2187,8 @@ function wrk_shairport($redis, $ao, $name = null)
         runelog('restart shairport');
         sysCmd('systemctl restart shairport');
     }
+    // set process priority
+    sysCmdAsync('sleep 1 && rune_prio nice');
 }
 
 function wrk_sourcemount($redis, $action, $id)
@@ -2332,6 +2293,8 @@ function wrk_sourcecfg($redis, $action, $args)
             // reset mount index
             if ($return) $redis->del('mountidx');
             sysCmd('systemctl start mpd');
+            // set process priority
+            sysCmdAsync('sleep 1 && rune_prio nice');
             break;
         case 'mountall':
             $return = wrk_sourcemount($redis, 'mountall');
@@ -2438,17 +2401,23 @@ function wrk_switchplayer($redis, $playerengine)
         case 'MPD':
             $return = sysCmd('systemctl start mpd');
             usleep(500000);
+            if ($redis->hGet('lastfm','enable') === '1') sysCmd('systemctl start mpdscribble');
             $redis->set('activePlayer', 'MPD');
             $return = sysCmd('systemctl stop spopd');
             $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+            // set process priority
+            sysCmdAsync('rune_prio nice');
             break;
         
         case 'Spotify':
             $return = sysCmd('systemctl start spopd');
             usleep(500000);
+            if ($redis->hGet('lastfm','enable') === '1') sysCmd('systemctl stop mpdscribble');
             $redis->set('activePlayer', 'Spotify');
             $return = sysCmd('systemctl stop mpd');
             $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+            // set process priority
+            sysCmdAsync('rune_prio nice');
             break;
     }
 return $return;    
@@ -2502,6 +2471,8 @@ function wrk_changeHostname($redis, $newhostname)
     // restart SAMBA << TODO: use systemd!!!
     sysCmd('killall -HUP smbd && killall -HUP nmbd');
     // TODO: restart MiniDLNA
+    // set process priority
+    sysCmdAsync('sleep 1 && rune_prio nice');
 }
 
 function wrk_upmpdcli($redis, $name = null)
@@ -2522,6 +2493,8 @@ function wrk_upmpdcli($redis, $name = null)
         runelog('restart upmpdcli');
         sysCmd('systemctl restart upmpdcli');
     }
+    // set process priority
+    sysCmdAsync('sleep 1 && rune_prio nice');
 }
 
 function alsa_findHwMixerControl($cardID)
