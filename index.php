@@ -48,7 +48,7 @@ $template = new \League\Plates\Template($engine);
 // set devmode
 $template->dev = $devmode;
 // activePlayer
-$template->activeplayer = $redis->get('activePlayer');
+$activePlayer = $redis->get('activePlayer');
 // allowed controllers
 $controllers = array(
     'credits',
@@ -122,8 +122,14 @@ $template->dev = $devmode;
 if ($tplfile !== 0) {
     echo $template->render('default_lo');
 }
-// close MPD connection
-closeMpdSocket($mpd);
+// close palyer backend connection
+if ($activePlayer === 'MPD') {
+    // close MPD connection
+    closeMpdSocket($mpd);
+} elseif ($activePlayer === 'Spotify') {
+    // close SPOP connection
+    closeSpopSocket($spop);
+}
 // close Redis connection
 // $redis->close();
 // close session

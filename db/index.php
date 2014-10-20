@@ -38,36 +38,42 @@ error_reporting('E_ALL');
 // check current player backend
 $activePlayer = $redis->get('activePlayer');
 if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
-    if ( !$mpd ) {
-        echo 'Error Connecting to MPD daemon ';
-    }  else {
-        switch ($_GET['cmd']) {
-            case 'filepath':
-                if (isset($_POST['path'])) {
-                    echo json_encode(searchDB($mpd, 'filepath', $_POST['path']));
-                } else {
-                    echo json_encode(searchDB($mpd, 'filepath'));
-                }
-                break;
-            case 'playlist':
-                // open non blocking socket with mpd daemon
-                // $mpd2 = openMpdSocket('/run/mpd.sock', 2);
-                // getPlayQueue($mpd2);
-                // closeMpdSocket($mpd2);
+    switch ($_GET['cmd']) {
+        case 'filepath':
+            if (isset($_POST['path']) && $_POST['path'] !== '') {
+                echo json_encode(searchDB($mpd, 'filepath', $_POST['path']));
+            } else {
                 if ($activePlayer === 'MPD') {
-                    echo getPlayQueue($mpd);
+                    // MPD
+                    echo json_encode(searchDB($mpd, 'filepath'));
                 } elseif ($activePlayer === 'Spotify') {
-                    echo getSpopQueue($spop);
+                    // SPOP
+                    echo json_encode('home');
                 }
-                break;
-            case 'add':
+            }
+            break;
+        case 'playlist':
+            // open non blocking socket with mpd daemon
+            // $mpd2 = openMpdSocket('/run/mpd.sock', 2);
+            // getPlayQueue($mpd2);
+            // closeMpdSocket($mpd2);
+            if ($activePlayer === 'MPD') {
+                echo getPlayQueue($mpd);
+            } elseif ($activePlayer === 'Spotify') {
+                echo getSpopQueue($spop);
+            }
+            break;
+        case 'add':
+            if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
                     addQueue($mpd, $_POST['path']);
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
                 }
-                break;
-            case 'addplay':
+            }
+            break;
+        case 'addplay':
+            if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
                     $status = _parseStatusResponse(MpdStatus($mpd));
                     $pos = $status['playlistlength'] ;
@@ -75,8 +81,10 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Added to playlist', 'text' => $_POST['path']));
                 }
-                break;
-            case 'addreplaceplay':
+            }
+            break;
+        case 'addreplaceplay':
+            if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
                     sendMpdCommand($mpd, 'clear');
                     addQueue($mpd, $_POST['path']);
@@ -84,40 +92,46 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Playlist cleared<br> Added to playlist', 'text' => $_POST['path']));
                 }
-                break;
-            case 'update':
+            }
+            break;
+        case 'update':
+            if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
                     sendMpdCommand($mpd, "update \"".html_entity_decode($_POST['path'])."\"");
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'MPD update DB path:', 'text' => $_POST['path']));
                 }
-                break;
-            case 'search':
+            }
+            break;
+        case 'search':
+            if ($activePlayer === 'MPD') {
                 if (isset($_POST['query']) && isset($_GET['querytype'])) {
                     echo json_encode(searchDB($mpd, $_GET['querytype'], $_POST['query']));
                 }
-                break;
-            case 'bookmark':
-                if (isset($_POST['path'])) {
-                    if (saveBookmark($redis, $_POST['path'])) {
-                        ui_notify('Bookmark saved', $_POST['path'].' added to bookmarks');
-                        ui_libraryHome($redis);
-                    } else {
-                        ui_notify('Error saving bookmark', 'please try again later');
-                    }
+            }
+            break;
+        case 'bookmark':
+            if (isset($_POST['path'])) {
+                if (saveBookmark($redis, $_POST['path'])) {
+                    ui_notify('Bookmark saved', $_POST['path'].' added to bookmarks');
+                    ui_libraryHome($redis);
+                } else {
+                    ui_notify('Error saving bookmark', 'please try again later');
                 }
-                if (isset($_POST['id'])) {
-                    if (deleteBookmark($redis,$_POST['id'])) {
-                        ui_notify('Bookmark deleted', '"' . $_POST['name'] . '" successfully removed');
-                        ui_libraryHome($redis);
-                    } else {
-                        ui_notify('Error deleting bookmark', 'Please try again later');
-                    }
+            }
+            if (isset($_POST['id'])) {
+                if (deleteBookmark($redis,$_POST['id'])) {
+                    ui_notify('Bookmark deleted', '"' . $_POST['name'] . '" successfully removed');
+                    ui_libraryHome($redis);
+                } else {
+                    ui_notify('Error deleting bookmark', 'Please try again later');
                 }
-                break;
-            case 'dirble':
-            $proxy = $redis->hGetall('proxy');
-            $dirblecfg = $redis->hGetAll('dirble');
+            }
+            break;
+        case 'dirble':
+            if ($activePlayer === 'MPD') {
+                $proxy = $redis->hGetall('proxy');
+                $dirblecfg = $redis->hGetAll('dirble');
                 if (isset($_POST['querytype'])) {
                     // if ($_POST['querytype'] === 'amountStation') {
                     if ($_POST['querytype'] === 'amountStation') {
@@ -155,8 +169,10 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     }
 
                 }
-                break;
-            case 'jamendo':
+            }
+            break;
+        case 'jamendo':
+            if ($activePlayer === 'MPD') {
                 $apikey = $redis->hGet('jamendo', 'clientid');
                 $proxy = $redis->hGetall('proxy');
                 if ($_POST['querytype'] === 'radio') {
@@ -173,81 +189,101 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                 if ($_POST['querytype'] === 'radio' && !empty($_POST['args'])) {
                     echo curlGet('http://api.jamendo.com/v3.0/radios/stream?client_id='.$apikey.'&format=json&name='.$_POST['args'], $proxy);
                 }
-                break;
-            case 'spotify':
+            }
+            break;
+        case 'spotify':
+            if ($activePlayer === 'Spotify') {
                 if (isset($_POST['plid'])) {
                     echo spopDB($spop, $_POST['plid']);
                 } else {
                     echo spopDB($spop);
                 }
-                break;
-            case 'spadd':
+            }
+            break;
+        case 'spadd':
+            if ($activePlayer === 'Spotify') {
                 if ($_POST['querytype'] === 'spotify-playlist') {
                     sendSpopCommand($spop, 'add '.$_POST['path']);
                 } else {
                     $path = explode('-', $_POST['path']);
-					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                    sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
                 }
                 $redis->hSet('spotify', 'lastcmd', 'add');
                 $redis->hIncrBy('spotify', 'plversion', 1);
-                break;
-            case 'spaddplay':
-                 if ($_POST['querytype'] === 'spotify-playlist') {
+            }
+            break;
+        case 'spaddplay':
+            if ($activePlayer === 'Spotify') {
+                $status = _parseSpopStatusResponse(SpopStatus($spop));
+                $trackid = $status['playlistlength'] + 1;
+                if ($_POST['querytype'] === 'spotify-playlist') {
                     sendSpopCommand($spop, 'add '.$_POST['path']);
                 } else {
                     $path = explode('-', $_POST['path']);
-					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                    sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
                 }
-                $trackid = json_decode(readSpopResponse($spop));
                 $redis->hSet('spotify', 'lastcmd', 'add');
                 $redis->hIncrBy('spotify', 'plversion', 1);
                 usleep(300000);
-				sendSpopCommand($spop, 'goto '.($trackid->total_tracks));
-                break;
-            case 'spaddreplaceplay':
+                sendSpopCommand($spop, 'goto '.$trackid);
+            }
+            break;
+        case 'spaddreplaceplay':
+            if ($activePlayer === 'Spotify') {
                 sendSpopCommand($spop, 'qclear');
-				if ($_POST['querytype'] === 'spotify-playlist') {
+                if ($_POST['querytype'] === 'spotify-playlist') {
                     sendSpopCommand($spop, 'add '.$_POST['path']);
                 } else {
                     $path = explode('-', $_POST['path']);
-					sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
+                    sendSpopCommand($spop, 'add '.$path[0].' '.$path[1]);
                 }
-                $trackid = json_decode(readSpopResponse($spop));
                 $redis->hSet('spotify', 'lastcmd', 'add');
                 $redis->hIncrBy('spotify', 'plversion', 1);
                 usleep(300000);
-				sendSpopCommand($spop, 'goto '.($trackid->total_tracks));
-                break;
-            case 'addradio':
-                // input array= $_POST['radio']['label'] $_POST['radio']['url']
-                    wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'webradio', 'action' => 'add', 'args' => $_POST['radio']));
-                break;
-            case 'editradio':
+                sendSpopCommand($spop, 'play');
+            }
+            break;
+        case 'addradio':
+            if ($activePlayer === 'MPD') {
+            // input array= $_POST['radio']['label'] $_POST['radio']['url']
+                wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'webradio', 'action' => 'add', 'args' => $_POST['radio']));
+            }
+            break;
+        case 'editradio':
+            if ($activePlayer === 'MPD') {
                 // input array= $_POST['radio']['label'] $_POST['radio']['newlabel'] $_POST['radio']['url']
                 wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'webradio', 'action' => 'edit', 'args' => $_POST['radio']));
-                break;
-            case 'readradio':
+            }
+            break;
+        case 'readradio':
+            if ($activePlayer === 'MPD') {
                 $name = parseFileStr(parseFileStr($_POST['filename'], '.', 1), '/');
                 echo json_encode(array('name' => $name, 'url' => $redis->hGet('webradios', $name)));
-                break;
-            case 'deleteradio':
+            }
+            break;
+        case 'deleteradio':
+            if ($activePlayer === 'MPD') {
                 // input array= $_POST['radio']['label']
                 wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'webradio', 'action' => 'delete', 'args' => $_POST['radio']));
-                break;
-            case 'test':
-                $proxy = $redis->hGetall('proxy');
-                print_r($proxy);
-                break;
-        }
+            }
+            break;
+        case 'test':
+            $proxy = $redis->hGetall('proxy');
+            print_r($proxy);
+            break;
     }
 } else {
   echo 'MPD DB INTERFACE<br>';
   echo 'INTERNAL USE ONLY<br>';
   echo 'hosted on runeaudio.local:81';
 }
-// close MPD connection
-closeMpdSocket($mpd);
-// close MPD connection
-closeSpopSocket($spop);
+// close palyer backend connection
+if ($activePlayer === 'MPD') {
+    // close MPD connection
+    closeMpdSocket($mpd);
+} elseif ($activePlayer === 'Spotify') {
+    // close SPOP connection
+    closeSpopSocket($spop);
+}
 // close Redis connection
 $redis->close();

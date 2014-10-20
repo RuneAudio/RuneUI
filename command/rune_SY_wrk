@@ -48,6 +48,8 @@ sysCmd('chmod 777 /run');
 // Connect to Redis backend
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
+// read activePlayer state
+$activePlayer = $redis->get('activePlayer');
 // read registered HW architecture
 $arch_db = $redis->get('hwplatformid');
 runelog('registered architecture: ', $arch_db);
@@ -154,6 +156,12 @@ if ($redis->get('i2smodule') !== 'none') {
     }
     if ($loadi2s === true) wrk_i2smodule($redis, $redis->get('i2smodule'));
 }
+// start player backend
+if ($activePlayer === 'MPD') {
+    sysCmd('systemctl start mpd');
+} elseif ($activePlayer === 'Spotify') {
+    sysCmd('systemctl start spopd');
+}
 // refesh audio hardware status (soundcards and MPD config)
 wrk_mpdconf($redis,'refresh');
 // start shairport
@@ -172,7 +180,7 @@ if ($redis->get('udevil') === '1') {
     sysCmd('systemctl start udevil');
 }
 // start mpdscribble
-if ($redis->hGet('lastfm','enable') === '1') {
+if ($redis->hGet('lastfm','enable') === '1' && $activePlayer === 'MPD') {
     runelog("service: MPDSCRIBBLE start",'');
     sysCmd('systemctl start mpdscribble');
 }
@@ -184,9 +192,22 @@ if ($redis->hGet('lastfm','enable') === '1') {
 // hashCFG('check_mpd',$redis);
 // Cmediafix startup check
 if ($redis->get('cmediafix') === '1') {
-    $mpd = openMpdSocket('/run/mpd.sock');
-    sendMpdCommand($mpd, 'cmediafix');
-    closeMpdSocket($mpd);
+    // close palyer backend connection
+    if ($activePlayer === 'MPD') {
+        // open MPD connection
+        $mpd = openMpdSocket('/run/mpd.sock');
+        // send cmediafix command
+        sendMpdCommand($mpd, 'cmediafix');
+        // close MPD connection
+        closeMpdSocket($mpd);
+    } elseif ($activePlayer === 'Spotify') {
+        // open SPOP connection
+        $spop = openSpopSocket('localhost', 6602, 1);
+        // send cmediafix command
+        sendSpopCommand($mpd, 'cmediafix');
+        // close SPOP connection
+        closeSpopSocket($spop);
+    }
 }
 // initialize OrionProfile
 // runelog('env: SET KERNEL PROFILE',$redis->get('orionprofile'));
@@ -586,6 +607,12 @@ $redis->pconnect('/tmp/redis.sock');
                     runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
                     if (wrk_sourcecfg($redis, $job->action,$job->args)) sysCmd('mpc update');
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+                case 'switchplayer':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    if (wrk_switchplayer($redis, $job->args)) ui_notify_async('Switch Player', 'Current active player engine: '.$job->args, $jobID);
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'sysAcl':

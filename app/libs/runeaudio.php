@@ -141,7 +141,11 @@ function readMpdResponse($sock)
         $buff = 1024;
         $end = 0;
         while($end === 0) {
-            $read = socket_read($sock['resource'], $buff);
+            if (is_resource($sock['resource']) === true) {
+                $read = socket_read($sock['resource'], $buff);
+            } else {
+                break;
+            }
             if (checkEOR($read) === true) {
                 ob_start();
                 echo $read;
@@ -174,7 +178,11 @@ function readMpdResponse($sock)
             // $i++;
             // $elapsed = microtime(true);
             // read data from socket
-            $read = socket_read($sock['resource'], $buff);
+            if (is_resource($sock['resource']) === true) {
+                $read = socket_read($sock['resource'], $buff);
+            } else {
+                break;
+            }
             // debug
             // runelog('socket_read status', $read);
             if ($read === '' OR $read === false) {
@@ -207,7 +215,11 @@ function readMpdResponse($sock)
             // debug
             // $i++;
             // $elapsed = microtime(true);
-            $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            if (is_resource($sock) === true) {
+                $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            } else {
+                break;
+            }
             // debug
             // runelog('socket_read status', $read);
             if ($read === '' OR $read === false) {
@@ -370,7 +382,11 @@ function readSpopResponse($sock)
         $buff = 1024;
         $end = 0;
         while($end === 0) {
-            $read = socket_read($sock['resource'], $buff);
+            if (is_resource($sock['resource']) === true) {
+                $read = socket_read($sock['resource'], $buff);
+            } else {
+                break;
+            }
             if (checkSpopEOR($read) === true) {
                 ob_start();
                 echo $read;
@@ -403,7 +419,11 @@ function readSpopResponse($sock)
             // $i++;
             // $elapsed = microtime(true);
             // read data from socket
-            $read = socket_read($sock['resource'], $buff);
+            if (is_resource($sock['resource']) === true) {
+                $read = socket_read($sock['resource'], $buff);
+            } else {
+                break;
+            }
             // debug
             // runelog('socket_read status', $read);
             if ($read === '' OR $read === false) {
@@ -436,7 +456,11 @@ function readSpopResponse($sock)
             // debug
             // $i++;
             // $elapsed = microtime(true);
-            $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            if (is_resource($sock) === true) {
+                $read = socket_read($sock, $buff, PHP_NORMAL_READ);
+            } else {
+                break;
+            }
             // debug
             // runelog('socket_read status', $read);
             if ($read === '' OR $read === false) {
@@ -2137,13 +2161,16 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             wrk_mpdconf($redis, 'restart');
             break;
         case 'start':
-            sysCmd('systemctl start mpd');
-            if ($redis->get('mpd_playback_status') === 'playing') {
-                syscmd('mpc play');
-            }
-            // restart mpdscribble
-            if ($redis->get('scrobbling_lastfm') === '1') {
-                sysCmd('systemctl restart mpdscribble');
+            $activePlayer = $redis->get('activePlayer');
+            if ($activePlayer === 'MPD') {
+                sysCmd('systemctl start mpd');
+                if ($redis->get('mpd_playback_status') === 'playing') {
+                    syscmd('mpc play');
+                }
+                // restart mpdscribble
+                if ($redis->get('scrobbling_lastfm') === '1') {
+                    sysCmd('systemctl restart mpdscribble');
+                }
             }
             break;
         case 'stop':
@@ -2403,6 +2430,28 @@ function wrk_playerID($arch)
     // $playerid = $arch.md5(uniqid(rand(), true)).md5(uniqid(rand(), true));
     $playerid = $arch.md5_file('/sys/class/net/eth0/address');
     return $playerid;
+}
+
+function wrk_switchplayer($redis, $playerengine)
+{
+    switch ($playerengine) {
+        case 'MPD':
+            $return = sysCmd('systemctl start mpd');
+            usleep(500000);
+            $redis->set('activePlayer', 'MPD');
+            $return = sysCmd('systemctl stop spopd');
+            $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+            break;
+        
+        case 'Spotify':
+            $return = sysCmd('systemctl start spopd');
+            usleep(500000);
+            $redis->set('activePlayer', 'Spotify');
+            $return = sysCmd('systemctl stop mpd');
+            $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+            break;
+    }
+return $return;    
 }
 
 function wrk_sysAcl()

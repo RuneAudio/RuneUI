@@ -47,6 +47,7 @@ $redis = new Redis();
 $redis->pconnect('127.0.0.1');
 //$redis->pconnect('/tmp/redis.sock');
 $devmode = $redis->get('dev');
+$activePlayer = $redis->get('activePlayer');
 // LogSettings
 if ($redis->get('debug') > 0 ) {
     $activeLog=1;
@@ -57,15 +58,14 @@ ini_set('log_errors', $activeLog);
 ini_set('error_log', '/var/log/runeaudio/runeui.log');
 ini_set('display_errors', $activeLog);
 // connect to MPD daemon
-if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php') {
+if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php' && $activePlayer === 'MPD') {
     // debug
     runelog('[connection.php] >>> OPEN MPD SOCKET [NORMAL MODE [0] (blocking)] <<<','');
     $mpd = openMpdSocket('/run/mpd.sock', 0);
-} else {
+} elseif ($activePlayer === 'MPD') {
     // debug
     runelog('[connection.php] >>> OPEN MPD SOCKET [BURST MODE [1] (blocking)] <<<','');
     $mpd = openMpdSocket('/run/mpd.sock', 1);
-}
-if ($redis->hGet('spotify', 'enable') === '1') {
+} elseif ($redis->hGet('spotify', 'enable') === '1' && $activePlayer === 'Spotify') {
     $spop = openSpopSocket('localhost', 6602, 1);
 }

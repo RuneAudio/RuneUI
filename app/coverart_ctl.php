@@ -37,7 +37,7 @@ runelog("\n--------------------- coverart (start) ---------------------");
 // turn off output buffering
 ob_implicit_flush(0);
 // --------------------- MPD ---------------------
-if ($template->activeplayer === 'MPD') {
+if ($activePlayer === 'MPD') {
     // output switch
     $output = 0;
     include('getid3/audioinfo.class.php');
@@ -64,13 +64,12 @@ if ($template->activeplayer === 'MPD') {
     runelog("HTTP GET (request_coverfile)", $request_coverfile);
     $current_mpd_folder = substr(substr($currentpath, 0, strrpos($currentpath, "/")), 9);
     runelog("MPD (current_mpd_folder)", $current_mpd_folder);
-}
 // --------------------- Spotify ---------------------
-if ($redis->get('activePlayer') === 'Spotify') {
+} elseif ($redis->get('activePlayer') === 'Spotify') {
     runelog('rune_PL_wrk: open SPOP socket');
     $spop = openSpopSocket('localhost', 6602, 1);
 }
-if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $request_folder) && $template->activeplayer === 'MPD') {
+if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $request_folder) && $activePlayer === 'MPD') {
     // extact song details
     if (isset($curTrack[0]['Title'])) {
         $status['currentartist'] = $curTrack[0]['Artist'];
@@ -177,7 +176,7 @@ if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $requ
         $output = 1;
     }
 } else {
-    if ($template->activeplayer === 'Spotify') {
+    if ($activePlayer === 'Spotify') {
         $count = 1;
         do {
             sendSpopCommand($spop, 'image');

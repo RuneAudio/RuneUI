@@ -35,72 +35,70 @@
 include($_SERVER['HOME'].'/app/config/config.php');
 // check current player backend
 $activePlayer = $redis->get('activePlayer');
-// -- REWORK NEEDED --
-if (isset($_GET['cmd']) && $_GET['cmd'] != '') {
-    if (!$mpd) {
-        echo 'Error Connecting to MPD daemon ';
-    } else {
-        // debug
-        // runelog('MPD command: ',$_GET['cmd']);
-        if ($_GET['cmd'] === 'renderui') {
-            if ($activePlayer === 'Spotify') {
-                $socket = $spop;
-            }
-            if ($activePlayer === 'MPD') {
-                $socket = $mpd;
-            }
-            $response = ui_update($redis, $socket);
-        } elseif ($_GET['cmd'] === 'wifiscan') {
-            wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wificfg', 'action' => 'scan'));
-            echo 'wlan scan queued';
-            die;
-        } else {
-            if ($activePlayer === 'MPD') {
-                sendMpdCommand($mpd, $_GET['cmd']);
-                // debug
-                // runelog('--- [command/index.php] --- CLOSE MPD SOCKET <<< (1) ---','');
-                if (!$response) $response = readMpdResponse($mpd);
-            } elseif ($activePlayer === 'Spotify') {
-                // MPD -> SPOP command conversion
-                if ($_GET['cmd'] === 'pause') $_GET['cmd'] = 'toggle';
-                if ($_GET['cmd'] === 'clear') {
-                    $_GET['cmd'] = 'qclear';
-                    $redis->hIncrBy('spotify', 'plversion', 1);
-                }
-                if (strpos($_GET['cmd'], 'repeat') === 0) $_GET['cmd'] = 'repeat';
-                if (strpos($_GET['cmd'], 'random') === 0) $_GET['cmd'] = 'shuffle';
-                if (strpos($_GET['cmd'], 'seek') === 0) {
-                    $seek = explode(" ", $_GET['cmd']);
-                    $_GET['cmd'] = 'seek '.($seek[2] * 1000);
-                }                
-                if (strpos($_GET['cmd'], 'play') === 0 && strpos($_GET['cmd'], ' ') === 4) {
-                    $play_track = explode(" ", $_GET['cmd']);
-                    $_GET['cmd'] = 'goto '.($play_track[1] + 1);
-                }
-                if (strpos($_GET['cmd'], 'deleteid') === 0) {
-                    $remove_track = explode(" ", $_GET['cmd']);
-                    $_GET['cmd'] = 'qrm '.$remove_track[1];
-                    $redis->hIncrBy('spotify', 'plversion', 1);
-                }
-                sendSpopCommand($spop, $_GET['cmd']);
-                $redis->hSet('spotify', 'lastcmd', $_GET['cmd']);
-                if (!$response) $response = readSpopResponse($spop);
-            }
-        }
-        echo $response;
-    }
-} elseif (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
+if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
     // switch player engine
-    $redis->set('activePlayer', $_GET['switchplayer']);
-    ui_libraryHome($redis);
+    $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'switchplayer', 'args' => $_GET['switchplayer']));
+} elseif (isset($_GET['cmd']) && $_GET['cmd'] !== '') {
+    // debug
+    // runelog('MPD command: ',$_GET['cmd']);
+    if ($_GET['cmd'] === 'renderui') {
+        if ($activePlayer === 'MPD') {
+            $socket = $mpd;
+        } elseif ($activePlayer === 'Spotify') {
+            $socket = $spop;
+        }
+        $response = ui_update($redis, $socket);
+    } elseif ($_GET['cmd'] === 'wifiscan') {
+        wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wificfg', 'action' => 'scan'));
+        echo 'wlan scan queued';
+        die;
+    } else {
+        if ($activePlayer === 'MPD') {
+            sendMpdCommand($mpd, $_GET['cmd']);
+            // debug
+            // runelog('--- [command/index.php] --- CLOSE MPD SOCKET <<< (1) ---','');
+            if (!$response) $response = readMpdResponse($mpd);
+        } elseif ($activePlayer === 'Spotify') {
+            // MPD -> SPOP command conversion
+            if ($_GET['cmd'] === 'pause') $_GET['cmd'] = 'toggle';
+            if ($_GET['cmd'] === 'clear') {
+                $_GET['cmd'] = 'qclear';
+                $redis->hIncrBy('spotify', 'plversion', 1);
+            }
+            if (strpos($_GET['cmd'], 'repeat') === 0) $_GET['cmd'] = 'repeat';
+            if (strpos($_GET['cmd'], 'random') === 0) $_GET['cmd'] = 'shuffle';
+            if (strpos($_GET['cmd'], 'seek') === 0) {
+                $seek = explode(" ", $_GET['cmd']);
+                $_GET['cmd'] = 'seek '.($seek[2] * 1000);
+            }                
+            if (strpos($_GET['cmd'], 'play') === 0 && strpos($_GET['cmd'], ' ') === 4) {
+                $play_track = explode(" ", $_GET['cmd']);
+                $_GET['cmd'] = 'goto '.($play_track[1] + 1);
+            }
+            if (strpos($_GET['cmd'], 'deleteid') === 0) {
+                $remove_track = explode(" ", $_GET['cmd']);
+                $_GET['cmd'] = 'qrm '.$remove_track[1];
+                $redis->hIncrBy('spotify', 'plversion', 1);
+            }
+            sendSpopCommand($spop, $_GET['cmd']);
+            $redis->hSet('spotify', 'lastcmd', $_GET['cmd']);
+            if (!$response) $response = readSpopResponse($spop);
+        }
+    }
+    echo $response;
+// default response  
 } else {
     echo 'MPD COMMAND INTERFACE<br>';
     echo 'INTERNAL USE ONLY<br>';
     echo 'hosted on runeaudio.local:82';
 }
-// close MPD connection
-closeMpdSocket($mpd);
-// close SPOP connection
-closeSpopSocket($spop);
+// close palyer backend connection
+if ($activePlayer === 'MPD') {
+    // close MPD connection
+    closeMpdSocket($mpd);
+} elseif ($activePlayer === 'Spotify') {
+    // close SPOP connection
+    closeSpopSocket($spop);
+}
 // close Redis connection
 $redis->close();
