@@ -1,0 +1,144 @@
+#!/bin/bash
+#
+#  Copyright (C) 2013-2014 RuneAudio Team
+#  http://www.runeaudio.com
+#
+#  RuneUI
+#  copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+#
+#  RuneOS
+#  copyright (C) 2013-2014 – Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
+#
+#  RuneAudio website and logo
+#  copyright (C) 2013-2014 – ACX webdesign (Andrea Coiutti)
+#
+#  This Program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3, or (at your option)
+#  any later version.
+#
+#  This Program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with RuneAudio; see the file COPYING.  If not, see
+#  <http://www.gnu.org/licenses/gpl-3.0.txt>.
+# 
+#  file: command/rune_prio
+#  version: 1.3
+#  coder: Simone De Gregori
+#
+#####################################
+prio_nice () {
+count=1
+for pid in $(pgrep -w mpd);
+do
+    if ((count == 3))
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice -16 $pid;
+    fi
+    if ((count == 4))
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice -18 $pid;
+    fi
+    if ((count == 5))
+    then
+            echo "### Set priority for: mpd-decoder thread ###";
+            renice -16 $pid;
+    fi
+count=$((count+1))
+done
+renice -18 $(pgrep -w spopd)
+renice 20 $(pgrep -w rune_SY_wrk)
+renice 20 $(pgrep -w rune_PL_wrk)
+renice 20 $(pgrep -w php-fpm)
+renice 20 $(pgrep -w nginx)
+renice 20 $(pgrep -w nmbd)
+renice 20 $(pgrep -w smbd)
+renice 20 $(pgrep -w sshd)
+renice 20 $(pgrep -w mpdscribble)
+renice 20 $(pgrep -w shairport)
+renice 20 $(pgrep -w upmpdcli)
+renice 20 $(pgrep -w cifsd)
+renice 20 $(pgrep -w rpcbind)
+renice 20 $(pgrep -w redis-server)
+renice 20 $(pgrep -w ksoftirqd)
+renice 20 $(pgrep -w rcu_preempt)
+renice 20 $(pgrep -w systemd)
+renice 20 $(pgrep -w systemd-udevd)
+renice 20 $(pgrep -w ifplugd)
+renice 20 $(pgrep -w dhcpcd)
+renice 20 $(pgrep -w dbus-daemon)
+renice 20 $(pgrep -w avahi-dnsconfd)
+renice 20 $(pgrep -w avahi-daemon)
+renice 20 $(pgrep -w agetty)
+}
+
+prio_default () {
+count=1
+for pid in $(pgrep -w mpd);
+do
+    if ((count == 3))
+    then
+        echo "### Set priority for: mpd-player thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 4))
+    then
+        echo "### Set priority for: mpd-output thread ###";
+        renice 20 $pid;
+    fi
+    if ((count == 5))
+    then
+        echo "### Set priority for: mpd-decoder thread ###";
+        renice 20 $pid;
+    fi
+count=$((count+1))
+done
+renice 0 $(pgrep -w spopd)
+renice 0 $(pgrep -w rune_SY_wrk)
+renice 0 $(pgrep -w rune_PL_wrk)
+renice 0 $(pgrep -w php-fpm)
+renice 0 $(pgrep -w nginx)
+renice 0 $(pgrep -w nmbd)
+renice 0 $(pgrep -w smbd)
+renice 0 $(pgrep -w sshd)
+renice 0 $(pgrep -w mpdscribble)
+renice 0 $(pgrep -w shairport)
+renice 0 $(pgrep -w upmpdcli)
+renice 0 $(pgrep -w cifsd)
+renice 0 $(pgrep -w rpcbind)
+renice 0 $(pgrep -w redis-server)
+renice 0 $(pgrep -w ksoftirqd)
+renice 0 $(pgrep -w rcu_preempt)
+renice 0 $(pgrep -w systemd)
+renice 0 $(pgrep -w systemd-udevd)
+renice 0 $(pgrep -w ifplugd)
+renice 0 $(pgrep -w dhcpcd)
+renice 0 $(pgrep -w dbus-daemon)
+renice 0 $(pgrep -w avahi-dnsconfd)
+renice 0 $(pgrep -w avahi-daemon)
+renice 0 $(pgrep -w agetty)
+}
+
+if [ "$1" == "default" ]; then
+    echo "set default priority settings"
+    prio_default
+    exit 0
+fi
+
+if [ "$1" == "nice" ]; then
+    echo "set nice priority settings"
+    prio_nice
+    exit 0
+fi
+
+if [ "$1" == "" ]; then
+    echo "RuneAudio process priority settings"
+    echo "Usage: $0 {default|nice}"
+    exit 1
+fi

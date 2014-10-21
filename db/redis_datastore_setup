@@ -43,7 +43,7 @@ function redisDatastore($redis,$action) {
             $redis->set('kernel', 'linux-arch-rpi_3.12.26-1-ARCH');
             $redis->set('i2smodule', 'none');
             $redis->set('orionprofile', 'RuneAudio');
-            $redis->set('activePlayer', 'mpd');
+            $redis->set('activePlayer', 'MPD');
             // player features
             $redis->set('hostname', 'runeaudio');
             $redis->set('ntpserver', 'pool.ntp.org');
@@ -193,7 +193,7 @@ function redisDatastore($redis,$action) {
             $redis->get('kernel') || $redis->set('kernel', 'linux-arch-rpi_3.12.26-1-ARCH');
             $redis->get('i2smodule') || $redis->set('i2smodule', 'none');
             $redis->get('orionprofile') || $redis->set('orionprofile', 'RuneAudio');
-            $redis->get('activePlayer') || $redis->set('activePlayer', 'mpd');
+            $redis->get('activePlayer') || $redis->set('activePlayer', 'MPD');
             // player features
             $redis->get('hostname') || $redis->set('hostname', 'runeaudio');
             $redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
