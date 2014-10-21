@@ -50,3 +50,4 @@ if ($redis->get('volume') == 1 && $template->activePlayer !== 'Spotify') {
     $template->volume['divclass'] = 'nomixer';
 }
 $template->dev = $redis->get;
+$template->spotify = $redis->hGet('spotify', 'enable');

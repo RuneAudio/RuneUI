@@ -5,7 +5,7 @@
 			<span id="currentartist"></span>
             <span id="currentsong"></span>
             <span id="currentalbum"></span>
-			<div id="overlay-playsource-open" title="View and change playback source">
+			<div id="overlay-playsource-open" title="View and change playback source" <?php if ($this->spotify === '0'): ?>class="disabled"<?php endif; ?>>
 				<span id="playlist-position"><button class="btn btn-default btn-xs">MPD</button><span></span></span>
 				<span id="format-bitrate"></span>
 			</div>

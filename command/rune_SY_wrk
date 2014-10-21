@@ -393,15 +393,16 @@ $redis->pconnect('/tmp/redis.sock');
                         if ($redis->hGet('spotify','enable') === '1') {
                             // spopd.conf
                             $file = '/etc/spop/spopd.conf';
-                            $newArray = wrk_replaceTextLine($file, '', 'username =', 'username = '.$job->args->user, 'Last.FM', 3);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'Last.FM', 4);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$job->args->pass, 'Last.FM', 4);
-                            $newArray = wrk_replaceTextLine('', $newArray, '#plugins =', 'plugins = scrobble', '# Various plugins', 2);
+                            $newArray = wrk_replaceTextLine($file, '', 'username =', 'username = '.$redis->hGet('lastfm','user'), 'api_endpoint', 1);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$redis->hGet('lastfm','pass'), 'api_endpoint', 2);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', 'plugins = scrobble', '### System settings ###', 2);
                             // commit changes to /etc/spop/spopd.conf
                             $fp = fopen($file, 'w');
                             fwrite($fp, implode("", $newArray));
                             fclose($fp);
-                            sysCmd('systemctl restart spopd');
+                            if ($redis->get('activePlayer') === 'Spotify') {
+                                sysCmd('systemctl restart spopd');
+                            }
                         }
                         sysCmd('systemctl stop mpdscribble');
                         runelog('service: MPDSCRIBBLE start');
@@ -417,7 +418,7 @@ $redis->pconnect('/tmp/redis.sock');
                         if ($redis->hGet('spotify','enable') === '1') {
                             // spopd.conf
                             $file = '/etc/spop/spopd.conf';
-                            $newArray = wrk_replaceTextLine($file, '', 'plugins =', '#plugins = scrobble', '# Various plugins', 2);
+                            $newArray = wrk_replaceTextLine($file, '', 'plugins =', '#plugins = scrobble', '### System settings ###', 2);
                             // commit changes to /etc/spop/spopd.conf
                             $fp = fopen($file, 'w');
                             fwrite($fp, implode("", $newArray));
@@ -566,17 +567,17 @@ $redis->pconnect('/tmp/redis.sock');
                         if ($job->args->user !== $redis->hGet('spotify', 'user') OR $job->args->pass !== $redis->hGet('spotify', 'pass')) {
                         // spopd.conf
                         $file = '/etc/spop/spopd.conf';
-                        $newArray = wrk_replaceTextLine($file, '', 'spotify_username =', 'spotify_username = '.$job->args->user, 'spotify_auth', 2);
-                        $newArray = wrk_replaceTextLine('', $newArray, 'spotify_password =', 'spotify_password = '.$job->args->pass, 'spotify_auth', 3);
+                        $newArray = wrk_replaceTextLine($file, '', 'spotify_username =', 'spotify_username = '.$job->args->user, '### Spotify auth settings ###', 2);
+                        $newArray = wrk_replaceTextLine('', $newArray, 'spotify_password =', 'spotify_password = '.$job->args->pass, '### Spotify auth settings ###', 3);
                         // check if last.fm is configured
                         if ($redis->hGet('lastfm','enable') === '1') {
-                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', 'username = '.$redis->hGet('lastfm','user'), 'Last.FM', 3);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$redis->hGet('lastfm','pass'), 'Last.FM', 4);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', 'plugins = scrobble', '# Various plugins', 2);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', 'username = '.$redis->hGet('lastfm','user'), 'api_endpoint', 1);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', 'password = '.$redis->hGet('lastfm','pass'), 'api_endpoint', 2);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', 'plugins = scrobble', '### System settings ###', 2);
                         } else {
-                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', '#username = user', 'Last.FM', 3);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', '#password = pass', 'Last.FM', 4);
-                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', '#plugins = scrobble', '# Various plugins', 2);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'username =', '#username = user', 'api_endpoint', 1);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'password =', '#password = pass', 'api_endpoint', 2);
+                            $newArray = wrk_replaceTextLine('', $newArray, 'plugins =', '#plugins = scrobble', '### System settings ###', 2);
                         }
                         // commit changes to /etc/spop/spopd.conf
                         $fp = fopen($file, 'w');
@@ -586,11 +587,13 @@ $redis->pconnect('/tmp/redis.sock');
                         $redis->hSet('spotify', 'user', $job->args->user);
                         $redis->hSet('spotify', 'pass', $job->args->pass); 
                         }
-                        sysCmd('systemctl stop spopd');
-                        runelog('service: SPOPD start');
-                        sysCmd('systemctl start spopd');
+                        if ($redis->get('activePlayer') === 'Spotify') {
+                            sysCmd('systemctl stop spopd');
+                            runelog('service: SPOPD start');
+                            sysCmd('systemctl start spopd');
+                        }
                         // send notfy to UI
-                        ui_notify_async('Spotify', 'Spotify client started', $jobID);
+                        ui_notify_async('Spotify', 'Spotify client configured', $jobID);
                         $redis->hSet('spotify', 'enable',  1);
                     }
                     if ($job->action === 'stop') {

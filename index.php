@@ -49,6 +49,8 @@ $template = new \League\Plates\Template($engine);
 $template->dev = $devmode;
 // activePlayer
 $activePlayer = $redis->get('activePlayer');
+// TODO: rework needed
+$template->activePlayer = $activePlayer;
 // allowed controllers
 $controllers = array(
     'credits',
