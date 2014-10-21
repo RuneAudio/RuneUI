@@ -325,9 +325,22 @@ html, body {
 #currentalbum {
 	margin-bottom: 20px;
 }
+#overlay-playsource-open {
+	display: inline-block;
+	margin: 0 auto;
+	&:hover {
+		cursor: pointer;
+		button {
+			background-color: darken(@brand-alt, 10%);
+		}
+	}
+}
 #playlist-position,
 #format-bitrate {
 	color: lighten(@brand-alt, 20%);
+}
+#playlist-position button {
+	margin: -2px 5px 2px 0;
 }
 .knobs {
 	margin-top: 30px;
@@ -773,6 +786,12 @@ html, body {
 #db-controls, #pl-controls {
 	float: right;
 }
+#pl-manage {
+	&.pl-manage-spotify #pl-manage-list,
+	&.pl-manage-spotify #pl-manage-save {
+		display: none;
+	}
+}
 #db-currentpath, #pl-currentpath {
 	line-height: 40px;
 	i {
@@ -976,6 +995,9 @@ html, body {
 }
 #wifi-signal-strength {
 	margin: 6px 0;
+}
+#modal-sysinfo p {
+	color: lighten(@brand-alt, 20%);
 }
 
 
@@ -1195,7 +1217,8 @@ select.selectpicker {
 // Social share overlay
 // --------------------------------------------------------------
 
-#social-overlay {
+#overlay-social,
+#overlay-playsource {
 	position: fixed;
 	width: 100%;
 	height: 100%;
@@ -1226,7 +1249,8 @@ select.selectpicker {
 			-webkit-backface-visibility: hidden;
 			backface-visibility: hidden;
 			span {
-				font-size: 32px;
+				font-size: 30px;
+				font-weight: 300;
 			}
 			&:last-child {
 				height: 20px;
@@ -1261,6 +1285,13 @@ select.selectpicker {
 					font-size: 26px;
 					text-align: center;
 				}
+				span {
+					padding-right: 5px;
+					font-size: 12px;
+				}
+				&.inactive span {
+					color: lighten(@brand-alt, 20%);
+				}
 			}
 		}
 	}
@@ -1282,6 +1313,58 @@ select.selectpicker {
 	}
 }
 
+#playsource-airplay {
+	background: #666;
+	&:hover, &:focus {
+		background: darken(#666, 10%);
+	}
+}
+#playsource-dlna {
+	background: #4CA943;
+	&:hover, &:focus {
+		background: darken(#4CA943, 10%);
+	}
+}
+#playsource-mpd {
+	background: #003D88;
+	&:hover, &.inactive:hover, &:focus {
+		background: darken(#003D88, 10%);
+	}
+}
+#playsource-spotify {
+	background: #81b900;
+	&:hover, &.inactive:hover, &:focus {
+		background: darken(#81b900, 10%);
+	}
+}
+#playsource-airplay,
+#playsource-dlna,
+#playsource-mpd,
+#playsource-spotify {
+	&.inactive {
+		opacity: 0.5;
+		background: darken(@brand-alt, 10%);
+	}
+}
+#playsource-mpd,
+#playsource-spotify {
+	&.inactive {
+		opacity: 0.5;
+		background: darken(@brand-alt, 10%);
+	}
+	&.inactive:hover {
+		opacity: 1;
+	}
+	&.inactive:hover span {
+		color: @text-color;
+	}
+}
+#player-airplay,
+#player-dlna {
+	&.inactive:hover {
+		cursor: default;
+	}
+}
 
 
 // Loading spinner
@@ -1599,6 +1682,9 @@ ul.parsley-error-list {
 			font-family: "FontAwesome";
 			color: @brand-alt;
 			font-size: 18px;
+		}
+		&.playlist-spotify li:before {
+			content: "\f1bc";
 		}
 		li.active:before {
 			// content: "\f144";
