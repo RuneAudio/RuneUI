@@ -1292,7 +1292,7 @@ $updateh = 0;
     switch ($action) {
         case 'setnics':
             // nics blacklist
-            $excluded_nics = array('ifb0', 'ifb1');
+            $excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
             // flush nics Redis hash table
             $transaction = $redis->multi();
             $transaction->del('nics');
@@ -2346,6 +2346,10 @@ function wrk_getHwPlatform()
                 case 'Compulab CM-FX6':
                     $arch = '05';
                     break;
+                // Cubietruck
+                case 'sun7i':
+                    $arch = '06';
+                    break;
                 // Cubox-i
                 case 'Freescale i.MX6 Quad/DualLite (Device Tree)':
                     $arch = '07';
@@ -2389,6 +2393,10 @@ function wrk_setHwPlatform($redis)
             break;
         case '05':
             $redis->set('hwplatform', 'Utilite Standard');
+            $redis->set('hwplatformid', $arch);
+            break;
+        case '06':
+            $redis->set('hwplatform', 'Cubietruck');
             $redis->set('hwplatformid', $arch);
             break;
         default:
@@ -2705,6 +2713,9 @@ function ui_status($mpd, $status)
 
 function ui_libraryHome($redis)
 {
+    // Localstorage
+    $localstorage = countDirs('/mnt/MPD/LocalStorage');
+    // runelog('localstorage : ',$localstorage )
     // Network mounts
     $networkmounts = countDirs('/mnt/MPD/NAS');
     // runelog('networkmounts: ',$networkmounts);
@@ -2733,7 +2744,12 @@ function ui_libraryHome($redis)
     }
     // runelog('bookmarks: ',$bookmarks);
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
+    $arch = wrk_getHwPlatform();
+    if (($arch == '06') && ($localstorage > 0)) {
+        $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('localStorage' => $localstorage)), array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
+    } else {
+        $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
+    }
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);

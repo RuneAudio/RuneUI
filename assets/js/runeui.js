@@ -379,8 +379,15 @@ function renderLibraryHome() {
 		content += '<div class="col-md-4 col-sm-6">';
 		if (obj.bookmark !== undefined && obj.bookmark !== '') {
 		// bookmark block
-			content += '<div id="home-bookmark-' + obj.bookmark + '" class="home-block home-bookmark" data-path="' + obj.path + '"><i class="fa fa-star"></i><h3>' + obj.name + '</h3>bookmark</div>';
-		} else if (obj.networkMounts !== undefined && obj.networkMounts !== '') {
+			content += '<div id="home-bookmark-' + obj.bookmark + '" class="home-block home-bookmark" data-path="' + obj.path + '"><i class="fa fa-star"></i><h3>' + obj.name + '</h3>bookmark</div>';		
+		} else if (obj.localStorage !== undefined && obj.localStorage !== '') {
+		// localstorage block
+			if (obj.localStorage === 0) {
+				content += '';
+			} else {
+				content += '<div id="home-local" class="home-block" data-path="LocalStorage"><i class="fa fa-sitemap"></i><h3>Local Storage (' + obj.localStorage + ')</h3>local storages</div>';
+			}
+              } else if (obj.networkMounts !== undefined && obj.networkMounts !== '') {
 		// network mounts block
 			if (obj.networkMounts === 0) {
 				content += '<a class="home-block" href="/sources/add/"><i class="fa fa-sitemap"></i><h3>Network mounts (0)</h3>click to add some</a>';
