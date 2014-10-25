@@ -897,6 +897,12 @@ html, body {
 			font-weight: bold;
 		}
 	}
+	&.inactive {
+		opacity: .5;
+		&:hover, &:focus {
+			cursor: default;
+		}
+	}
 }
 
 
@@ -1214,7 +1220,7 @@ select.selectpicker {
 
 
 
-// Social share overlay
+// Social share and Renderer display/switch overlays
 // --------------------------------------------------------------
 
 #overlay-social,
@@ -1315,14 +1321,18 @@ select.selectpicker {
 
 #playsource-airplay {
 	background: #666;
+	outline: none;
 	&:hover, &:focus {
 		background: darken(#666, 10%);
+		cursor: default;
 	}
 }
 #playsource-dlna {
 	background: #4CA943;
+	outline: none;
 	&:hover, &:focus {
 		background: darken(#4CA943, 10%);
+		cursor: default;
 	}
 }
 #playsource-mpd {
