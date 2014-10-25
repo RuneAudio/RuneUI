@@ -62,7 +62,7 @@ if (!$socket) {
     sleep(3);
 } else {
     // MPD playback engine
-        if ($redis->get('activePlayer') === 'MPD') {
+        if ($activePlayer === 'MPD') {
             if ($forceupdate !== 0) {
                 $forceupdate = 0;
                 runelog('----------------------------------- FORCE UPDATE -----------------------------------');
@@ -74,17 +74,6 @@ if (!$socket) {
             // store "lastsongid"
             $redis->set('lastsongid', $status['songid']);
             $redis->set('pl_length', $status['playlistlength']);
-            // check for Ramplay
-            // if ($redis->get('ramplay') === '1') {
-                // check ramplay delete
-                    // if (!rp_checkPLid($_SESSION['lastsongid'],$socket)) {
-                    // rp_deleteFile($_SESSION['lastsongid'],$socket);
-                    // }
-                // check for CMediaFix
-                // if ($redis->get('cmediafix') === '1') {
-                // $redis->set('lastbitdepth',$status['audio']);
-                // }
-            // }
             // idle LOOP
             runelog('rune_PL_wrk: enter idle loop');
             $status = monitorMpdState($socket);
@@ -106,20 +95,6 @@ if (!$socket) {
                         sendMpdCommand($socket, 'cmediafix');
                     }
             }
-            // Ramplay
-            // if ($redis->get('ramplay') === '1') {
-                    // set consume mode ON
-                    // if ($status['consume'] == 0) {
-                    // sendMpdCommand($socket,'consume 1');
-                    // $status['consume'] = 1;
-                    // }
-                // copy track in /dev/shm
-                // $path = rp_copyFile($status['nextsongid'],$socket);
-                // exec update mdp locazione ramplay
-                // rp_updateFolder($socket);
-                // exec addandplay track
-                // rp_addPlay($path,$socket,$status['playlistlength']);
-            // }
             // Global Random
             if (($redis->get('globalrandom') === '1') && ($redis->get('lastsongid') != $status['songid']) && ($redis->get('lock_globalrandom') === '0')) {
                 $addsong = new globalRandom($status);
@@ -135,13 +110,11 @@ if (!$socket) {
             $redis->close();
             runelog('rune_PL_wrk: close MPD local UNIX socket');
             closeMpdSocket($socket);
-        }
-        // Spotify playback engine
-        if ($activePlayer === 'Spotify') {
+        } elseif ($activePlayer === 'Spotify') {
             if ($forceupdate !== 0) {
                 $forceupdate = 0;
                 runelog('----------------------------------- FORCE UPDATE -----------------------------------');
-                ui_update($redis, $socket);
+                sysCmdAsync('/var/www/command/ui_update_async');
             }
             $status = monitorSpopState($socket);
             $status['playlist'] = $redis->hGet('spotify', 'plversion');
@@ -149,6 +122,12 @@ if (!$socket) {
             runelog('rune_PL_wrk: UI JSON', $status);
             runelog('rune_PL_wrk: close SPOP socket');
             closeSpopSocket($socket);
+        } elseif ($activePlayer === 'Airplay') {
+            sleep(1);
+            $forceupdate = 1;
+        } else {
+            sleep(1);
+            $forceupdate = 1;
         }
     // close Redis connection
     $redis->close();

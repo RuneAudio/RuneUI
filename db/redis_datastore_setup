@@ -67,7 +67,8 @@ function redisDatastore($redis,$action) {
             $redis->hSet('lastfm', 'user', 'user');
             $redis->hSet('lastfm', 'pass', 'pass');
             $redis->set('cmediafix', 0);
-            $redis->set('globalrandom', 0);    
+            $redis->set('globalrandom', 0);
+            $redis->set('stoppedPlayer', '');            
             // plugins api-keys
             $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
             $redis->hSet('lastfm', 'apikey', 'ba8ad00468a50732a3860832eaed0882');
@@ -198,7 +199,7 @@ function redisDatastore($redis,$action) {
             $redis->get('hostname') || $redis->set('hostname', 'runeaudio');
             $redis->get('ntpserver') || $redis->set('ntpserver', 'pool.ntp.org');
             $redis->hGet('airplay', 'enable') || $redis->hSet('airplay', 'enable', 1);
-            $redis->hGet('airplay', 'name') || $redis->hSet('airplay', 'name', 'RuneAudio');            
+            $redis->hGet('airplay', 'name') || $redis->hSet('airplay', 'name', 'RuneAudio');        
             $redis->hGet('dlna', 'enable') || $redis->hSet('dlna', 'enable', 1);
             $redis->hGet('dlna', 'name') || $redis->hSet('dlna', 'name', 'RuneAudio');
             $redis->hGet('dlna', 'queue') || $redis->hSet('dlna', 'queue', 1);
@@ -218,6 +219,7 @@ function redisDatastore($redis,$action) {
             $redis->hGet('lastfm', 'password') || $redis->hSet('lastfm', 'password', '');
             $redis->get('cmediafix') || $redis->set('cmediafix', 0);
             $redis->get('globalrandom') || $redis->set('globalrandom', 0);
+            $redis->get('stoppedPlayer') || $redis->set('stoppedPlayer', '');
             // plugins api-keys
             $redis->get('lastfm_apikey') || $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
             $redis->hGet('lastfm', 'apikey') || $redis->hSet('lastfm', 'apikey', 'ba8ad00468a50732a3860832eaed0882');

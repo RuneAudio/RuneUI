@@ -2039,8 +2039,17 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 $output .="device \t\t\"".$card_decoded->device."\"\n";
                 if (isset($hwmixer)) {
                     $output .="mixer_type \t\"hardware\"\n";
-                    if (isset($card_decoded->mixer_device)) $output .="mixer_device \t\"".$card_decoded->mixer_device."\"\n";
-                    if (isset($card_decoded->mixer_control)) $output .="mixer_control \t\"".$card_decoded->mixer_control."\"\n";
+                    if (isset($card_decoded->mixer_device)) {
+                        $output .="mixer_device \t\"".$card_decoded->mixer_device."\"\n";
+                    } else {
+                        $output .="mixer_device \t\"hw:".$card_decoded->device."\"\n";
+                    }
+                    if (isset($card_decoded->mixer_control)) {
+                        $output .="mixer_control \t\"".$card_decoded->mixer_control."\"\n";
+                    } else {
+                        $output .="mixer_control \t\"".alsa_findHwMixerControl($card_decoded->device).",0\"\n";
+                    }
+                    $output .="mixer_index \t\"0\"\n";"\t\t  \t\"0\"\n";
                 }
                 if ($mpdcfg['dsd_usb'] === 'yes') $output .="dsd_usb \t\"yes\"\n";
                 $output .="auto_resample \t\"no\"\n";
@@ -2388,6 +2397,46 @@ function wrk_setHwPlatform($redis)
     }
 }
 
+function wrk_togglePlayback($redis, $activePlayer)
+{
+$stoppedPlayer = $redis->get('stoppedPlayer');
+// debug
+runelog('stoppedPlayer = ', $stoppedPlayer);
+runelog('activePlayer = ', $activePlayer);
+    if ($stoppedPlayer !== '') {
+        if ($stoppedPlayer === 'MPD') {
+            // connect to MPD daemon
+            $sock = openMpdSocket('/run/mpd.sock', 0);
+            $status = _parseStatusResponse(MpdStatus($sock));
+            runelog('MPD status', $status);
+            if ($status['state'] === 'pause') {
+                $redis->set('stoppedPlayer', '');
+            } 
+            sendMpdCommand($sock, 'pause');
+            closeMpdSocket($sock);
+            // debug
+            runelog('sendMpdCommand', 'pause');
+        } elseif ($stoppedPlayer === 'Spotify') {
+            // connect to SPOPD daemon
+            $sock = openSpopSocket('localhost', 6602, 1);
+            $status = _parseSpopStatusResponse(SpopStatus($sock));
+            runelog('SPOP status', $status);          
+            if ($status['state'] === 'pause') {
+                $redis->set('stoppedPlayer', '');
+            }
+            sendSpopCommand($sock, 'toggle');
+            closeSpopSocket($sock);
+            // debug
+            runelog('sendSpopCommand', 'toggle');
+        }
+        $redis->set('activePlayer', $stoppedPlayer);        
+    } else {
+        $redis->set('stoppedPlayer', $activePlayer);
+        wrk_togglePlayback($redis, $activePlayer);
+    }
+runelog('endFunction!!!', $stoppedPlayer);
+}
+
 function wrk_playerID($arch)
 {
     // $playerid = $arch.md5(uniqid(rand(), true)).md5(uniqid(rand(), true));
@@ -2582,7 +2631,7 @@ function deleteRadio($mpd,$redis,$data)
     return $return;
 }
 
-function ui_notify($title = null, $text, $type = null, $permanotice = null )
+function ui_notify($title = null, $text, $type = null, $permanotice = null)
 {
     if (is_object($permanotice)) {
         $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
@@ -2596,7 +2645,7 @@ function ui_notify($title = null, $text, $type = null, $permanotice = null )
     ui_render('notify', json_encode($output));
 }
 
-function ui_notify_async($title = null, $text, $type = null, $permanotice = null )
+function ui_notify_async($title = null, $text, $type = null, $permanotice = null)
 {
     if ($title === 'Kernel switch') {
         $output = array('title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now');
@@ -2756,8 +2805,7 @@ function ui_update($redis ,$sock)
              // return SPOP response
             return readSpopResponse($sock);
             break;
-    }
-   
+    } 
 }
 
 function ui_mpd_response($mpd, $notify = null)
@@ -2779,11 +2827,13 @@ function curlPost($url, $data, $proxy = null)
     @curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
     @curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     if (isset($proxy)) {
-        $proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
-        @curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
-        //runelog('cURL proxy HOST: ',$proxy['host']);
-        //runelog('cURL proxy USER: ',$proxy['user']);
-        //runelog('cURL proxy PASS: ',$proxy['pass']);
+        if ($proxy['enable'] === '1') {
+            $proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
+            @curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
+            //runelog('cURL proxy HOST: ',$proxy['host']);
+            //runelog('cURL proxy USER: ',$proxy['user']);
+            //runelog('cURL proxy PASS: ',$proxy['pass']);
+        }
     }
     @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 400);
     @curl_setopt($ch, CURLOPT_TIMEOUT, 2);
@@ -2803,13 +2853,13 @@ function curlGet($url, $proxy = null)
     @curl_setopt($curl, CURLOPT_HTTPHEADER, array("Connection: close"));
     @curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
     @curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-    if (!empty($proxy)) {
+    if (isset($proxy)) {
         if ($proxy['enable'] === '1') {
-        $proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
-        @curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
-        // runelog('cURL proxy HOST: ',$proxy['host']);
-        // runelog('cURL proxy USER: ',$proxy['user']);
-        // runelog('cURL proxy PASS: ',$proxy['pass']);
+            $proxy['user'] === '' || @curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy['user'].':'.$proxy['pass']);
+            @curl_setopt($ch, CURLOPT_PROXY, $proxy['host']);
+            // runelog('cURL proxy HOST: ',$proxy['host']);
+            // runelog('cURL proxy USER: ',$proxy['user']);
+            // runelog('cURL proxy PASS: ',$proxy['pass']);
         }
     }
     @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 400);

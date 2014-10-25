@@ -5,7 +5,7 @@ Requires=avahi-daemon.service
 After=avahi-daemon.service
 
 [Service]
-ExecStart=/usr/local/bin/shairport -w --on-start=/var/www/command/airplay.sh --on-stop=/var/www/command/airplay.sh
+ExecStart=/usr/bin/shairport -w --on-start=/var/www/command/airplay_toggle --on-stop=/var/www/command/airplay_toggle
 Restart=always
 
 [Install]
