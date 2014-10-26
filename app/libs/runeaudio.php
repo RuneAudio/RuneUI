@@ -1640,39 +1640,31 @@ function wrk_cleanDistro($redis)
     runelog('function CLEAN DISTRO invoked!!!','');
     // remove mpd.db
     sysCmd('systemctl stop mpd');
-    redisDatastore($redis, 'reset');
+    sysCmd('/var/www/db/redis_datastore_setup reset');
     sleep(1);
     sysCmd('rm /var/lib/mpd/mpd.db');
     sysCmd('rm /var/lib/mpd/mpdstate');
     // reset /var/log/*
     sysCmd('rm -f /var/log/*');
-    // reset /var/log/nginx/*
-    sysCmd('rm -f /var/log/nginx/*');
-    // reset /var/log/atop/*
-    sysCmd('rm -f /var/log/atop/*');
-    // reset /var/log/old/*
-    sysCmd('rm -f /var/log/old/*');
-    // reset /var/log/samba/*
-    sysCmd('rm -rf /var/log/samba/*');
     // reset /root/ logs
     sysCmd('rm -rf /root/.*');
     // delete .git folder
-    sysCmd('rm -rf /var/www/.git');
-    // switch smb.conf to 'production' state
-    sysCmd('rm /var/www/_OS_SETTINGS/etc/samba/smb.conf');
-    sysCmd('ln -s /var/www/_OS_SETTINGS/etc/samba/smb-prod.conf /var/www/_OS_SETTINGS/etc/samba/smb.conf');
-    // switch nginx.conf to 'production' state
-    sysCmd('systemctl stop nginx');
-    sysCmd('rm /etc/nginx/nginx.conf');
-    sysCmd('ln -s /var/www/_OS_SETTINGS/etc/nginx/nginx-prod.conf /etc/nginx/nginx.conf');
-    sysCmd('systemctl start nginx');
+    //sysCmd('rm -rf /var/www/.git');
+    // reset spop config file
+    sysCmd('cp /var/www/app/config/defaults/spopd.conf /etc/spop/spopd.conf');
+    // reset mpdscribble config file
+    sysCmd('cp /var/www/app/config/defaults/mpdscribble.conf /etc/spop/mpdscribble.conf');
+    // reset wpa_supplicant config file
+    sysCmd('cp /var/www/app/config/defaults/wpa_supplicant.conf /etc/etc/wpa_supplicant/wpa_supplicant.conf');
+    // reset netctl profiles
+    sysCmd('rm -f /etc/netctl/*');
+    sysCmd('cp /var/www/app/config/defaults/eth0 /etc/etc/netctl/eth0');
     // reset /var/log/runeaudio/*
     sysCmd('rm -f /var/log/runeaudio/*');
     // rest mpd.conf
     wrk_mpdconf($redis,'reset');
-    // restore default player.db
-    sysCmd('cp /var/www/db/player.db.default /var/www/db/player.db');
-    sysCmd('chmod 777 /var/www/db/player.db');
+    // reset Redis datastore
+    // ---
     sysCmd('poweroff');
 }
 
