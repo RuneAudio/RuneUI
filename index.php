@@ -132,6 +132,11 @@ if ($activePlayer === 'MPD') {
     // close SPOP connection
     closeSpopSocket($spop);
 }
+// notifications
+$notifications = $redis->hGetAll('notifications');
+if ($notifications !== '') {
+    wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ui_notify', 'args' => $notifications));
+}
 // close Redis connection
 // $redis->close();
 // close session

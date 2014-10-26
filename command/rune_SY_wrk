@@ -721,6 +721,16 @@ $redis->pconnect('/tmp/redis.sock');
                     sysCmd('systemctl restart '.$job->args);
                     $redis->sRem('w_lock', $jobID);
                     break;
+                case 'ui_notify':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    runelog('ui_notify (raw)', $job->args);
+                    usleep(250000);
+                    // send notify to RuneUI
+                    foreach ($job->args as $raw_notification) {
+                        ui_notify('raw', $raw_notification);
+                    }
+                    $redis->sRem('w_lock', $jobID);
+                    break;
             } // end switch
             // delete processed job from the w_queue
             $redis->hDel('w_queue', $jobID);

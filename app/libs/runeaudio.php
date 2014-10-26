@@ -2625,30 +2625,34 @@ function deleteRadio($mpd,$redis,$data)
 
 function ui_notify($title = null, $text, $type = null, $permanotice = null)
 {
-    if (is_object($permanotice)) {
-        $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
-    } else {
-        if (isset($permanotice)) {
-            $output = array('title' => $title, 'text' => $text, 'type' => $type, 'permanotice' => $permanotice);
-        } else {
-            $output = array('title' => $title, 'text' => $text, 'type' => $type);
-        }
-    }
-    ui_render('notify', json_encode($output));
-}
-
-function ui_notify_async($title = null, $text, $type = null, $permanotice = null)
-{
-    if ($title === 'Kernel switch') {
-        $output = array('title' => $title, 'text' => $text, 'type' => 'kernelswitch', 'btntext' => 'Reboot now');
+    if ($title === 'raw') {
+        ui_render('notify', $text);
     } else {
         if (is_object($permanotice)) {
             $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
         } else {
             if (isset($permanotice)) {
-                $output = array('title' => $title, 'text' => $text, 'type' => $type, 'permanotice' => $permanotice);
+                $output = array('title' => $title, 'text' => $text, 'permanotice' => $permanotice);
             } else {
-                $output = array('title' => $title, 'text' => $text, 'type' => $type);
+                $output = array('title' => $title, 'text' => $text);
+            }
+        }
+        ui_render('notify', json_encode($output));
+    }
+}
+
+function ui_notify_async($title = null, $text, $type = null, $permanotice = null)
+{
+    if ($title === 'Kernel switch') {
+        $output = array('title' => $title, 'text' => $text, 'custom' => 'kernelswitch');
+    } else {
+        if (is_object($permanotice)) {
+            $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
+        } else {
+            if (isset($permanotice)) {
+                $output = array('title' => $title, 'text' => $text, 'permanotice' => $permanotice);
+            } else {
+                $output = array('title' => $title, 'text' => $text);
             }
         }
     }
