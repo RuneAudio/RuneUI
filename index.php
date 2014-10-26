@@ -134,7 +134,7 @@ if ($activePlayer === 'MPD') {
 }
 // notifications
 $notifications = $redis->hGetAll('notifications');
-if ($notifications !== '') {
+if (!empty($notifications)) {
     wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ui_notify', 'args' => $notifications));
 }
 // close Redis connection
