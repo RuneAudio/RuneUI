@@ -382,11 +382,7 @@ function renderLibraryHome() {
 			content += '<div id="home-bookmark-' + obj.bookmark + '" class="home-block home-bookmark" data-path="' + obj.path + '"><i class="fa fa-star"></i><h3>' + obj.name + '</h3>bookmark</div>';		
 		} else if (obj.localStorage !== undefined && obj.localStorage !== '') {
 		// localstorage block
-			if (obj.localStorage === 0) {
-				content += '';
-			} else {
-				content += '<div id="home-local" class="home-block" data-path="LocalStorage"><i class="fa fa-sitemap"></i><h3>Local Storage (' + obj.localStorage + ')</h3>local storages</div>';
-			}
+			content += '<div id="home-local" class="home-block" data-path="LocalStorage"><i class="fa fa-hdd-o"></i><h3>Local Storage (' + obj.localStorage + ')</h3>local storages</div>';
               } else if (obj.networkMounts !== undefined && obj.networkMounts !== '') {
 		// network mounts block
 			if (obj.networkMounts === 0) {

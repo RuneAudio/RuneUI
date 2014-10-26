@@ -2714,8 +2714,10 @@ function ui_status($mpd, $status)
 function ui_libraryHome($redis)
 {
     // Localstorage
-    $localstorage = countDirs('/mnt/MPD/LocalStorage');
-    // runelog('localstorage : ',$localstorage )
+    $localstoragecnt = countDirs('/mnt/MPD/LocalStorage');
+    if ($localstoragecnt > 0) {
+        $localstorage = array(0 => array('localStorage' => $localstoragecnt));
+    }
     // Network mounts
     $networkmounts = countDirs('/mnt/MPD/NAS');
     // runelog('networkmounts: ',$networkmounts);
@@ -2744,12 +2746,7 @@ function ui_libraryHome($redis)
     }
     // runelog('bookmarks: ',$bookmarks);
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    $arch = wrk_getHwPlatform();
-    if (($arch == '06') && ($localstorage > 0)) {
-        $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('localStorage' => $localstorage)), array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    } else {
-        $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    }
+    $jsonHome = json_encode(array_merge($bookmarks, $localstorage, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
