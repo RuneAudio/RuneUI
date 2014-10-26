@@ -388,13 +388,11 @@ function renderLibraryHome() {
 		toggleMPD = '',
 		toggleSpotify = '';
 	content = '<div class="col-sm-12"><h1 class="txtmid">Browse your library</h1></div>';
-	console.log(obj);
 	// Set active player
-	if (obj.ActivePlayer !== 'MPD') {
-		toggleMPD =  ' inactive';
-		toggleSpotify =  '';
-	}
 	setPlaybackSource(obj.ActivePlayer);
+	if (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay') {
+		toggleMPD =  ' inactive';
+	}
 	// bookmarks blocks
 	for (i = 0; (bookmark = obj.bookmarks[i]); i += 1) {
 		content += divOpen + '<div id="home-bookmark-' + bookmark.id + '" class="home-block home-bookmark' + toggleMPD + '" data-path="' + bookmark.path + '"><i class="fa fa-star"></i><h3>' + bookmark.name + '</h3>bookmark</div>' + divClose;
@@ -418,7 +416,11 @@ function renderLibraryHome() {
 	if (chkKey(obj.webradio)) {
 	// webradios block
 		if (obj.webradio === 0) {
-			content += divOpen + '<a id="home-webradio" class="home-block' + toggleMPD + '" href="#" data-toggle="modal" data-target="#modal-webradio-add"><i class="fa fa-microphone"></i><h3>My Webradios (0)</h3>click to add some</a>' + divClose;
+			if (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay') {
+				content += divOpen + '<div id="home-webradio" class="home-block inactive"><i class="fa fa-microphone"></i><h3>My Webradios (' + obj.webradio + ')</h3>click to add some</div>' + divClose;
+			} else {
+				content += divOpen + '<a id="home-webradio" class="home-block' + toggleMPD + '" href="#" data-toggle="modal" data-target="#modal-webradio-add"><i class="fa fa-microphone"></i><h3>My Webradios (0)</h3>click to add some</a>' + divClose;
+			}
 		} else {
 			content += divOpen + '<div id="home-webradio" class="home-block' + toggleMPD + '" data-path="Webradio"><i class="fa fa-microphone"></i><h3>My Webradios (' + obj.webradio + ')</h3>webradio local playlists</div>' + divClose;
 		}
