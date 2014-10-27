@@ -1292,7 +1292,7 @@ $updateh = 0;
     switch ($action) {
         case 'setnics':
             // nics blacklist
-            $excluded_nics = array('ifb0', 'ifb1');
+            $excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
             // flush nics Redis hash table
             $transaction = $redis->multi();
             $transaction->del('nics');
@@ -2339,6 +2339,10 @@ function wrk_getHwPlatform()
                 case 'Compulab CM-FX6':
                     $arch = '05';
                     break;
+                // Cubietruck
+                case 'sun7i':
+                    $arch = '06';
+                    break;
                 // Cubox-i
                 case 'Freescale i.MX6 Quad/DualLite (Device Tree)':
                     $arch = '07';
@@ -2382,6 +2386,10 @@ function wrk_setHwPlatform($redis)
             break;
         case '05':
             $redis->set('hwplatform', 'Utilite Standard');
+            $redis->set('hwplatformid', $arch);
+            break;
+        case '06':
+            $redis->set('hwplatform', 'Cubietruck');
             $redis->set('hwplatformid', $arch);
             break;
         default:
