@@ -398,12 +398,13 @@ function renderLibraryHome() {
 		divOpen = '<div class="col-md-4 col-sm-6">',
 		divClose = '</div>',
 		toggleMPD = '',
-		toggleSpotify = '';
+		toggleSpotify = '',
+		notMPD = (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay');
 	content = '<div class="col-sm-12"><h1 class="txtmid">Browse your library</h1></div>';
 	// Set active player
 	GUI.activePlayer = obj.ActivePlayer;
 	setPlaybackSource();
-	if (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay') {
+	if (notMPD) {
 		toggleMPD =  ' inactive';
 	}
 	// bookmarks blocks
@@ -413,7 +414,11 @@ function renderLibraryHome() {
 	if (chkKey(obj.networkMounts)) {
 	// network mounts block
 		if (obj.networkMounts === 0) {
-			content += divOpen + '<a class="home-block' + toggleMPD + '" href="/sources/add/"><i class="fa fa-sitemap"></i><h3>Network mounts (0)</h3>click to add some</a>' + divClose;
+			if (notMPD) {
+				content += divOpen + '<div id="home-nas" class="home-block inactive"><i class="fa fa-sitemap"></i><h3>Network mounts (0)</h3>network attached storages</div>' + divClose;
+			} else {
+				content += divOpen + '<a class="home-block' + toggleMPD + '" href="/sources/add/"><i class="fa fa-sitemap"></i><h3>Network mounts (0)</h3>click to add some</a>' + divClose;
+			}
 		} else {
 			content += divOpen + '<div id="home-nas" class="home-block' + toggleMPD + '" data-path="NAS"><i class="fa fa-sitemap"></i><h3>Network mounts (' + obj.networkMounts + ')</h3>network attached storages</div>' + divClose;
 		}
@@ -421,7 +426,11 @@ function renderLibraryHome() {
 	if (chkKey(obj.USBMounts)) {
 	// USB mounts block
 		if (obj.USBMounts === 0) {
-			content += divOpen + '<a id="home-usb" class="home-block' + toggleMPD + '" href="/sources"><i class="fa fa-hdd-o"></i><h3>USB storage (0)</h3>no USB storage plugged</a>' + divClose;
+			if (notMPD) {
+				content += divOpen + '<div id="home-usb" class="home-block inactive"><i class="fa fa-hdd-o"></i><h3>USB storage (0)</h3>no USB storage plugged</div>' + divClose;
+			} else {
+				content += divOpen + '<a id="home-usb" class="home-block' + toggleMPD + '" href="/sources"><i class="fa fa-hdd-o"></i><h3>USB storage (0)</h3>no USB storage plugged</a>' + divClose;
+			}
 		} else {
 			content += divOpen + '<div id="home-usb" class="home-block' + toggleMPD + '" data-path="USB"><i class="fa fa-hdd-o"></i><h3>USB storage (' + obj.USBMounts + ')</h3>USB attached drives</div>' + divClose;
 		}
@@ -429,8 +438,8 @@ function renderLibraryHome() {
 	if (chkKey(obj.webradio)) {
 	// webradios block
 		if (obj.webradio === 0) {
-			if (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay') {
-				content += divOpen + '<div id="home-webradio" class="home-block inactive"><i class="fa fa-microphone"></i><h3>My Webradios (' + obj.webradio + ')</h3>click to add some</div>' + divClose;
+			if (notMPD) {
+				content += divOpen + '<div id="home-webradio" class="home-block inactive"><i class="fa fa-microphone"></i><h3>My Webradios (0)</h3>webradio local playlists</div>' + divClose;
 			} else {
 				content += divOpen + '<a id="home-webradio" class="home-block' + toggleMPD + '" href="#" data-toggle="modal" data-target="#modal-webradio-add"><i class="fa fa-microphone"></i><h3>My Webradios (0)</h3>click to add some</a>' + divClose;
 			}
