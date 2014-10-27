@@ -1650,15 +1650,18 @@ function wrk_cleanDistro($redis)
     sysCmd('rm -rf /root/.*');
     // delete .git folder
     //sysCmd('rm -rf /var/www/.git');
+    // blank git user/email
+    sysCmd('git config user.name ""');
+    sysCmd('git config user.email ""');
     // reset spop config file
     sysCmd('cp /var/www/app/config/defaults/spopd.conf /etc/spop/spopd.conf');
     // reset mpdscribble config file
-    sysCmd('cp /var/www/app/config/defaults/mpdscribble.conf /etc/spop/mpdscribble.conf');
+    sysCmd('cp /var/www/app/config/defaults/mpdscribble.conf /etc/mpdscribble.conf');
     // reset wpa_supplicant config file
-    sysCmd('cp /var/www/app/config/defaults/wpa_supplicant.conf /etc/etc/wpa_supplicant/wpa_supplicant.conf');
+    sysCmd('cp /var/www/app/config/defaults/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf');
     // reset netctl profiles
     sysCmd('rm -f /etc/netctl/*');
-    sysCmd('cp /var/www/app/config/defaults/eth0 /etc/etc/netctl/eth0');
+    sysCmd('cp /var/www/app/config/defaults/eth0 /etc/netctl/eth0');
     // reset /var/log/runeaudio/*
     sysCmd('rm -f /var/log/runeaudio/*');
     // rest mpd.conf
@@ -2625,40 +2628,85 @@ function deleteRadio($mpd,$redis,$data)
 
 function ui_notify($title = null, $text, $type = null, $permanotice = null)
 {
-    if ($title === 'raw') {
-        ui_render('notify', $text);
+    if (is_object($permanotice)) {
+        $output = array('title' => $title, 'permanotice' => '', 'permaremove' => '');
     } else {
-        if (is_object($permanotice)) {
-            $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
+        if ($permanotice === 1) {
+            $output = array('title' => $title, 'text' => $text, 'permanotice' => '');
         } else {
-            if (isset($permanotice)) {
-                $output = array('title' => $title, 'text' => $text, 'permanotice' => $permanotice);
-            } else {
-                $output = array('title' => $title, 'text' => $text);
-            }
+            $output = array('title' => $title, 'text' => $text);
         }
-        ui_render('notify', json_encode($output));
     }
+    ui_render('notify', json_encode($output));
 }
 
 function ui_notify_async($title = null, $text, $type = null, $permanotice = null)
 {
-    if ($title === 'Kernel switch') {
-        $output = array('title' => $title, 'text' => $text, 'custom' => 'kernelswitch');
+    if (is_object($permanotice)) {
+        $output = array('title' => $title, 'permanotice' => '', 'permaremove' => '');
     } else {
-        if (is_object($permanotice)) {
-            $output = array('permanotice' => $permanotice->name, 'permaremove' => $permanotice->name);
+        if ($permanotice === 1) {
+            $output = array('title' => $title, 'text' => $text, 'permanotice' => '');
         } else {
-            if (isset($permanotice)) {
-                $output = array('title' => $title, 'text' => $text, 'permanotice' => $permanotice);
-            } else {
-                $output = array('title' => $title, 'text' => $text);
-            }
+            $output = array('title' => $title, 'text' => $text);
         }
     }
     $output = json_encode($output);
     runelog('notify (async) JSON string: ', $output);
     sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
+}
+
+function wrk_notify($redis, $action, $notification, $jobID = null)
+{
+    switch ($action) {
+        case 'raw':
+            // debug
+            runelog('wrk_notify (raw)', $notification);
+            break;
+        case 'startjob':
+            // debug
+            runelog('wrk_notify (startjob) jobID='.$jobID, $notification);
+            if (!empty($notification)) {
+                if (is_object($notification)) {
+                    $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'icon' => 'fa fa-cog fa-spin', 'permanotice' => ''));
+                }
+                if (wrk_notify_check($notification)) $redis->hSet('notifications', $jobID, $notification);
+            }
+            break;
+        case 'endjob':
+            $notification = $redis->hGet('notifications', $jobID);
+            // debug
+            runelog('wrk_notify (endjob) jobID='.$jobID, $notification);
+            if (!empty($notification)) {
+                $notification = json_decode($notification);
+                $notification = json_encode(array('title' => $notification->title, 'text' => '', 'permanotice' => '', 'permaremove' => ''));
+                $redis->hDel('notifications', $jobID);
+            }
+            break;
+        case 'kernelswitch':
+            // debug
+            runelog('wrk_notify (kernelswitch) jobID='.$jobID, $notification);
+            if (!empty($notification)) {
+                $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'custom' => 'kernelswitch'));
+                if (wrk_notify_check($notification)) $redis->hSet('notifications', 'permanent', $notification);
+            }
+            break;
+    }
+    if (wrk_notify_check($notification)) ui_render('notify', $notification);
+}
+
+function wrk_notify_check($notification)
+{
+    if (json_decode($notification) !== null) {
+        $notification = json_decode($notification);
+        if (isset($notification->title) && isset($notification->text)) { 
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 /*

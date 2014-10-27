@@ -38,6 +38,10 @@ $activePlayer = $redis->get('activePlayer');
 if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
     // switch player engine
     $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'switchplayer', 'args' => $_GET['switchplayer']));
+    $notification = new stdClass();
+    $notification->title = 'Switch Player';
+    $notification->text = 'Switch player backend started...';
+    wrk_notify($redis, 'startjob', $notification, $jobID);
 } elseif (isset($_GET['cmd']) && $_GET['cmd'] !== '') {
     // debug
     // runelog('MPD command: ',$_GET['cmd']);

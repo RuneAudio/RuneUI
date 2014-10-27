@@ -58,7 +58,14 @@ if (isset($_POST)) {
     // ----- KERNEL -----
     if (isset($_POST['kernel'])) {        
         // submit worker job
-        $redis->get('kernel') == $_POST['kernel'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'kernelswitch', 'args' => $_POST['kernel']));    
+        if ($redis->get('kernel') !== $_POST['kernel']) {
+            $job = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'kernelswitch', 'args' => $_POST['kernel']));
+            $notification = new stdClass();
+            $notification->title = 'Kernel switch';
+            $notification->text = 'Kernel switch started...';
+            wrk_notify($redis, 'startjob', $notification, $job);
+            $jobID[] = $job;
+        }
     }
     if (isset($_POST['orionprofile'])) {        
         // submit worker job
