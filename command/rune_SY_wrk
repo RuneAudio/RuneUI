@@ -41,8 +41,6 @@ define('APP', '/srv/http/app/');
 include('/srv/http/app/libs/runeaudio.php');
 // stop php-fpm
 sysCmd('systemctl stop php-fpm');
-// check MPD process
-sysCmd('pgrep mpd || systemctl start mpd');
 // setup /run dir
 sysCmd('chmod 777 /run');
 // Connect to Redis backend
@@ -50,6 +48,13 @@ $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
 // read activePlayer state
 $activePlayer = $redis->get('activePlayer');
+if ($activePlayer === 'MPD') {
+    // check MPD process
+    sysCmd('pgrep -x mpd || systemctl start mpd');
+} elseif ($activePlayer === 'Spotify') {
+    // check MPD process
+    sysCmd('pgrep -x spopd || systemctl start spopd');
+}
 // read registered HW architecture
 $arch_db = $redis->get('hwplatformid');
 runelog('registered architecture: ', $arch_db);
@@ -216,7 +221,7 @@ if ($redis->get('cmediafix') === '1') {
 // start php-fpm
 sysCmd('systemctl start php-fpm');
 // PHP 5.5 OPCache
-if ($redis->get('dev') === '1') {
+if ($redis->get('dev') === '0') {
     // prime PHP OPCache
     runelog('prime PHP OPCache');
     // wrk_opcache('prime',$redis);

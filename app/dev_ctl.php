@@ -78,7 +78,7 @@ if (isset($_POST)) {
         // ----- RESTART PHP-FPM -----
         if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'clearimg'));
         // ----- RESTART WORKERS -----
-        if ($_POST['syscmd'] === 'wrkrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart']));
+        if (isset($_POST['syscmd']['wrkrestart'])) $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'wrkrestart', 'args' => $_POST['syscmd']['wrkrestart']));
     }
 }
 waitSyWrk($redis, $jobID);

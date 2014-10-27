@@ -35,6 +35,7 @@ mpc stop
 systemctl stop nginx
 sleep 1
 systemctl stop mpd
+systemctl stop spopd
 sleep 1
 umount -aft nfs
 umount -aft cifs

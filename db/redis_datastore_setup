@@ -68,7 +68,34 @@ function redisDatastore($redis,$action) {
             $redis->hSet('lastfm', 'pass', 'pass');
             $redis->set('cmediafix', 0);
             $redis->set('globalrandom', 0);
-            $redis->set('stoppedPlayer', '');            
+            $redis->set('stoppedPlayer', '');    
+            // default MPD config
+            $redis->hSet('mpdconf', 'zeroconf_enabled', 'yes');
+            $redis->hSet('mpdconf', 'zeroconf_name', 'RuneAudio');
+            $redis->hSet('mpdconf', 'log_level', 'none');
+            $redis->hSet('mpdconf', 'bind_to_address', 'any');
+            $redis->hSet('mpdconf', 'port', '6600');
+            $redis->hSet('mpdconf', 'max_connections', '20');
+            $redis->hSet('mpdconf', 'user', 'mpd');
+            $redis->hSet('mpdconf', 'db_file', '/var/lib/mpd/mpd.db');
+            $redis->hSet('mpdconf', 'sticker_file', '/var/lib/mpd/sticker.sql');
+            $redis->hSet('mpdconf', 'pid_file', '/var/run/mpd/pid');
+            $redis->hSet('mpdconf', 'music_directory', '/mnt/MPD');
+            $redis->hSet('mpdconf', 'playlist_directory', '/var/lib/mpd/playlists');
+            $redis->hSet('mpdconf', 'state_file', '/var/lib/mpd/mpdstate');
+            $redis->hSet('mpdconf', 'follow_outside_symlinks', 'yes');
+            $redis->hSet('mpdconf', 'follow_inside_symlinks', 'yes');
+            $redis->hSet('mpdconf', 'auto_update', 'no');
+            $redis->hSet('mpdconf', 'filesystem_charset', 'UTF-8');
+            $redis->hSet('mpdconf', 'id3v1_encoding', 'UTF-8');
+            $redis->hSet('mpdconf', 'volume_normalization', 'no');
+            $redis->hSet('mpdconf', 'audio_buffer_size', '2048');
+            $redis->hSet('mpdconf', 'buffer_before_play', '10%');
+            $redis->hSet('mpdconf', 'gapless_mp3_playback', 'yes');
+            $redis->hSet('mpdconf', 'mixer_type', 'software');
+            $redis->hSet('mpdconf', 'curl', 'yes');
+            $redis->hSet('mpdconf', 'ffmpeg', 'yes');
+            $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
             // plugins api-keys
             $redis->set('lastfm_apikey', 'ba8ad00468a50732a3860832eaed0882');
             $redis->hSet('lastfm', 'apikey', 'ba8ad00468a50732a3860832eaed0882');
@@ -85,14 +112,14 @@ function redisDatastore($redis,$action) {
             $redis->set('mpdconf_advanced', 0);
             $redis->set('netconf_advanced', 0);
             // MPD parameters
-            wrk_mpdconf($redis, 'reset');
+            wrk_mpdconf($redis, 'writecfg');
             $redis->set('mpd_playback_status', '');
             // developer parameters
             $redis->set('dev', 0);
             $redis->set('debug', 0);
             $redis->set('debugdata', '');
             $redis->set('opcache', 1);
-            $redis->set('buildversion', 'alpha-20140919');
+            $redis->set('buildversion', 'beta-20141027');
             // HW platform data
             // $redis->set('playerid', '');
             // $redis->set('hwplatform', '');
@@ -114,6 +141,12 @@ function redisDatastore($redis,$action) {
             $redis->set('lock_globalrandom', 0);
             $redis->set('lock_refresh_ao', 0);
             $redis->set('lock_wifiscan', 0);
+            // env settings
+            $redis->del('usbmounts');
+            $redis->set('wlans', '');
+            $redis->del('acards');
+            $redis->set('mountidx', 1);
+            $redis->set('debugdata', '');
             // PHP precache (prime) scripts
             $redis->del('php_opcache_prime');
             $transaction = $redis->multi();
@@ -188,6 +221,7 @@ function redisDatastore($redis,$action) {
             $transaction->sAdd('php_opcache_prime', '/srv/http/command/rune_PL_wrk');
             $transaction->sAdd('php_opcache_prime', '/srv/http/command/rune_SY_wrk');
             $transaction->exec();
+            sysCmd('redis-cli KEYS "mount_*" | xargs redis-cli DEL');
             break;
         case 'check':
             // kernel

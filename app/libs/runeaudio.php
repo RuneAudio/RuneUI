@@ -1640,19 +1640,17 @@ function wrk_cleanDistro($redis)
     runelog('function CLEAN DISTRO invoked!!!','');
     // remove mpd.db
     sysCmd('systemctl stop mpd');
-    sysCmd('/var/www/db/redis_datastore_setup reset');
+    sysCmd('systemctl stop spopd');
     sleep(1);
-    sysCmd('rm /var/lib/mpd/mpd.db');
-    sysCmd('rm /var/lib/mpd/mpdstate');
+    sysCmd('rm -f /var/lib/mpd/mpd.db');
+    sysCmd('rm -f /var/lib/mpd/mpdstate');
     // reset /var/log/*
     sysCmd('rm -f /var/log/*');
     // reset /root/ logs
     sysCmd('rm -rf /root/.*');
-    // delete .git folder
-    //sysCmd('rm -rf /var/www/.git');
     // blank git user/email
-    sysCmd('git config user.name ""');
-    sysCmd('git config user.email ""');
+    sysCmd("git config -f /var/www/.git/config user.name \"\"");
+    sysCmd("git config -f /var/www/.git/config user.email \"\"");
     // reset spop config file
     sysCmd('cp /var/www/app/config/defaults/spopd.conf /etc/spop/spopd.conf');
     // reset mpdscribble config file
@@ -1662,12 +1660,11 @@ function wrk_cleanDistro($redis)
     // reset netctl profiles
     sysCmd('rm -f /etc/netctl/*');
     sysCmd('cp /var/www/app/config/defaults/eth0 /etc/netctl/eth0');
-    // reset /var/log/runeaudio/*
-    sysCmd('rm -f /var/log/runeaudio/*');
-    // rest mpd.conf
-    wrk_mpdconf($redis,'reset');
     // reset Redis datastore
-    // ---
+    sysCmdAsync('/srv/http/db/redis_datastore_setup reset');
+    // reset /var/log/runeaudio/*
+    sysCmdAsync('rm -f /var/log/runeaudio/*');
+    sysCmd('/var/www/command/rune_shutdown');
     sysCmd('poweroff');
 }
 
@@ -1931,6 +1928,21 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 $redis->Save();
             }
             $output = null;
+            // --- log settings ---
+            if ($mpdcfg['log_level'] === 'none') {
+                $redis->hDel('mpdconf', 'log_file');
+                unset($mpdcfg['log_level']);
+                unset($mpdcfg['log_file']);
+            } else {
+                $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
+            }
+            // --- state file ---
+            if ($mpdcfg['state_file'] === 'no') {
+                $redis->hDel('mpdconf', 'state_file');
+                unset($mpdcfg['state_file']);
+            } else {
+                $redis->hSet('mpdconf', 'state_file', '/var/lib/mpd/mpdstate');
+            }
             // --- general settings ---
             foreach ($mpdcfg as $param => $value) {
                 if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
@@ -1946,21 +1958,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     } else {
                         $redis->set('volume', 0);
                     }
-                }
-                if ($param === 'log_level' && $value === 'none') {
-                    $redis->hDel('mpdconf', 'log_file');
-                    continue;
-                }
-                if ($param === 'log_level' && $value !== 'none') {
-                    $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
-                }
-                if ($param === 'state_file' && $value === 'no') {
-                    $redis->hDel('mpdconf', 'state_file');
-                    continue;
-                }
-                if ($param === 'state_file' && $value !== 'no') {
-                    $value = '/var/lib/mpd/mpdstate';
-                }
+                }                
                 if ($param === 'user' && $value === 'mpd') {
                     $output .= $param." \t\"".$value."\"\n";
                     $output .= "group \t\"audio\"\n";
