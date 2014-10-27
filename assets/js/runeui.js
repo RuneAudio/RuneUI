@@ -423,6 +423,14 @@ function renderLibraryHome() {
 			content += divOpen + '<div id="home-nas" class="home-block' + toggleMPD + '" data-path="NAS"><i class="fa fa-sitemap"></i><h3>Network mounts (' + obj.networkMounts + ')</h3>network attached storages</div>' + divClose;
 		}
 	}
+	if (chkKey(obj.localStorages)) {
+	// local storages block
+		if (obj.localStorages === 0) {
+			content += '';
+		} else {
+			content += divOpen + '<div id="home-local" class="home-block' + toggleMPD + '" data-path="LocalStorage"><i class="fa fa-hdd-o"></i><h3>LocalStorage (' + obj.localStorages + ')</h3>locally stored music</div>' + divClose;
+		}
+	}
 	if (chkKey(obj.USBMounts)) {
 	// USB mounts block
 		if (obj.USBMounts === 0) {

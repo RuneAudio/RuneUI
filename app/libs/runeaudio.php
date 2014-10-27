@@ -2755,6 +2755,9 @@ function ui_status($mpd, $status)
 
 function ui_libraryHome($redis)
 {
+    // LocalStorage
+    $localStorages = countDirs('/mnt/MPD/LocalStorage');
+    // runelog('networkmounts: ',$networkmounts);
     // Network mounts
     $networkmounts = countDirs('/mnt/MPD/NAS');
     // runelog('networkmounts: ',$networkmounts);
@@ -2785,7 +2788,7 @@ function ui_libraryHome($redis)
     // runelog('bookmarks: ',$bookmarks);
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    $jsonHome = json_encode(array('bookmarks' => $bookmarks, 'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'Spotify' => $spotify, 'Dirble' => $dirble->amount, 'ActivePlayer' => $activePlayer));
+    $jsonHome = json_encode(array('bookmarks' => $bookmarks, 'localStorages' => $localStorages, 'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'Spotify' => $spotify, 'Dirble' => $dirble->amount, 'ActivePlayer' => $activePlayer));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
