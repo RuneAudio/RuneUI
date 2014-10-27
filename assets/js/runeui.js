@@ -354,19 +354,31 @@ function loadingSpinner(section, hide) {
 }
 
 // update the playback source
-function setPlaybackSource(source) {
-	GUI.activePlayer = source;
+function setPlaybackSource() {
+	var source = GUI.activePlayer;
+	// update the playback section
 	$('#overlay-playsource-open button').text(source);
 	$('#overlay-playsource a').addClass('inactive');
 	source = source.toLowerCase();
 	$('#playsource-' + source).removeClass('inactive');
+	// update volume knob and control buttons
+	if (GUI.activePlayer === 'Spotify' || GUI.activePlayer === 'Airplay') {
+		$('#volume').trigger('configure', {'readOnly': true, 'fgColor': '#1A242F'}).css({'color': '#1A242F'});
+		$('.volume button').prop('disabled', true);
+		$('#single').addClass('disabled');
+	} else {
+		$('#volume').trigger('configure', {'readOnly': false, 'fgColor': '#0095D8'}).css({'color': '#0095D8'});
+		$('.volume button').prop('disabled', false);
+		$('#single').removeClass('disabled');
+	}
+	// style the queue
 	$('#playlist-entries').removeClass(function(index, css) {
 		return (css.match (/(^|\s)playlist-\S+/g) || []).join(' ');
 	}).addClass('playlist-' + source);
+	// toggle queue buttons
 	$('#pl-manage').removeClass(function(index, css) {
 		return (css.match (/(^|\s)pl-manage-\S+/g) || []).join(' ');
 	}).addClass('pl-manage-' + source);
-	
 }
 
 function chkKey(key) {
@@ -389,7 +401,8 @@ function renderLibraryHome() {
 		toggleSpotify = '';
 	content = '<div class="col-sm-12"><h1 class="txtmid">Browse your library</h1></div>';
 	// Set active player
-	setPlaybackSource(obj.ActivePlayer);
+	GUI.activePlayer = obj.ActivePlayer;
+	setPlaybackSource();
 	if (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay') {
 		toggleMPD =  ' inactive';
 	}
@@ -1567,7 +1580,7 @@ if ($('#section-index').length) {
 		// ----------------------------------------------------------------------------------------------------
 		
 		// playback knob
-		$('.playbackknob').knob({
+		$('#time').knob({
 			inline: false,
 			change: function (value) {
 				if (GUI.state !== 'stop') {
@@ -1582,7 +1595,7 @@ if ($('#section-index').length) {
 		});
 
 		// volume knob
-		$('.volumeknob').knob({
+		$('#volume').knob({
 			change: function (value) {
 				//setvol(value);	// disabled until perfomance issues are solved (mouse wheel is not working now)
 			},
@@ -2114,11 +2127,15 @@ if ($('#section-index').length) {
 		$('#playsource-mpd').click(function(){
 			if ($(this).hasClass('inactive')) {
 				$.ajax({url: '/command/?switchplayer=MPD'});
+				// close switch buttons layer
+				$('#overlay-playsource-close').trigger('click');
 			}
 		});
 		$('#playsource-spotify').click(function(){
 			if ($(this).hasClass('inactive')) {
 				$.ajax({url: '/command/?switchplayer=Spotify'});
+				// close switch buttons layer
+				$('#overlay-playsource-close').trigger('click');
 			}
 		});
 		
