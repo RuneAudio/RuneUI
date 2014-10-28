@@ -1902,16 +1902,26 @@ if ($('#section-index').length) {
 		});
 		// double click on Library list entry
 		db.on('dblclick', 'li', function(e) {
+			var el = $(this);
 			if (!$(e.target).hasClass('db-action')) {
 				$('li.active', '#database-entries').removeClass('active');
-				$(this).addClass('active');
-				var path = $(this).data('path');
+				el.addClass('active');
+				var path = el.data('path');
 				// console.log('doubleclicked path = ', path);
-				path = ($(this).hasClass('db-dirble')) ? path.split(' | ')[1] : path;
-				getDB({
-					cmd: 'addplay',
-					path: path
-				});
+				if (el.hasClass('db-spotify')) {
+					path = el.attr('data-plid') + '-' + el.attr('data-path');
+					getDB({
+						cmd: 'spaddplay',
+						path: path,
+						querytype: 'spotify-track'
+					});
+				} else {
+					path = (el.hasClass('db-dirble')) ? path.split(' | ')[1] : path;
+					getDB({
+						cmd: 'addplay',
+						path: path
+					});
+				}
 			}
 		});
 
