@@ -113,19 +113,26 @@
                 </div>
             </div>            
             <div class="form-group">
-                <label class="col-sm-2 control-label">reset NET config</label>
+                <label class="col-sm-2 control-label">Reset NET config</label>
                 <div class="col-sm-10">
                     <input class="btn btn-default btn-lg" type="submit" name="syscmd" value="netconfreset" id="syscmd-netconfreset" <?php if($this->dev !== '1'): ?> disabled <?php endif ?>>
                     <span class="help-block">&nbsp;</span>
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label">reset MPD config</label>
+                <label class="col-sm-2 control-label">Reset MPD config</label>
                 <div class="col-sm-10">
                     <input class="btn btn-default btn-lg" type="submit" name="syscmd" value="mpdconfreset" id="syscmd-mpdconfreset" <?php if($this->dev !== '1'): ?> disabled <?php endif ?>>
                     <span class="help-block">&nbsp;</span>
                 </div>
-            </div>        
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Update RuneUI</label>
+                <div class="col-sm-10">
+                    <input class="btn btn-default btn-lg" type="submit" name="syscmd" value="gitpull" id="syscmd-mpdconfreset" <?php if($this->dev !== '1'): ?> disabled <?php endif ?>>
+                    <span class="help-block">&nbsp;</span>
+                </div>
+            </div>              
         </fieldset>
     </form>
     <form class="form-horizontal" method="post">

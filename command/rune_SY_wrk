@@ -350,6 +350,16 @@ $redis->pconnect('/tmp/redis.sock');
                     }
                     $redis->sRem('w_lock', $jobID);
                     break;
+                case 'gitpull':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    // Update RuneUI
+                    runelog('Update RuneUI');
+                    // git pull
+                    sysCmd('cd /var/www/ && git pull');
+                    // send notfy to UI
+                    ui_notify_async('Update RuneUI', 'RuneUI updated successfully', $jobID);
+                    $redis->sRem('w_lock', $jobID);
+                    break;
                 case 'hostname':
                     runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
