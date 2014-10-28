@@ -355,14 +355,14 @@ function loadingSpinner(section, hide) {
 
 // update the playback source
 function setPlaybackSource() {
-	var source = GUI.activePlayer;
+	var activePlayer = GUI.libraryhome.ActivePlayer;
 	// update the playback section
-	$('#overlay-playsource-open button').text(source);
+	$('#overlay-playsource-open button').text(activePlayer);
 	$('#overlay-playsource a').addClass('inactive');
-	source = source.toLowerCase();
+	var source = activePlayer.toLowerCase();
 	$('#playsource-' + source).removeClass('inactive');
 	// update volume knob and control buttons
-	if (GUI.activePlayer === 'Spotify' || GUI.activePlayer === 'Airplay') {
+	if (activePlayer === 'Spotify' || activePlayer === 'Airplay') {
 		$('#volume').trigger('configure', {'readOnly': true, 'fgColor': '#1A242F'}).css({'color': '#1A242F'});
 		$('.volume button').prop('disabled', true);
 		$('#single').addClass('disabled');
@@ -402,7 +402,6 @@ function renderLibraryHome() {
 		notMPD = (obj.ActivePlayer === 'Spotify' || obj.ActivePlayer === 'Airplay');
 	content = '<div class="col-sm-12"><h1 class="txtmid">Browse your library</h1></div>';
 	// Set active player
-	GUI.activePlayer = obj.ActivePlayer;
 	setPlaybackSource();
 	if (notMPD) {
 		toggleMPD =  ' inactive';
@@ -2150,9 +2149,17 @@ if ($('#section-index').length) {
 		});
 		$('#playsource-spotify').click(function(){
 			if ($(this).hasClass('inactive')) {
-				$.ajax({url: '/command/?switchplayer=Spotify'});
-				// close switch buttons layer
-				$('#overlay-playsource-close').trigger('click');
+				if (GUI.libraryhome.Spotify === '1') {
+					$.ajax({url: '/command/?switchplayer=Spotify'});
+					// close switch buttons layer
+					$('#overlay-playsource-close').trigger('click');
+				} else {
+					new PNotify({
+						title: 'Spotify not enabled',
+						text: 'Enable and configure it under the Settings screen',
+						icon: 'fa fa-exclamation-circle'
+					});
+				}
 			}
 		});
 		
