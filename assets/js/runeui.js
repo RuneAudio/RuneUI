@@ -261,6 +261,9 @@ function randomScrollDB() {
 // custom complex notifies
 function customNotify(notify) {
 	if (notify.custom === 'kernelswitch') {
+		if (GUI.noticeUI.kernelswitch !== undefined) {
+			GUI.noticeUI.kernelswitch.remove();
+		}
 		GUI.noticeUI.kernelswitch = new PNotify({
 			title: ('title' in notify) ? notify.title : '[missing title]',
 			text: ('text' in notify) ? notify.text : '[missing text]',
