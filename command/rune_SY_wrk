@@ -356,6 +356,7 @@ $redis->pconnect('/tmp/redis.sock');
                     runelog('Update RuneUI');
                     // git pull
                     sysCmd('cd /var/www/ && git pull');
+                    sysCmd("curl -s -X GET 'http://localhost/clear'");
                     // send notfy to UI
                     ui_notify_async('Update RuneUI', 'RuneUI updated successfully', $jobID);
                     $redis->sRem('w_lock', $jobID);
