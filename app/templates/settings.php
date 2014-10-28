@@ -317,11 +317,12 @@
     <form class="form-horizontal" method="post">
         <fieldset>
             <legend>Backup / Restore configuration</legend>
-            <p>&nbsp;</p>
+            <p>Transfer settings between multiple RuneAudio installations, saving time during new/upgrade installations.</p>
             <div class="form-group">
                 <label class="control-label col-sm-2">Backup player config</label>
                 <div class="col-sm-10">
                     <input class="btn btn-primary btn-lg" type="submit" name="syscmd" value="backup" id="syscmd-backup">
+					<span class="help-block">NOTE: restore feature will come in 0.4 release.</span>
                 </div>
             </div>
 		</fieldset>
