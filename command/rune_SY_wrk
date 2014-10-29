@@ -165,6 +165,17 @@ if ($redis->get('i2smodule') !== 'none') {
 // start player backend
 if ($activePlayer === 'MPD') {
     sysCmd('systemctl start mpd');
+    usleep(500000);
+    // start upmpdcli
+    if ($redis->hGet('dlna', 'enable') === '1') {
+        runelog("service: UPMPDCLI start",'');
+        sysCmd('systemctl start upmpdcli');
+    }
+    // start mpdscribble
+    if ($redis->hGet('lastfm','enable') === '1') {
+        runelog("service: MPDSCRIBBLE start",'');
+        sysCmd('systemctl start mpdscribble');
+    }
 } elseif ($activePlayer === 'Spotify') {
     sysCmd('systemctl start spopd');
 }
@@ -175,20 +186,10 @@ if ($redis->hGet('airplay', 'enable') === '1') {
     runelog("service: SHAIRPORT start",'');
     sysCmd('systemctl start shairport');
 }
-// start upmpdcli
-if ($redis->hGet('dlna', 'enable') === '1') {
-    runelog("service: UPMPDCLI start",'');
-    sysCmd('systemctl start upmpdcli');
-}
 // start udevil
 if ($redis->get('udevil') === '1') {
     runelog("service: UDEVIL start",'');
     sysCmd('systemctl start udevil');
-}
-// start mpdscribble
-if ($redis->hGet('lastfm','enable') === '1' && $activePlayer === 'MPD') {
-    runelog("service: MPDSCRIBBLE start",'');
-    sysCmd('systemctl start mpdscribble');
 }
 // read system network interfaces details
 // wrk_netconfig($redis,'setnics');

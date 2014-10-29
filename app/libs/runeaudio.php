@@ -2127,8 +2127,12 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     syscmd('mpc play');
                 }
                 // restart mpdscribble
-                if ($redis->get('scrobbling_lastfm') === '1') {
+                if ($redis->hGet('lastfm', 'enable') === '1') {
                     sysCmd('systemctl restart mpdscribble');
+                }
+                // restart upmpdcli
+                if ($redis->hGet('dlna', 'enable') === '1') {
+                    sysCmd('systemctl restart upmpdcli');
                 }
                 // set process priority
                 sysCmdAsync('sleep 1 && rune_prio nice');
@@ -2166,7 +2170,7 @@ function wrk_shairport($redis, $ao, $name = null)
     $acard = json_decode($redis->hget('acards', $ao));
     runelog('acard details: ', $acard);
     $file = '/usr/lib/systemd/system/shairport.service';
-    $newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=/var/www/command/airplay.sh --on-stop=/var/www/command/airplay.sh -o alsa -- -d '.$acard->device);
+    $newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=/var/www/command/airplay_toggle --on-stop=/var/www/command/airplay_toggle -o alsa -- -d '.$acard->device);
     runelog('shairport.service :', $newArray);
     // Commit changes to /usr/lib/systemd/system/shairport.service
     $fp = fopen($file, 'w');
@@ -2452,6 +2456,7 @@ function wrk_switchplayer($redis, $playerengine)
             $return = sysCmd('systemctl start mpd');
             usleep(500000);
             if ($redis->hGet('lastfm','enable') === '1') sysCmd('systemctl start mpdscribble');
+            if ($redis->hGet('dlna','enable') === '1') sysCmd('systemctl start upmpdcli');
             $redis->set('activePlayer', 'MPD');
             $return = sysCmd('systemctl stop spopd');
             $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
@@ -2463,8 +2468,10 @@ function wrk_switchplayer($redis, $playerengine)
             $return = sysCmd('systemctl start spopd');
             usleep(500000);
             if ($redis->hGet('lastfm','enable') === '1') sysCmd('systemctl stop mpdscribble');
+            if ($redis->hGet('dlna','enable') === '1') sysCmd('systemctl stop upmpdcli');
             $redis->set('activePlayer', 'Spotify');
             $return = sysCmd('systemctl stop mpd');
+            $redis->set('mpd_playback_status', 'stop');
             $return = sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
             // set process priority
             sysCmdAsync('rune_prio nice');

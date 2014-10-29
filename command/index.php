@@ -43,7 +43,7 @@ if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
             $switchOK = 0;
         }
     }
-    if ($switchOK === 1) {
+    if ($switchOK === 1 OR $_GET['switchplayer'] === 'MPD') {
         // switch player engine
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'switchplayer', 'args' => $_GET['switchplayer']));
         $notification = new stdClass();
@@ -51,7 +51,7 @@ if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
         $notification->text = 'Switch player backend started...';
         wrk_notify($redis, 'startjob', $notification, $jobID);
     } else {
-        ui_notify('Switch Player Engine', 'Spotify not enabled');
+        ui_notify('Spotify not enabled', 'Enable and configure it under the Settings screen');
     }
 } elseif (isset($_GET['cmd']) && $_GET['cmd'] !== '') {
     // debug
