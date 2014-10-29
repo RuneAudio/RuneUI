@@ -125,7 +125,11 @@ function redisDatastore($redis,$action) {
             // $redis->set('hwplatform', '');
             // $redis->set('hwplatformid', '');
             // player control
-            $redis->set('ao', 1);
+            if ($redis->get('hwplatformid') === '01') {
+                $redis->set('ao', 'bcm2835 ALSA_1');
+            } else {
+                $redis->set('ao', '');
+            }
             $redis->set('volume', 0);
             $redis->set('pl_length', 0);
             $redis->set('nextsongid', 0);

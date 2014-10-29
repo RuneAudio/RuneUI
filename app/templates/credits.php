@@ -15,8 +15,8 @@
             <strong>Cristian Pascottini</strong> <span class="help-block">- RuneUI Javascript optimizations</span><br>
             <strong>Valerio Battaglia</strong> <span class="help-block">- RuneUI Javascript optimizations</span><br>
             <strong>Francesco Casarsa</strong> <span class="help-block">- Shairport patch</span><br>
-            <strong>Frank Friedmann</strong> <span class="help-block">- RuneOS porting for Cubietruck</span>
-            
+            <strong>Frank Friedmann</strong> <span class="help-block">- RuneOS porting for Cubietruck</span><br>
+            <strong>Saman</strong> <span class="help-block">- RuneOS RT Linux kernel for Wolfson Audio Card (RaspberryPi)</span>
         </div>
         <div class="col-md-4">
             <h3 class="txtmid">Support us!</h3>

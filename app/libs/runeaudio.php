@@ -1648,9 +1648,15 @@ function wrk_cleanDistro($redis)
     sysCmd('rm -f /var/log/*');
     // reset /root/ logs
     sysCmd('rm -rf /root/.*');
+    // reset /var/www/test
+    sysCmd('rm -rf /var/www/test');
     // blank git user/email
     sysCmd("git config -f /var/www/.git/config user.name \"\"");
     sysCmd("git config -f /var/www/.git/config user.email \"\"");
+    // reset libao config file
+    sysCmd('cp /var/www/app/config/defaults/libao.conf /etc/libao.conf');
+    // reset shairport starter script
+    sysCmd('cp /var/www/app/config/defaults/shairport.service /usr/lib/systemd/system/shairport.service');
     // reset spop config file
     sysCmd('cp /var/www/app/config/defaults/spopd.conf /etc/spop/spopd.conf');
     // reset mpdscribble config file
@@ -1665,6 +1671,8 @@ function wrk_cleanDistro($redis)
     // reset /var/log/runeaudio/*
     sysCmdAsync('rm -f /var/log/runeaudio/*');
     sysCmd('/var/www/command/rune_shutdown');
+    // reset /mnt/MPD/NAS/*
+    sysCmd('rm -rf /mnt/MPD/NAS/*');
     sysCmd('poweroff');
 }
 
@@ -2683,7 +2691,11 @@ function wrk_notify($redis, $action, $notification, $jobID = null)
                     // debug
                     runelog('wrk_notify (startjob) jobID='.$jobID, $notification);
                 }
-                if (wrk_notify_check($notification)) $redis->hSet('notifications', $jobID, $notification);
+                if (wrk_notify_check($notification)) {
+                    if (empty($redis->hGet('notifications', $jobID)) && empty($redis->hGet('notifications', 'permanotice_'.$jobID))) {
+                        $redis->hSet('notifications', $jobID, $notification);
+                    }
+                }
             }
             break;
         case 'endjob':
@@ -2701,7 +2713,11 @@ function wrk_notify($redis, $action, $notification, $jobID = null)
             runelog('wrk_notify (kernelswitch) jobID='.$jobID, $notification);
             if (!empty($notification)) {
                 $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'custom' => 'kernelswitch'));
-                if (wrk_notify_check($notification)) $redis->hSet('notifications', 'permanent', $notification);
+                if (wrk_notify_check($notification)) {
+                    if (empty($redis->hGet('notifications', $jobID)) && empty($redis->hGet('notifications', 'permanotice_'.$jobID))) {
+                        $redis->hSet('notifications', 'permanotice_'.$jobID, $notification);
+                    }
+                }
             }
             break;
     }
@@ -2712,7 +2728,7 @@ function wrk_notify_check($notification)
 {
     if (json_decode($notification) !== null) {
         $notification = json_decode($notification);
-        if (isset($notification->title) && isset($notification->text)) { 
+        if (isset($notification->title) && isset($notification->text)) {
             return true;
         } else {
             return false;
