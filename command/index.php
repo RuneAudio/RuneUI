@@ -36,12 +36,23 @@ include($_SERVER['HOME'].'/app/config/config.php');
 // check current player backend
 $activePlayer = $redis->get('activePlayer');
 if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
-    // switch player engine
-    $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'switchplayer', 'args' => $_GET['switchplayer']));
-    $notification = new stdClass();
-    $notification->title = 'Switch Player';
-    $notification->text = 'Switch player backend started...';
-    wrk_notify($redis, 'startjob', $notification, $jobID);
+    if ($_GET['switchplayer'] === 'Spotify') {
+        if ($redis->hGet('spotify','enable') === '1') {
+            $switchOK = 1;
+        } else {
+            $switchOK = 0;
+        }
+    }
+    if ($switchOK === 1) {
+        // switch player engine
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'switchplayer', 'args' => $_GET['switchplayer']));
+        $notification = new stdClass();
+        $notification->title = 'Switch Player';
+        $notification->text = 'Switch player backend started...';
+        wrk_notify($redis, 'startjob', $notification, $jobID);
+    } else {
+        ui_notify('Switch Player Engine', 'Spotify not enabled');
+    }
 } elseif (isset($_GET['cmd']) && $_GET['cmd'] !== '') {
     // debug
     // runelog('MPD command: ',$_GET['cmd']);
