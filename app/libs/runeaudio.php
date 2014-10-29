@@ -1797,6 +1797,7 @@ function wrk_i2smodule($redis, $args)
             sysCmd('rmmod snd_soc_iqaudio_dac').usleep(300000);
             sysCmd('rmmod snd_soc_hifiberry_digi').usleep(300000);
             sysCmd('rmmod snd_soc_hifiberry_dac').usleep(300000);
+            sysCmd('rmmod snd_soc_hifiberry_dacplus').usleep(300000);
             sysCmd('rmmod snd_soc_wm8804').usleep(300000);
             sysCmd('rmmod snd_soc_pcm512x').usleep(300000);
             sysCmd('rmmod snd_soc_pcm5102a');
@@ -2714,9 +2715,9 @@ function wrk_notify($redis, $action, $notification, $jobID = null)
             if (!empty($notification)) {
                 $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'custom' => 'kernelswitch'));
                 if (wrk_notify_check($notification)) {
-                    if (empty($redis->hGet('notifications', $jobID)) && empty($redis->hGet('notifications', 'permanotice_'.$jobID))) {
-                        $redis->hSet('notifications', 'permanotice_'.$jobID, $notification);
-                    }
+                    // if (empty($redis->hGet('notifications', $jobID)) && empty($redis->hGet('notifications', 'permanotice_'.$jobID))) {
+                        $redis->hSet('notifications', 'permanotice_kernelswitch', $notification);
+                    // }
                 }
             }
             break;

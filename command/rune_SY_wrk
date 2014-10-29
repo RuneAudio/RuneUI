@@ -384,8 +384,13 @@ $redis->pconnect('/tmp/redis.sock');
                     // TODO: make a real check!
                     ui_notify_async('I&#178;S kernel module', 'Operation completed', $jobID);
                     // TODO (rework needed)
-                    runelog('env: reenable the current AO', $redis->get('ao'));
-                    sysCmd('mpc enable only "'.$redis->get('ao').'"');
+                    $ao = $redis->get('ao');
+                    runelog('env: reenable the current AO', $ao);
+                    if ($ao === 'bcm2835 ALSA_1' OR $ao === 'bcm2835 ALSA_2') {
+                        sysCmd('mpc enable only "bcm2835 ALSA"');
+                    } else {    
+                        sysCmd('mpc enable only "'.$ao.'"');
+                    }
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'kernelswitch':
@@ -556,6 +561,7 @@ $redis->pconnect('/tmp/redis.sock');
                     runelog("env: SET KERNEL PROFILE", $job->args);
                     sysCmd("/var/www/command/orion_optimize.sh ".$profile);
                     $redis->set('orionprofile', $job->args);
+                    ui_notify_async('SoundSignature', 'Profile '.$profile.' applied', $jobID);
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'phprestart':

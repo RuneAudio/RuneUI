@@ -237,7 +237,7 @@
                     <span class="help-block">Toggle the display of album art on the Playback main screen</span>
                 </div>
             </div>
-            <div class="form-group">
+            <!-- <div class="form-group">
                 <label for="udevil" class="control-label col-sm-2">Global Random mode</label>
                 <div class="col-sm-10">
                     <label class="switch-light well" onclick="">
@@ -247,7 +247,7 @@
                     <span class="help-block">Toggle random playback on the whole music library [WARNING - EXPERIMENTAL]</span>
                 </div>
             </div>
-            <!-- <div class="form-group">
+            <div class="form-group">
                 <label for="wifiap" class="control-label col-sm-2">WiFi AccessPoint</label>
                 <div class="col-sm-10">
                     <label class="switch-light well" onclick="">

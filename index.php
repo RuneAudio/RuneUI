@@ -134,7 +134,9 @@ if ($activePlayer === 'MPD') {
 // notifications
 $notifications = $redis->hGetAll('notifications');
 if (!empty($notifications) &&  $tplfile !== 0) {
-    wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ui_notify', 'args' => $notifications, 'delay_us' => 450000));
+    foreach ($notifications as $raw_notification) {
+        wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ui_notify', 'args' => $notifications, 'delay_us' => 450000));
+    }
 }
 // close Redis connection
 // $redis->close();

@@ -69,7 +69,7 @@ if (isset($_POST)) {
     }
     if (isset($_POST['orionprofile'])) {        
         // submit worker job
-        $redis->get('orionprofile') == $_POST['orionprofile'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => $_POST['orionprofile']));        
+        $redis->get('orionprofile') == $_POST['orionprofile'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => $_POST['orionprofile']));
     }
     if (isset($_POST['i2smodule'])) {
         // submit worker job
