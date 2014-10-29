@@ -1835,19 +1835,19 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
             sysCmd('modprobe snd_soc_iqaudio_dac');
             break;
-        case 'raspi2splay3':
+        case 'raspyplay3':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm5102a').usleep(300000);
             sysCmd('modprobe snd_soc_hifiberry_dac');
             break;
-        case 'raspi2splay4':
+        case 'raspyplay4':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
             sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
             sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
-            sysCmd('modprobe snd_soc_hifiberry_dacplus');
+            sysCmd('modprobe snd_soc_iqaudio_dac');
             break;
     }
     $redis->set('i2smodule', $args);

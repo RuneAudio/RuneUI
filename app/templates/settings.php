@@ -104,8 +104,8 @@
                         <option value="hifiberrydacplus" <?php if($this->i2smodule === 'hifiberrydacplus'): ?> selected <?php endif ?>>HiFiBerry DAC+</option>
                         <option value="hifiberrydigi" <?php if($this->i2smodule === 'hifiberrydigi'): ?> selected <?php endif ?>>HiFiBerry Digi / Digi+</option>
                         <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC / Pi-DAC+</option>
-                        <option value="raspi2splay3" <?php if($this->i2smodule === 'raspi2splay3'): ?> selected <?php endif ?>>RaspI2SPlay3</option>
-                        <option value="raspi2splay4" <?php if($this->i2smodule === 'raspi2splay4'): ?> selected <?php endif ?>>RaspI2SPlay4</option>
+                        <option value="raspyplay3" <?php if($this->i2smodule === 'raspyplay3'): ?> selected <?php endif ?>>RaspyPlay3</option>
+                        <option value="raspyplay4" <?php if($this->i2smodule === 'raspyplay4'): ?> selected <?php endif ?>>RaspyPlay4</option>
                         <?php else: ?>
                         <option value="wolfsonaudiocard"  selected >Wolfson Audio Card</option>
                         <?php endif ?>
