@@ -71,9 +71,21 @@ if (isset($_POST)) {
         // submit worker job
         $redis->get('orionprofile') == $_POST['orionprofile'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => $_POST['orionprofile']));        
     }
-    if (isset($_POST['i2smodule'])) {        
+    if (isset($_POST['i2smodule'])) {
         // submit worker job
-        $redis->get('i2smodule') == $_POST['i2smodule'] || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'i2smodule', 'args' => $_POST['i2smodule']));
+        if ($redis->get('i2smodule') !== $_POST['i2smodule']) {
+            $notification = new stdClass();
+            if ($_POST['i2smodule'] !== 'none') {
+                $notification->title = 'Loading I&#178;S kernel module';
+            } else {
+                $notification->title = 'Unloading I&#178;S kernel module';
+            }
+            $job = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'i2smodule', 'args' => $_POST['i2smodule']));
+            $notification->text = 'Please wait';
+            wrk_notify($redis, 'startjob', $notification, $job);
+            $jobID[] = $job;
+        }
+        
         // autoswitch optimized kernel profile for BerryNOS mini DAC
         if ($_POST['i2smodule'] === 'berrynosmini') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'orionprofile', 'args' => 'OrionV3_berrynosmini'));
         // autoswitch optimized kernel profile for IQaudIO Pi-DAC

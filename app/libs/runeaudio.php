@@ -2677,22 +2677,22 @@ function wrk_notify($redis, $action, $notification, $jobID = null)
             runelog('wrk_notify (raw)', $notification);
             break;
         case 'startjob':
-            // debug
-            runelog('wrk_notify (startjob) jobID='.$jobID, $notification);
             if (!empty($notification)) {
                 if (is_object($notification)) {
-                    $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'icon' => 'fa fa-cog fa-spin', 'permanotice' => ''));
+                    $notification = json_encode(array('title' => $notification->title, 'text' => $notification->text, 'icon' => 'fa fa-cog fa-spin', 'permanotice' => $jobID));
+                    // debug
+                    runelog('wrk_notify (startjob) jobID='.$jobID, $notification);
                 }
                 if (wrk_notify_check($notification)) $redis->hSet('notifications', $jobID, $notification);
             }
             break;
         case 'endjob':
             $notification = $redis->hGet('notifications', $jobID);
-            // debug
-            runelog('wrk_notify (endjob) jobID='.$jobID, $notification);
             if (!empty($notification)) {
                 $notification = json_decode($notification);
-                $notification = json_encode(array('title' => $notification->title, 'text' => '', 'permanotice' => '', 'permaremove' => ''));
+                $notification = json_encode(array('title' => $notification->title, 'text' => '', 'permanotice' => $jobID, 'permaremove' => $jobID));
+                // debug
+                runelog('wrk_notify (endjob) jobID='.$jobID, $notification);
                 $redis->hDel('notifications', $jobID);
             }
             break;

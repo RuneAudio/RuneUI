@@ -104,6 +104,13 @@ function debug_data($redis)
         unset($command);
         $output .= "\n\n";
     }
+    $output .= "\n";
+    $output .= "MPD audio outputs status: (mpc outputs)\n";
+    $output .= "--------------------------------------------------\n";
+    $command = implode("\n", sysCmd('mpc outputs'));
+    $output .= $command;
+    unset($command);
+    $output .= "\n\n";
     // TODO: better collect stream info
     // $output .= "ALSA interface #0: (/proc/asound/card0/pcm0p/info)\n";
     // $output .= "--------------------------------------------------\n";

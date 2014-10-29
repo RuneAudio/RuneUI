@@ -168,12 +168,12 @@ if ($activePlayer === 'MPD') {
     usleep(500000);
     // start upmpdcli
     if ($redis->hGet('dlna', 'enable') === '1') {
-        runelog("service: UPMPDCLI start",'');
+        runelog("service: UPMPDCLI start");
         sysCmd('systemctl start upmpdcli');
     }
     // start mpdscribble
     if ($redis->hGet('lastfm','enable') === '1') {
-        runelog("service: MPDSCRIBBLE start",'');
+        runelog("service: MPDSCRIBBLE start");
         sysCmd('systemctl start mpdscribble');
     }
 } elseif ($activePlayer === 'Spotify') {
@@ -380,6 +380,12 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     runelog('env: SET I2S MODULE', $job->args);
                     wrk_i2smodule($redis, $job->args);
+                    // send notification
+                    // TODO: make a real check!
+                    ui_notify_async('I&#178;S kernel module', 'Operation completed', $jobID);
+                    // TODO (rework needed)
+                    runelog('env: reenable the current AO', $redis->get('ao'));
+                    sysCmd('mpc enable only "'.$redis->get('ao').'"');
                     $redis->sRem('w_lock', $jobID);
                     break;
                 case 'kernelswitch':
@@ -748,7 +754,7 @@ $redis->pconnect('/tmp/redis.sock');
                     runelog('wrk_SY: ', $job->wrkcmd);
                     // TODO: rework needed (fix bug in /var/www/index.php)
                     if (!isset($job->delay_us)) {
-                        $job->delay_us = 500000;
+                        $job->delay_us = 650000;
                     }
                     runelog('delay_us '.$job->delay_us);
                     usleep($job->delay_us);

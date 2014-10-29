@@ -55,7 +55,6 @@ $template->activePlayer = $activePlayer;
 $controllers = array(
     'credits',
     'coverart',
-    'coverart2',
     'dev',
     'debug',
     'help',
