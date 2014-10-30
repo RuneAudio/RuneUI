@@ -1940,18 +1940,21 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             // --- log settings ---
             if ($mpdcfg['log_level'] === 'none') {
                 $redis->hDel('mpdconf', 'log_file');
-                unset($mpdcfg['log_level']);
-                unset($mpdcfg['log_file']);
             } else {
+                $output .= "log_level\t\"".$mpdcfg['log_level']."\"\n";
+                $output .= "log_file\t\"/var/log/runeaudio/mpd.log\"\n";
                 $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
             }
+            unset($mpdcfg['log_level']);
+            unset($mpdcfg['log_file']);
             // --- state file ---
             if ($mpdcfg['state_file'] === 'no') {
                 $redis->hDel('mpdconf', 'state_file');
-                unset($mpdcfg['state_file']);
             } else {
+                $output .= "state_file\t\"/var/lib/mpd/mpdstate\"\n";
                 $redis->hSet('mpdconf', 'state_file', '/var/lib/mpd/mpdstate');
             }
+            unset($mpdcfg['state_file']);
             // --- general settings ---
             foreach ($mpdcfg as $param => $value) {
                 if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
