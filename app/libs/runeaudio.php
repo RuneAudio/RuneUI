@@ -1407,7 +1407,6 @@ $updateh = 0;
             break;
     }
     if ($updateh === 1) {
-        runelog('wireless NIC?', $args->wireless);
         // activate configuration (RuneOS)
         sysCmd('mpc stop');
         sysCmd('netctl stop '.$args->name);
@@ -1415,22 +1414,21 @@ $updateh = 0;
         if ($args->dhcp === '1') {
         // dhcp configuration
             if ($args->wireless !== '1') {
-                // $cmd = 'systemctl enable ifplugd@'.$args->name;
-                $cmd = "ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
+                runelog('dhcp config not wireless', $args->name);
+                $cmd = "ln -s -f '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
                 sysCmd($cmd);
             }
             sysCmd('systemctl daemon-reload');
         } else {
         // static configuration
             if ($args->wireless !== '1') {
-                // $cmd = 'systemctl disable ifplugd@'.$args->name;
-                $cmd = "rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
+                runelog('static config not wireless', $args->name);
+                $cmd = "ln -s -f '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
                 sysCmd($cmd);
                 sysCmd('systemctl daemon-reload');
-                // kill ifplugd
-                sysCmd('killall ifplugd');
             }
             // get pids of dhcpcd
+            runelog('kill dhcpcd', $args->name);
             $pids = sysCmd('pgrep -xf "dhcpcd -4qL -t 30 '.$args->name.'"');
             foreach ($pids as $pid) {
                 // debug
