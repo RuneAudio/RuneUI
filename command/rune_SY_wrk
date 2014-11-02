@@ -513,7 +513,6 @@ $redis->pconnect('/tmp/redis.sock');
                     // write network configuration
                     if ($job->action === 'config') {
                         wrk_netconfig($redis, 'writecfg', $job->args);
-                        // wrk_netconfig($redis,'setnics');
                         sysCmd('/var/www/command/refresh_nics');
                     }
                     // refresh network configuration
