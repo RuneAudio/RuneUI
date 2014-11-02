@@ -74,7 +74,7 @@ if (isset($_POST)) {
         // ----- RESET NET CONFIG -----
         if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netconfreset'));
         // ----- RESET MPD CONFIG -----
-        if ($_POST['syscmd'] === 'netconfreset') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netconfreset'));
+        if ($_POST['syscmd'] === 'mpdconfreset') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdconfreset'));
         // ----- RESTART PHP-FPM -----
         if ($_POST['syscmd'] === 'phprestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'phprestart'));
         // ----- GIT PULL -----
