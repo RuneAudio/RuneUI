@@ -508,7 +508,7 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     // reset network configuration to default
                     if ($job->action === 'reset') {
-                        // wrk_netconfig($redis,'reset',$job->args);
+                        wrk_netconfig($redis,'reset',$job->args);
                     }
                     // write network configuration
                     if ($job->action === 'config') {
