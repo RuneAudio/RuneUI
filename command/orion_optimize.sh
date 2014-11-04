@@ -238,7 +238,7 @@ ifconfig eth0 txqueuelen 4000
 echo 0 > /proc/sys/vm/swappiness
 #modKschedLatency hw=$2 s01=139950 s02=2000000 s03=2000000 s04=2000000 s05=2000000 s06=2000000 u01=2 u02=2 u03=2 u04=2 u05=2 u06=2 
 if [ "$2" == "01" ]; then
-    echo 139950 > /proc/sys/kernel/sched_latency_ns
+    echo 1500000 > /proc/sys/kernel/sched_latency_ns
     echo 950000 > /proc/sys/kernel/sched_rt_period_us
     echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
     echo 0 > /proc/sys/kernel/sched_autogroup_enabled
