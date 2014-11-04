@@ -1409,29 +1409,29 @@ $updateh = 0;
     if ($updateh === 1) {
         runelog('wireless NIC?', $args->wireless);
         // activate configuration (RuneOS)
-        sysCmd('mpc stop');
+        wrk_mpdPlaybackStatus($redis, 'record');
         sysCmd('netctl stop '.$args->name);
         sysCmd('ip addr flush dev '.$args->name);
         if ($args->dhcp === '1') {
         // dhcp configuration
             if ($args->wireless !== '1') {
                 // $cmd = 'systemctl enable ifplugd@'.$args->name;
-                $cmd = "ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
-                sysCmd($cmd);
+                sysCmd("ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'");
+                sysCmd('systemctl daemon-reload');
+                sysCmd('systemctl start netctl-ifplugd@'.$args->name);
             }
-            sysCmd('systemctl daemon-reload');
+            // sysCmd('systemctl daemon-reload');
         } else {
         // static configuration
             if ($args->wireless !== '1') {
                 // $cmd = 'systemctl disable ifplugd@'.$args->name;
-                $cmd = "rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'";
-                sysCmd($cmd);
+                sysCmd("rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'");
                 sysCmd('systemctl daemon-reload');
                 // kill ifplugd
                 sysCmd('killall ifplugd');
             }
             // get pids of dhcpcd
-            $pids = sysCmd('pgrep -xf "dhcpcd -4qL -t 30 '.$args->name.'"');
+            $pids = sysCmd('pgrep -xf "dhcpcd -4 -q -t 30 -L '.$args->name.'"');
             foreach ($pids as $pid) {
                 // debug
                 runelog('kill pid:', $pid);
@@ -1447,6 +1447,7 @@ $updateh = 0;
     }
     // update hash if necessary
     $updateh === 0 || $redis->set($args->name.'_hash', md5_file('/etc/netctl/'.$args->name));
+    if (wrk_mpdPlaybackStatus($redis, 'laststate') === 'playing') sysCmd('mpc play');
 }
 
 function wrk_wifiprofile($redis, $action, $args)
@@ -1928,7 +1929,8 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
         case 'writecfg':
             $mpdcfg = $redis->hGetAll('mpdconf');
             $current_out = $redis->Get('ao');
-            if (!$redis->hExists('acards', $current_out)) {
+            // if (!$redis->hExists('acards', $current_out)) {
+            if (!$redis->hExists('acards', $current_out) && ($redis->Get('i2smodule') === 'none')) {
                 $stored_acards = $redis->hKeys('acards');
                 // debug
                 runelog('force audio output', $stored_acards[0]);
@@ -1940,18 +1942,21 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             // --- log settings ---
             if ($mpdcfg['log_level'] === 'none') {
                 $redis->hDel('mpdconf', 'log_file');
-                unset($mpdcfg['log_level']);
-                unset($mpdcfg['log_file']);
             } else {
+                $output .= "log_level\t\"".$mpdcfg['log_level']."\"\n";
+                $output .= "log_file\t\"/var/log/runeaudio/mpd.log\"\n";
                 $redis->hSet('mpdconf', 'log_file', '/var/log/runeaudio/mpd.log');
             }
+            unset($mpdcfg['log_level']);
+            unset($mpdcfg['log_file']);
             // --- state file ---
             if ($mpdcfg['state_file'] === 'no') {
                 $redis->hDel('mpdconf', 'state_file');
-                unset($mpdcfg['state_file']);
             } else {
+                $output .= "state_file\t\"/var/lib/mpd/mpdstate\"\n";
                 $redis->hSet('mpdconf', 'state_file', '/var/lib/mpd/mpdstate');
             }
+            unset($mpdcfg['state_file']);
             // --- general settings ---
             foreach ($mpdcfg as $param => $value) {
                 if ($param === 'audio_output_interface' OR $param === 'dsd_usb') {
@@ -2163,12 +2168,25 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
     }
 }
 
-function wrk_mpdPlaybackStatus()
+function wrk_mpdPlaybackStatus($redis = null, $action = null)
 {
-    $status = sysCmd("mpc status | grep '\[' | cut -d '[' -f 2 | cut -d ']' -f 1");
-    // debug
-    runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
-    return $status[0];
+    if (isset($action)) {
+        switch ($action) {
+            case 'record':
+                return $redis->set('mpd_playback_laststate', wrk_mpdPlaybackStatus());
+                break;
+            case 'laststate':
+                $mpdlaststate = $redis->get('mpd_playback_laststate');
+                $redis->set('mpd_playback_laststate', '');
+                return $mpdlaststate;
+                break;
+        }
+    } else {
+        $status = sysCmd("mpc status | grep '\[' | cut -d '[' -f 2 | cut -d ']' -f 1");
+        // debug
+        runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
+        return $status[0];
+    }
 }
 
 function wrk_shairport($redis, $ao, $name = null)
