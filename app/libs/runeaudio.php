@@ -1929,7 +1929,8 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
         case 'writecfg':
             $mpdcfg = $redis->hGetAll('mpdconf');
             $current_out = $redis->Get('ao');
-            if (!$redis->hExists('acards', $current_out)) {
+            // if (!$redis->hExists('acards', $current_out)) {
+            if (!$redis->hExists('acards', $current_out) && ($redis->Get('i2smodule') === 'none')) {
                 $stored_acards = $redis->hKeys('acards');
                 // debug
                 runelog('force audio output', $stored_acards[0]);
