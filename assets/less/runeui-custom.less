@@ -897,12 +897,6 @@ html, body {
 			font-weight: bold;
 		}
 	}
-	&.inactive {
-		opacity: .5;
-		&:hover, &:focus {
-			cursor: default;
-		}
-	}
 }
 
 
@@ -1316,6 +1310,10 @@ select.selectpicker {
 		transform: scale(1);	
 		-webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
 		transition: transform 0.4s, opacity 0.4s;
+	}
+	.btn-link:hover,
+	.btn-link:focus {
+		text-decoration: none;
 	}
 }
 

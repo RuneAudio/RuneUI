@@ -258,6 +258,24 @@ function randomScrollDB() {
 	customScroll('db', random);
 }
 
+// toggle blocking loading layer (spinning arrows)
+function toggleLoader(action) {
+	if (action === 'close') {
+		$('#loader').addClass('hide');
+	} else {
+		if ($('#section-dev').length) {
+			$('#loader').addClass('hide');
+			new PNotify({
+				title: 'Warning',
+				text: 'The loading layer (spinning arrows) points to a socket error',
+				icon: 'fa fa-exclamation-circle'
+			});
+		} else {
+			$('#loader').removeClass('hide');
+		}
+	}
+}
+
 // custom complex notifies
 function customNotify(notify) {
 	if (notify.custom === 'kernelswitch') {
@@ -276,7 +294,7 @@ function customNotify(notify) {
 					addClass: 'btn-default btn-block  uppercase',
 					click: function() {
 						$.post('/settings/', { 'syscmd' : 'reboot' });
-						$('#loader').removeClass('hide');
+						toggleLoader();
 					}
 				},
 				{
@@ -732,7 +750,7 @@ function getPlaylist(text) {
 
 // launch the Playback UI refresh from the data response
 function renderUI(text){
-	$('#loader').addClass('hide');
+	toggleLoader('close');
 	// update global GUI array
 	GUI.json = text[0];
 	GUI.state = GUI.json.state;
@@ -1347,12 +1365,12 @@ function playbackChannel(){
 			// console.log('[nginx pushtream module] status change (' + status + ')');
 			if (status === 0) {
 				// console.log('[nginx pushtream module] status disconnected (0)');
-				$('#loader').removeClass('hide');
+				toggleLoader();
 			}
 		}
 	};
 	// pushstream.onerror = function() {
-		// $('#loader').removeClass('hide');
+		// toggleLoader();
 		// console.log('[nginx pushtream module] error');
 	// };
 	pushstream.addChannel('playback');
@@ -1813,6 +1831,8 @@ if ($('#section-index').length) {
 						plugin: $(this).data('plugin')
 					});
 				}
+			} else {
+				$('#overlay-playsource-open').trigger('click');
 			}
 		});
 		
@@ -2140,12 +2160,12 @@ if ($('#section-index').length) {
 		// system poweroff
 		$('#syscmd-poweroff').click(function(){
 			$.post('/settings/', { 'syscmd' : 'poweroff' });
-			$('#loader').removeClass('hide');
+			toggleLoader();
 		});
 		// system reboot
 		$('#syscmd-reboot').click(function(){
 			$.post('/settings/', { 'syscmd' : 'reboot' });
-			$('#loader').removeClass('hide');
+			toggleLoader();
 		});
 		
 		// social share overlay
@@ -2223,12 +2243,12 @@ if ($('#section-index').length) {
 		// system poweroff
 		$('#syscmd-poweroff').click(function(){
 			$.post('/settings/', { 'syscmd' : 'poweroff' });
-			$('#loader').removeClass('hide');
+			toggleLoader();
 		});
 		// system reboot
 		$('#syscmd-reboot').click(function(){
 			$.post('/settings/', { 'syscmd' : 'reboot' });
-			$('#loader').removeClass('hide');
+			toggleLoader();
 		});
 		
 		
