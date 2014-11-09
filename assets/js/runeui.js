@@ -855,7 +855,7 @@ function parseResponse(options) {
 					if (inpath !== 'Webradio') {
 					// files with no tags
 						content += inputArr.file;
-						content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu"></i><i class="fa fa-music db-icon"></i><span class="sn">';
+						content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
 						content += inputArr.file.replace(inpath + '/', '') + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
 						content += '<span class="bl">';
 						content += ' path: ';
@@ -869,9 +869,15 @@ function parseResponse(options) {
 					}
 				}
 				content += '</span></li>';
-			} else if (inputArr.playlist !== undefined) {
-			// nothing to display
-				content += '';
+			} else if (inputArr.playlist !== undefined && inputArr.fileext === 'cue') {
+			// CUE files
+				content = '<li id="db-' + (i + 1) + '" data-path="';
+				content += inputArr.playlist;
+				content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-file-text db-icon"></i><span class="sn">';
+				content += inputArr.playlist.replace(inpath + '/', '') + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
+				content += '<span class="bl">';
+				content += ' path: ';
+				content += inpath;
 			} else {
 			// folders
 				content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
@@ -1982,63 +1988,84 @@ if ($('#section-index').length) {
 			var dataType = $(this).data('type');
 			var path = GUI.DBentry[0];
 			GUI.DBentry[0] = '';
-			if (dataCmd === 'pl-add') {
-				sendCmd('load "' + path + '"');
-			} else if (dataCmd === 'pl-replace') {
-				sendCmd('clear');
-				sendCmd('load "' + path + '"');
-			} else if (dataCmd === 'pl-rename') {
-				$('#modal-pl-rename').modal();
-				$('#pl-rename-oldname').text(path);
-			} else if (dataCmd === 'pl-rm') {
-				$.ajax({
-					url: '/command/?cmd=rm%20%22' + path + '%22',
-					success: function(data){
-						getPlaylists(data);
-					}
-				});
-			} else if (dataCmd === 'wradd') {
-				path = path.split(' | ')[1];
-				getDB({
-					cmd: 'add',
-					path: path
-				});
-			} else if (dataCmd === 'wraddplay') {
-				path = path.split(' | ')[1];
-				// console.log(path);
-				getDB({
-					cmd: 'addplay',
-					path: path
-				});
-			} else if (dataCmd === 'wraddreplaceplay') {
-				path = path.split(' | ')[1];
-				getDB({
-					cmd: 'addreplaceplay',
-					path: path
-				});
-			} else if (dataCmd === 'wredit') {
-				$('#modal-webradio-edit').modal();
-				$.post('/db/?cmd=readradio', {
-					filename: path
-				}, function(data){
-					// get parsed content of .pls file and populate the form fields
-					var name = $('#webradio-edit-name');
-					name.val(data.name);
-					name.data('file-name', data.name);
-					$('#webradio-edit-url').val(data.url);
-				}, 'json');
-			} else if (dataCmd === 'wrdelete') {
-				$('#modal-webradio-delete').modal();
-				$('#webradio-delete-name').text(path.replace('Webradio/', ''));
-			} else if (dataCmd === 'wrsave') {
-				var parameters = path.split(' | ');
-				$.post('/db/?cmd=addradio', { 'radio[label]' : parameters[0], 'radio[url]' : parameters[1] });
-			} else {
-				getDB({
-					cmd: dataCmd,
-					path: path,
-					querytype: dataType
-				});
+			switch (dataCmd) {
+				case 'pl-add':
+					sendCmd('load "' + path + '"');
+					break;
+					
+				case 'pl-replace':
+					sendCmd('clear');
+					sendCmd('load "' + path + '"');
+					break;
+					
+				case 'pl-rename':
+					$('#modal-pl-rename').modal();
+					$('#pl-rename-oldname').text(path);
+					break;
+					
+				case 'pl-rm':
+					$.ajax({
+						url: '/command/?cmd=rm%20%22' + path + '%22',
+						success: function(data){
+							getPlaylists(data);
+						}
+					});
+					break;
+					
+				case 'wradd':
+					path = path.split(' | ')[1];
+					getDB({
+						cmd: 'add',
+						path: path
+					});
+					break;
+					
+				case 'wraddplay':
+					path = path.split(' | ')[1];
+					getDB({
+						cmd: 'addplay',
+						path: path
+					});
+					break;
+					
+				case 'wraddreplaceplay':
+					path = path.split(' | ')[1];
+					getDB({
+						cmd: 'addreplaceplay',
+						path: path
+					});
+					break;
+					
+				case 'wredit':
+					$('#modal-webradio-edit').modal();
+					$.post('/db/?cmd=readradio', {
+						filename: path
+					}, function(data){
+						// get parsed content of .pls file and populate the form fields
+						var name = $('#webradio-edit-name');
+						name.val(data.name);
+						name.data('file-name', data.name);
+						$('#webradio-edit-url').val(data.url);
+					}, 'json');
+					break;
+					
+				case 'wrdelete':
+					$('#modal-webradio-delete').modal();
+					$('#webradio-delete-name').text(path.replace('Webradio/', ''));
+					break;
+					
+				case 'wrsave':
+					var parameters = path.split(' | ');
+					$.post('/db/?cmd=addradio', { 'radio[label]' : parameters[0], 'radio[url]' : parameters[1] });
+					break;
+					
+				default:
+					getDB({
+						cmd: dataCmd,
+						path: path,
+						querytype: dataType
+					});
+					break;
 			}
 		});
 

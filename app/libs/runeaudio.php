@@ -627,8 +627,16 @@ function remTrackQueue($sock, $songpos)
 function addQueue($sock, $path, $addplay = null, $pos = null)
 {
     $fileext = parseFileStr($path,'.');
-    if ($fileext == 'm3u' OR $fileext == 'pls') {
-        sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
+    if ($fileext == 'm3u' OR $fileext == 'pls' OR $fileext == 'cue') {    
+        if (isset($addplay)) {
+            $cmdlist = "command_list_begin\n";
+            $cmdlist .= "load \"".html_entity_decode($path)."\"\n";
+            $cmdlist .= "play ".$pos."\n";
+            $cmdlist .= "command_list_end";
+            sendMpdCommand($sock, $cmdlist);
+        } else {
+            sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
+        }
     } else {
         if (isset($addplay)) {
             $cmdlist = "command_list_begin\n";
@@ -2980,4 +2988,12 @@ function netmask($bitcount)
     $netmask = str_split(str_pad(str_pad('', $bitcount, '1'), 32, '0'), 8);
     foreach ($netmask as &$element) $element = bindec($element);
     return join('.', $netmask);
+}
+
+// sort multi-dimensional array by key
+function osort(&$array, $key)
+{
+    usort($array, function($a, $b) use ($key) {
+        return $a->$key > $b->$key ? 1 : -1;
+    });	
 }
