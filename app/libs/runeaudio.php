@@ -588,30 +588,34 @@ function deleteBookmark($redis, $id)
     return $return;
 }
 
-function searchDB($sock, $querytype, $query)
-{
-    switch ($querytype) {
-    case "filepath":
-        if (isset($query) && !empty($query)) {
-            sendMpdCommand($sock,"lsinfo \"".html_entity_decode($query)."\"");
+function browseDB($sock,$browsemode,$query) {
+    switch ($browsemode) {
+        case 'file':
+            if (isset($query) && !empty($query)){
+                sendMpdCommand($sock,'lsinfo "'.html_entity_decode($query).'"');
+            } else {
+                sendMpdCommand($sock,'lsinfo');
+			}
             break;
-        } else {
-            sendMpdCommand($sock, 'lsinfo');
+		case 'album':
+            sendMpdCommand($sock,'list "album"');
             break;
-        }
-    case 'album':
-        // no break
-    case 'artist':
-        // no break
-    case 'title':
-        // no break
-    case 'file':
-        sendMpdCommand($sock, "search ".$querytype." \"".html_entity_decode($query)."\"");
-        break;
-    case 'globalrandom':
-        sendMpdCommand($sock, 'listall');
-        break;
-    }
+		case 'artist':
+            sendMpdCommand($sock,'list "artist"');
+            break;
+		case 'genre':
+            sendMpdCommand($sock,'list "genre"');
+            break;
+		case 'globalrandom':
+            sendMpdCommand($sock,'listall');
+            break;
+	}
+	$response = readMpdResponse($sock);
+	return _parseFileListResponse($response);
+}
+
+function searchDB($sock,$querytype,$query) {
+    sendMpdCommand($sock,"search ".$querytype." \"".html_entity_decode($query)."\"");
     $response = readMpdResponse($sock);
     return _parseFileListResponse($response);
 }
@@ -682,7 +686,7 @@ class globalRandom extends Thread
 
 function randomSelect($sock)
 {
-    $songs = searchDB($sock, 'globalrandom');
+    $songs = browseDB($sock, 'globalrandom');
     srand((float) microtime() * 10000000);
     $randkey = array_rand($songs);
     return $songs[$randkey]['file'];
@@ -745,11 +749,13 @@ function _parseFileListResponse($resp)
         $plistLine = strtok($resp, "\n");
         // $plistFile = "";
         $plCounter = -1;
+        $browseMode = TRUE;
         while ($plistLine) {
             // list ( $element, $value ) = explode(": ",$plistLine);
             if (!strpos($plistLine,'@eaDir')) list ($element, $value) = explode(': ', $plistLine);
             if ($element === 'file' OR $element === 'playlist') {
                 $plCounter++;
+                $browseMode = FALSE;
                 // $plistFile = $value;
                 $plistArray[$plCounter][$element] = $value;
                 $plistArray[$plCounter]['fileext'] = parseFileStr($value, '.');
@@ -759,6 +765,17 @@ function _parseFileListResponse($resp)
                 $dirCounter++;
                 // $plistFile = $value;
                 $plistArray[$plCounter]['directory'] = $value;
+            } else if ($browseMode) {
+                if ( $element === 'Album' ) {
+                    $plCounter++;
+                    $plistArray[$plCounter]['album'] = $value;
+                } else if ( $element === 'Artist' ) {
+                    $plCounter++;
+                    $plistArray[$plCounter]['artist'] = $value;
+                } else if ( $element === 'Genre' ) {
+                    $plCounter++;
+                    $plistArray[$plCounter]['genre'] = $value;
+                }
             } else {
                 $plistArray[$plCounter][$element] = $value;
                 $plistArray[$plCounter]['Time2'] = songTime($plistArray[$plCounter]['Time']);

@@ -39,13 +39,13 @@ error_reporting('E_ALL');
 $activePlayer = $redis->get('activePlayer');
 if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
     switch ($_GET['cmd']) {
-        case 'filepath':
+        case 'browse':
             if (isset($_POST['path']) && $_POST['path'] !== '') {
-                echo json_encode(searchDB($mpd, 'filepath', $_POST['path']));
+                echo json_encode(browseDB($mpd, $_POST['browsemode'], $_POST['path']));
             } else {
                 if ($activePlayer === 'MPD') {
                     // MPD
-                    echo json_encode(searchDB($mpd, 'filepath'));
+                    echo json_encode(browseDB($mpd, $_POST['browsemode']));
                 } elseif ($activePlayer === 'Spotify') {
                     // SPOP
                     echo json_encode('home');
