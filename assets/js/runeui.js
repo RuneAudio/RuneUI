@@ -885,6 +885,7 @@ function parseResponse(options) {
                     content += '<span class="bl">';
                     content += ' path: ';
                     content += inpath;
+                    content += '</span></li>';
                 } else {
                 // folders
                     content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
@@ -899,8 +900,18 @@ function parseResponse(options) {
                 }
 			} else if (GUI.browsemode === 'album') {
             // browse by album
-                if (inputArr.album !== '') {
-                    content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
+                if (inputArr.file !== undefined) {
+                    content = '<li id="db-' + (i + 1) + '" data-path="';
+                    content += inputArr.file;
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
+                    content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
+                    content += ' <span class="bl">';
+                    content +=  inputArr.Artist;
+                    content += ' - ';
+                    content +=  inputArr.Album;
+                    content += '</span></li>';
+                } else if (inputArr.album !== '') {
+                    content = '<li id="db-' + (i + 1) + '" class="db-folder db-album" data-path="';
                     content += inputArr.album;
                     content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu"></i><span><i class="fa fa-dot-circle-o"></i>';
                     content += inputArr.album;
@@ -908,8 +919,18 @@ function parseResponse(options) {
                 }
             } else if (GUI.browsemode === 'artist') {
             // browse by artist
-                if (inputArr.artist !== '') {
-                    content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
+                if (inputArr.file !== undefined) {
+                    content = '<li id="db-' + (i + 1) + '" data-path="';
+                    content += inputArr.file;
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
+                    content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
+                    content += ' <span class="bl">';
+                    content +=  inputArr.Artist;
+                    content += ' - ';
+                    content +=  inputArr.Album;
+                    content += '</span></li>';
+                } else if (inputArr.artist !== '') {
+                    content = '<li id="db-' + (i + 1) + '" class="db-folder db-artist" data-path="';
                     content += inputArr.artist;
                     content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu"></i><span><i class="fa fa-user"></i>';
                     content += inputArr.artist;
@@ -1180,12 +1201,20 @@ function getDB(options){
 			}, 'json');
 		} else if (cmd === 'browse') {
 			$.post('/db/?cmd=browse', { 'path': path, 'browsemode': GUI.browsemode }, function(data) {
-				populateDB({
+                populateDB({
 					data: data,
 					path: path,
 					uplevel: uplevel
 				});
 			}, 'json');
+        // } else if (cmd === 'album') {
+			// $.post('/db/?cmd=album', { 'albumname': path, 'browsemode': GUI.browsemode }, function(data) {
+				// populateDB({
+					// data: data,
+					// path: path,
+					// uplevel: uplevel
+				// });
+			// }, 'json');
 		} else {
 		// EXAMPLE: cmd === 'update', 'addplay', 'addreplaceplay', 'update'
 			loadingSpinner('db', 'hide');
@@ -1885,7 +1914,8 @@ if ($('#section-index').length) {
 		
 		// click on Library list entry
 		db.on('click', 'li', function(e) {
-			var path = '';
+			var path = '',
+                browsemode = '';
 			var el = $(this);
 			if ($(e.target).hasClass('db-action')) {
 			// actions context menu
@@ -1902,7 +1932,23 @@ if ($('#section-index').length) {
 				$('li.active', '#database-entries').removeClass('active');
 				el.addClass('active');
 				if (el.hasClass('db-folder')) {
-					if (el.hasClass('db-spotify')) {
+					if (el.hasClass('db-album')) {
+					// browse by album
+						path = el.data('path');
+						getDB({
+							path: path,
+							uplevel: 0,
+                            browsemode: 'album'
+						});
+                    } else if (el.hasClass('db-artist')) {
+					// browse by album
+						path = el.data('path');
+						getDB({
+							path: path,
+							uplevel: 0,
+                            browsemode: 'artist'
+						});
+                    } else if (el.hasClass('db-spotify')) {
 					// Spotify playlists
 						path = GUI.currentpath	+ '/' + el.find('span').text();
 						getDB({
@@ -1934,12 +1980,14 @@ if ($('#section-index').length) {
 							// args : args
 						// });
 					} else {
-					// normal MPD file browsing
+					// browse by file (default)
 						path = el.data('path');
+						browsemode = el.data('browsemode');
 						//GUI.currentDBpos[GUI.currentDBpos[10]] = $('.database .db-entry').index(this);
 						getDB({
 							path: path,
-							uplevel: 0
+							uplevel: 0,
+                            browsemode: browsemode
 						});
 					}
 					var entryID = el.attr('id');

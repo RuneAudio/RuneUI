@@ -41,7 +41,11 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
     switch ($_GET['cmd']) {
         case 'browse':
             if (isset($_POST['path']) && $_POST['path'] !== '') {
-                echo json_encode(browseDB($mpd, $_POST['browsemode'], $_POST['path']));
+                if ($_POST['path'] === 'Albums' OR $_POST['path'] === 'Artists') {
+                    echo json_encode(browseDB($mpd, $_POST['browsemode']));
+                } else {
+                    echo json_encode(browseDB($mpd, $_POST['browsemode'], $_POST['path']));
+                }
             } else {
                 if ($activePlayer === 'MPD') {
                     // MPD

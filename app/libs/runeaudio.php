@@ -598,10 +598,18 @@ function browseDB($sock,$browsemode,$query) {
 			}
             break;
 		case 'album':
-            sendMpdCommand($sock,'list "album"');
+            if (isset($query) && !empty($query)){
+                sendMpdCommand($sock,'search "album" "'.html_entity_decode($query).'"');
+            } else {
+                sendMpdCommand($sock,'list "album"');
+			}
             break;
 		case 'artist':
-            sendMpdCommand($sock,'list "artist"');
+            if (isset($query) && !empty($query)){
+                sendMpdCommand($sock,'search "artist" "'.html_entity_decode($query).'"');
+            } else {
+                sendMpdCommand($sock,'list "artist"');
+			}
             break;
 		case 'genre':
             sendMpdCommand($sock,'list "genre"');
