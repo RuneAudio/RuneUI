@@ -494,9 +494,9 @@ function renderLibraryHome() {
 	// Jamendo (static)
 	content += divOpen + '<div id="home-jamendo" class="home-block' + toggleMPD + '" data-plugin="Jamendo" data-path="Jamendo"><i class="fa fa-play-circle-o"></i><h3>Jamendo<span id="home-count-jamendo"></span></h3>world\'s largest platform for free music</div>' + divClose;
     // Album list (static)
-	content += divOpen + '<div id="home-albums" class="home-block' + toggleMPD + '" data-path="Albums" data-browsemode="album"><i class="fa fa-dot-circle-o"></i><h3>Albums</h3>browse MPD database by album</div>' + divClose;
+	// content += divOpen + '<div id="home-albums" class="home-block' + toggleMPD + '" data-path="Albums" data-browsemode="album"><i class="fa fa-dot-circle-o"></i><h3>Albums</h3>browse MPD database by album</div>' + divClose;
     // Artist list (static)
-	content += divOpen + '<div id="home-artists" class="home-block' + toggleMPD + '" data-path="Artists" data-browsemode="artist"><i class="fa fa-users"></i><h3>Artists</h3>browse MPD database by artist</div>' + divClose;
+	// content += divOpen + '<div id="home-artists" class="home-block' + toggleMPD + '" data-path="Artists" data-browsemode="artist"><i class="fa fa-users"></i><h3>Artists</h3>browse MPD database by artist</div>' + divClose;
 	content += '</div>';
 	document.getElementById('home-blocks').innerHTML = content;
 	loadingSpinner('db', 'hide');
@@ -876,16 +876,18 @@ function parseResponse(options) {
                         }
                     }
                     content += '</span></li>';
-                } else if (inputArr.playlist !== undefined && inputArr.fileext === 'cue') {
-                // CUE files
-                    content = '<li id="db-' + (i + 1) + '" data-path="';
-                    content += inputArr.playlist;
-                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-file-text db-icon"></i><span class="sn">';
-                    content += inputArr.playlist.replace(inpath + '/', '') + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
-                    content += '<span class="bl">';
-                    content += ' path: ';
-                    content += inpath;
-                    content += '</span></li>';
+                } else if (inputArr.playlist !== undefined) {
+                    if (inputArr.fileext === 'cue') {
+                    // CUE files
+                        content = '<li id="db-' + (i + 1) + '" data-path="';
+                        content += inputArr.playlist;
+                        content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-file-text db-icon"></i><span class="sn">';
+                        content += inputArr.playlist.replace(inpath + '/', '') + ' <span>[CUE file]</span></span>';
+                        content += '<span class="bl">';
+                        content += ' path: ';
+                        content += inpath;
+                        content += '</span></li>';
+                    }
                 } else {
                 // folders
                     content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
