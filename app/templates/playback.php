@@ -197,6 +197,13 @@
             <li><a href="javascript:;" data-cmd="pl-rm"><i class="fa fa-trash-o sx"></i> Delete</a></li>
         </ul>
     </div>
+    <div id="context-menu-album" class="context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:;" data-cmd="albumadd"><i class="fa fa-plus-circle sx"></i> Add</a></li>
+            <li><a href="javascript:;" data-cmd="albumaddplay"><i class="fa fa-play sx"></i> Add and play</a></li>
+            <li><a href="javascript:;" data-cmd="albumaddreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
+        </ul>
+    </div>
 </div>
 <div id="modal-pl-save" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-pl-save-label" aria-hidden="true">
     <div class="modal-dialog">

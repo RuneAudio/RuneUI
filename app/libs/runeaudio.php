@@ -599,14 +599,14 @@ function browseDB($sock,$browsemode,$query) {
             break;
 		case 'album':
             if (isset($query) && !empty($query)){
-                sendMpdCommand($sock,'search "album" "'.html_entity_decode($query).'"');
+                sendMpdCommand($sock,'find "album" "'.html_entity_decode($query).'"');
             } else {
                 sendMpdCommand($sock,'list "album"');
 			}
             break;
 		case 'artist':
             if (isset($query) && !empty($query)){
-                sendMpdCommand($sock,'search "artist" "'.html_entity_decode($query).'"');
+                sendMpdCommand($sock,'list "album" "'.html_entity_decode($query).'"');
             } else {
                 sendMpdCommand($sock,'list "artist"');
 			}
@@ -636,7 +636,7 @@ function remTrackQueue($sock, $songpos)
     return $datapath;
 }
 
-function addQueue($sock, $path, $addplay = null, $pos = null)
+function addToQueue($sock, $path, $addplay = null, $pos = null)
 {
     $fileext = parseFileStr($path,'.');
     if ($fileext == 'm3u' OR $fileext == 'pls' OR $fileext == 'cue') {    
@@ -662,6 +662,19 @@ function addQueue($sock, $path, $addplay = null, $pos = null)
     }
 }
 
+function addAlbumToQueue($sock, $path, $addplay = null, $pos = null)
+{
+    if (isset($addplay)) {
+        $cmdlist = "command_list_begin\n";
+        $cmdlist .= "findadd \"album\" \"".html_entity_decode($path)."\"\n";
+        $cmdlist .= "play ".$pos."\n";
+        $cmdlist .= "command_list_end";
+        sendMpdCommand($sock, $cmdlist);
+    } else {
+        sendMpdCommand($sock, "findadd \"album\" \"".html_entity_decode($path)."\"");
+    }
+}
+
 /*
 class globalRandom extends Thread
 {
@@ -683,7 +696,7 @@ class globalRandom extends Thread
             }
             $path = randomSelect($mpd);
             if ($path) {
-                addQueue($mpd,$path);
+                addToQueue($mpd,$path);
                 runelog("global random call",$path);
                 ui_notify('Global Random Mode', htmlentities($path,ENT_XML1,'UTF-8').' added to current Queue');
             }
@@ -1084,7 +1097,7 @@ function rp_addPlay($path, $mpd, $pos)
     $song = parseFileStr($path,"/");
     $ramplaypath = "ramplay/".$song;
     $_SESSION['DEBUG'] .= "rp_addPlay:$id $song $path $pos|";
-    addQueue($mpd, $ramplaypath);
+    addToQueue($mpd, $ramplaypath);
     sendMpdCommand($mpd, 'play '.$pos);
 }
 

@@ -828,7 +828,7 @@ function parseResponse(options) {
 		
 	// DEBUG
 	// console.log('parseResponse OPTIONS: inputArr = ' + inputArr + ', respType = ' + respType + ', i = ' + i + ', inpath = ' + inpath +', querytype = ' + querytype);
-	// console.log(inputArr);
+	console.log(inputArr);
     
 	switch (respType) {
 		case 'playlist':
@@ -915,21 +915,17 @@ function parseResponse(options) {
                 } else if (inputArr.album !== '') {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-album" data-path="';
                     content += inputArr.album;
-                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu"></i><span><i class="fa fa-dot-circle-o"></i>';
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-album"></i><span><i class="fa fa-dot-circle-o"></i>';
                     content += inputArr.album;
                     content += '</span></li>';
                 }
             } else if (GUI.browsemode === 'artist') {
             // browse by artist
-                if (inputArr.file !== undefined) {
-                    content = '<li id="db-' + (i + 1) + '" data-path="';
-                    content += inputArr.file;
-                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
-                    content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
-                    content += ' <span class="bl">';
-                    content +=  inputArr.Artist;
-                    content += ' - ';
-                    content +=  inputArr.Album;
+                if (inputArr.album !== undefined) {
+                    content = '<li id="db-' + (i + 1) + '" class="db-folder db-album" data-path="';
+                    content += inputArr.album;
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-album"></i><span><i class="fa fa-dot-circle-o"></i>';
+                    content += (inputArr.album !== '') ? inputArr.album : 'Unknown album';
                     content += '</span></li>';
                 } else if (inputArr.artist !== '') {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-artist" data-path="';
@@ -1113,7 +1109,7 @@ function populateDB(options){
 					inpath: path
 				});
 			}
-			if (path === 'Webradio') {
+            if (path === 'Webradio') {
 				content += '<li id="webradio-add" class="db-webradio-add"><i class="fa fa-plus-circle db-icon"></i><span class="sn"><em>add new</em></span><span class="bl">add a webradio to your library</span></li>';
 			}
 			document.getElementById('database-entries').innerHTML = content;
@@ -1209,14 +1205,6 @@ function getDB(options){
 					uplevel: uplevel
 				});
 			}, 'json');
-        // } else if (cmd === 'album') {
-			// $.post('/db/?cmd=album', { 'albumname': path, 'browsemode': GUI.browsemode }, function(data) {
-				// populateDB({
-					// data: data,
-					// path: path,
-					// uplevel: uplevel
-				// });
-			// }, 'json');
 		} else {
 		// EXAMPLE: cmd === 'update', 'addplay', 'addreplaceplay', 'update'
 			loadingSpinner('db', 'hide');
