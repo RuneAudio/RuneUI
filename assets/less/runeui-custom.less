@@ -353,6 +353,10 @@ html, body {
     text-align: center;
     & > div:first-child {
         margin: 10px auto 20px;
+        &:hover,
+        &:focus {
+            cursor: pointer;
+        }
     }
 }
 #time-knob {
@@ -407,6 +411,10 @@ html, body {
 }
 #volume {
     font-family: inherit !important;
+    &:hover,
+    &:focus {
+        cursor: default;
+    }
 }
 
 .playback-controls {
