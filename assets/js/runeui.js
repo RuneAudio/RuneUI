@@ -138,12 +138,12 @@ function refreshKnob() {
 	var step = parseInt(1000/delta);
 	// console.log('initTime = ' + initTime + ', delta = ' + delta + ', step = ' + step);
 	var time = $('#time');
-	time.val(initTime).trigger('change');
+	time.val(initTime, false).trigger('update');
 	if (GUI.state === 'play') {
 		GUI.currentKnob = setInterval(function() {
 			// console.log('initTime = ', initTime);
 			initTime = initTime + (GUI.visibility !== 'visible'? parseInt(1000/delta):1);
-			time.val(initTime).trigger('change');
+			time.val(initTime, false).trigger('update');
 			//document.title = Math.round(initTime)/10 + '% - ' + GUI.visibility;
 		}, delta);
 	}
@@ -182,7 +182,7 @@ function countdownRestart(startFrom) {
 
 // set volume with knob
 function setvol(val) {
-	$('#volume').val(val).trigger('change');
+	$('#volume').val(val, false).trigger('update');
 	GUI.volume = val;
 	$('#volumemute').removeClass('btn-primary');
 	sendCmd('setvol ' + val);
@@ -532,7 +532,7 @@ function refreshState() {
 		} else {
 			$('#total').html('00:00');
 		}
-		$('#time').val(0).trigger('change');
+		$('#time').val(0, false).trigger('update');
 		$('#format-bitrate').html('&nbsp;');
 		$('li', '#playlist-entries').removeClass('active');
 	}
@@ -591,7 +591,7 @@ function updateGUI() {
 			}
 		}
 		// common actions
-		$('#volume').val((volume === '-1') ? 100 : volume).trigger('change');
+		$('#volume').val((volume === '-1') ? 100 : volume, false).trigger('update');
 		// console.log('currentartist = ', GUI.json.currentartist);
 		if (GUI.stream !== 'radio') {
 			$('#currentartist').html((currentartist === null || currentartist === undefined || currentartist === '') ? '<span class="notag">[no artist]</span>' : currentartist);
@@ -771,7 +771,7 @@ function renderUI(text){
 		if (GUI.stream !== 'radio') {
 			refreshKnob();
 		} else {
-			$('#time').val(0).trigger('change');
+			$('#time').val(0, false).trigger('update');
 		}
 		// console.log('GUI.json.playlist = ' + GUI.json.playlist + ', GUI.playlist = ', GUI.playlist);
 		if (GUI.json.playlist !== GUI.playlist) {
@@ -1277,7 +1277,7 @@ function commandButton(el) {
 		// } else {
 			// $(this).addClass('btn-primary');
 			// $('#stop').removeClass('btn-primary');
-			// $('#time').val(0).trigger('change');
+			// $('#time').val(0, false).trigger('update');
 			// $('#countdown-display').countdown({since: 0, compact: true, format: 'MS'});
 		// }
 	}
@@ -1552,51 +1552,37 @@ function overlayTrigger(overlayID) {
 }
 
 // check visibility of the window
-(function() {
-	function onchange(evt){
-		var v = 'visible', h = 'hidden',
-			evtMap = {
-				focus:v, focusin:v, pageshow:v, blur:h, focusout:h, pagehide:h
-			};
-
-		evt = evt || window.event;
-		if (evt.type in evtMap) {
-			document.body.className = evtMap[evt.type];
-			// console.log('boh? = ', evtMap[evt.type]);
-		} else {
-			document.body.className = this[hidden] ? 'hidden' : 'visible';
-			if (this[hidden]) {
-				GUI.visibility = 'hidden';
-				// console.log('focus = hidden');
-			} else {
-				GUI.visibility = 'visible';
-				// console.log('focus = visible');
-			}
-		}
-	}
-	hidden = 'hidden';
-	// Standards:
-	if (hidden in document) {
-		document.addEventListener('visibilitychange', onchange);
-	}
-	else if ((hidden = 'mozHidden') in document) {
-		document.addEventListener('mozvisibilitychange', onchange);
-	}
-	else if ((hidden = "webkitHidden") in document) {
-		document.addEventListener('webkitvisibilitychange', onchange);
-	}
-	else if ((hidden = "msHidden") in document) {
-		document.addEventListener('msvisibilitychange', onchange);
-	}
-	// IE 9 and lower:
-	else if ('onfocusin' in document) {
-		document.onfocusin = document.onfocusout = onchange;
-	}
-	// All others:
-	else {
-		window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
-	}
-})();
+function getHiddenProp(){
+    var prefixes = ['webkit','moz','ms','o'];
+    // if 'hidden' is natively supported just return it
+    if ('hidden' in document) {
+        return 'hidden';
+    }
+    // otherwise loop over all the known prefixes until we find one
+    for (var i = 0; i < prefixes.length; i++){
+        if ((prefixes[i] + 'Hidden') in document) {
+            return prefixes[i] + 'Hidden';
+        }
+    }
+    // otherwise it's not supported
+    return null;
+}
+function isHidden() {
+    var prop = getHiddenProp();
+    if (!prop) {
+        return false;
+    }
+    return document[prop];
+}
+function visChange() {
+    if (isHidden()) {
+        GUI.visibility = 'hidden';
+        // console.log('Visibility: hidden');
+    } else {
+        GUI.visibility = 'visible';
+        // console.log('Visibility: visible');
+    }
+}
 
 
 
@@ -1636,7 +1622,13 @@ if ($('#section-index').length) {
 		// open notify channel
 		notifyChannel();
 		
-		
+		// use the property name to generate the prefixed event name
+        var visProp = getHiddenProp();
+        if (visProp) {
+            var evtname = visProp.replace(/[H|h]idden/,'') + 'visibilitychange';
+            document.addEventListener(evtname, visChange);
+        }
+
 		// BUTTONS
 		// ----------------------------------------------------------------------------------------------------
 		
@@ -1685,7 +1677,8 @@ if ($('#section-index').length) {
 
 		// volume knob
 		$('#volume').knob({
-			change: function (value) {
+			inline: false,
+            change: function (value) {
 				//setvol(value);	// disabled until perfomance issues are solved (mouse wheel is not working now)
 			},
 			release: function (value) {
@@ -1694,13 +1687,9 @@ if ($('#section-index').length) {
 			draw: function() {
 				// "tron" case
 				if (this.$.data('skin') === 'tron') {
-
 					this.cursorExt = 0.05;
-
 					var a = this.arc(this.cv), pa, r = 1;
-
 					this.g.lineWidth = this.lineWidth;
-
 					if (this.o.displayPrevious) {
 						pa = this.arc(this.v);
 						this.g.beginPath();
@@ -1708,18 +1697,15 @@ if ($('#section-index').length) {
 						this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
 						this.g.stroke();
 					}
-
 					this.g.beginPath();
 					this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
 					this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
 					this.g.stroke();
-
 					this.g.lineWidth = 2;
 					this.g.beginPath();
 					this.g.strokeStyle = this.o.fgColor;
-					this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 10 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+					this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 13 + this.lineWidth, 0, 2 * Math.PI, false);
 					this.g.stroke();
-
 					return false;
 				}
 			}

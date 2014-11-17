@@ -1,7 +1,7 @@
 <div class="tab-content">
     <!-- PLAYBACK PANEL -->
     <div id="playback" class="tab-pane active">
-        <div class="container txtmid">
+        <div class="container-fluid">
 			<span id="currentartist"></span>
             <span id="currentsong"></span>
             <span id="currentalbum"></span>
@@ -10,14 +10,10 @@
 				<span id="format-bitrate"></span>
 			</div>
             <div class="knobs row">
-                <div class="col-sm-<?=$this->colspan ?>">
-                    <div id="timeknob">
-                        <div id="countdown">
-                            <input id="time" value="0" data-width="100%" data-bgColor="#34495E" data-fgcolor="#0095D8" data-thickness="0.30" data-min="0" data-max="1000" data-displayInput="false">
-                        </div>
-                        <span id="countdown-display"></span>
-                        <span id="total"></span>
-                    </div>
+                <div id="time-knob" class="col-sm-<?=$this->colspan ?>">
+                    <input id="time" value="0" data-width="230" data-height="230" data-bgColor="#34495E" data-fgcolor="#0095D8" data-thickness="0.30" data-min="0" data-max="1000" data-displayInput="false" data-displayPrevious="true">
+                    <span id="countdown-display"></span>
+                    <span id="total"></span>
                     <div class="btn-group">
                         <button id="repeat" class="btn btn-default btn-lg btn-cmd btn-toggle" type="button" title="Repeat" data-cmd="repeat"><i class="fa fa-repeat"></i></button>
                         <button id="random" class="btn btn-default btn-lg btn-cmd btn-toggle" type="button" title="Random" data-cmd="random"><i class="fa fa-random"></i></button>
@@ -32,10 +28,8 @@
                     <!--<a href="#" id="overlay-playsource-open" class="btn btn-default" title="Play source">MPD</a>-->
                 </div>
                 <?php endif ?>
-                <div class="col-sm-<?=$this->colspan ?> volume <?=$this->volume['divclass'] ?>">
-                    <div id="volumeknob">
-                        <input id="volume" value="100" data-width="100%" data-bgColor="#000" data-thickness=".25" data-skin="tron" data-cursor="true" data-angleArc="250" data-angleOffset="-125" data-readOnly="<?=$this->volume['readonly'] ?>" data-fgColor="<?=$this->volume['color'] ?>" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?>>
-                    </div>
+                <div id="volume-knob" class="col-sm-<?=$this->colspan ?> <?=$this->volume['divclass'] ?>">
+                    <input id="volume" value="100" data-width="230" data-height="230" data-bgColor="#f00" data-thickness=".25" data-skin="tron" data-cursor="true" data-angleArc="250" data-angleOffset="-125" data-readOnly="<?=$this->volume['readonly'] ?>" data-fgColor="<?=$this->volume['color'] ?>" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?>>
                     <div class="btn-group">
                         <button id="volumedn" class="btn btn-default btn-lg btn-cmd btn-volume" type="button" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?> title="Volume down" data-cmd="volumedn"><i class="fa fa-volume-down"></i></button>
                         <button id="volumemute" class="btn btn-default btn-lg btn-cmd btn-volume" type="button" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?> title="Volume mute/unmute" data-cmd="volumemute"><i class="fa fa-volume-off"></i> <i class="fa fa-exclamation"></i></button>

@@ -299,9 +299,11 @@ html, body {
 
 #playback {
 	padding: 40px 0;
-	.container {
-		padding-top: 20px;
+	.container-fluid {
+		max-width: 1140px;
+        padding-top: 20px;
 		padding-bottom: 20px;
+        text-align: center;
 	}
 }
 #currentartist, #currentsong, #currentalbum, #format-bitrate, #elapsed, #countdown-display {
@@ -345,56 +347,54 @@ html, body {
 .knobs {
 	margin-top: 30px;
 }
-#countdown {
-	height: 100%;
-	margin-top: 10px;
-	color: @text-color;
-	div {
-		margin: 0 auto;
-	}
+#time-knob,
+#volume-knob {
+    position: relative;
+    text-align: center;
+    & > div:first-child {
+        margin: 10px auto 20px;
+    }
 }
-#countdown, #time {
-	position: relative;
+#time-knob {
+    margin-bottom: 20px;
 }
-#time, #volume {
+#volume-knob {
+    margin-top: 20px;
+}
+@countdown-width: 150px;
+@countdown-height: 38px;
+@total-width: 100px;
+@total-height: 14px;
+#countdown-display {
+    position: absolute;
+    top: 125px;
+    left: 50%;
+    width: @countdown-width;
+    margin: -(@countdown-height / 2) 0 0 -(@countdown-width / 2);
+    line-height: @countdown-height;
+    font-size: @countdown-height;
+    font-weight: bold;
+    text-align: center;
+}
+#total {
+    position: absolute;
+    top: 125px;
+    left: 50%;
+    width: @total-width;
+    margin: (-(@total-height / 2) + (@countdown-height * 0.8)) 0 0 -(@total-width / 2);
+    line-height: @total-height;
+    font-size: @total-height;
+    font-family: "Lucida Grande", Tahoma, Verdana, Arial, sans-serif;
+    font-weight: normal;
+    text-align: center;
+}
+#time,
+#volume {
 	background: @body-bg;
 	border: none;
 	color: @body-bg;
 }
-#timeknob {
-	height: 230px;
-	margin: 10px 0 20px;
-}
-#volumeknob {
-	height: 260px;
-}
-#timeknob canvas:hover,
-#volumeknob canvas:hover {
-	cursor: pointer;
-}
-#countdown-display, #total {
-	display: block;
-	width: 120px;
-	text-align: center;
-}
-#countdown-display {
-	margin: -125px auto 0;
-	font-size: 38px;
-	line-height: 20px;
-	font-weight: bold;
-}
-#total {
-	margin: 10px auto 0;
-	span {
-		line-height: 20px;
-		font-family: "Lucida Grande", Tahoma, Verdana, Arial, sans-serif;
-		font-size: 20px;
-	}
-}
-
-
 .volume {
-	//padding-top: 30px;
 	.btn-toolbar {
 		margin-top: 20px;
 	}
@@ -405,7 +405,6 @@ html, body {
 		padding-top: 0;
 	}
 }
-
 #volume {
 	font-family: inherit !important;
 }
@@ -435,7 +434,7 @@ html, body {
 	// max-width: 294px;
 	max-width: 250px;
 	height: auto;
-	margin: 60px auto 11px;
+	margin: 10px auto 11px;
 	background: #111 url(../img/cover-default.png) no-repeat center center;
 	background-size: 100% 100%;
 	border: 2px solid @brand-alt;
@@ -656,14 +655,19 @@ html, body {
 		font-size: 12px;
 		color: lighten(@brand-alt, 20%);
 	}
-	#webradio-add {
+	#webradio-add,
+    #album-add {
 		background: darken(@brand-alt, 20%);
 		.sn {
 			color: @brand-primary;
 		}
-		i {
-			color: @text-color;
-		}
+		i,
+        strong {
+            color: @text-color;
+        }
+        strong {
+            font-weight: inherit;
+        }
 	}
 }
 #playlist-entries {
@@ -1764,9 +1768,12 @@ ul.parsley-error-list {
 	.form-actions {
 		padding: 0;
 	}
-	#cover-art {
-		margin-top: 10px;
-	}
+	#time-knob {
+        margin-bottom: 0;
+    }
+    #volume-knob {
+        margin-top: 0;
+    }
 }
 @media (min-width: @screen-md-min) { // everything above 992px
 	#playback .container {
