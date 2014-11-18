@@ -142,7 +142,7 @@ function refreshKnob() {
     if (GUI.state === 'play') {
         GUI.currentKnob = setInterval(function() {
             // console.log('initTime = ', initTime);
-            initTime = initTime + (GUI.visibility !== 'visible'? parseInt(1000/delta):1);
+            initTime = initTime + ((GUI.visibility !== 'visible') ? step : 1);
             time.val(initTime, false).trigger('update');
             //document.title = Math.round(initTime)/10 + '% - ' + GUI.visibility;
         }, delta);
