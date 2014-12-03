@@ -36,11 +36,12 @@
 // ====================================================================================================
 
 var GUI = {
-    DBentry: ['', '', ''],
+    DBentry: ['','',''],
     DBupdate: 0,
     activePlayer: '',
     browsemode: 'file',
     currentDBpos: [0,0,0,0,0,0,0,0,0,0,0],
+    currentDBpath: ['','','','','','','','','','',''],
     currentalbum: null,
     currentknob: null,
     currentpath: '',
@@ -828,7 +829,7 @@ function parseResponse(options) {
         
     // DEBUG
     // console.log('parseResponse OPTIONS: inputArr = ' + inputArr + ', respType = ' + respType + ', i = ' + i + ', inpath = ' + inpath +', querytype = ' + querytype);
-    console.log(inputArr);
+    // console.log(inputArr);
     
     switch (respType) {
         case 'playlist':
@@ -1079,7 +1080,7 @@ function populateDB(options){
             document.getElementById('database-entries').innerHTML = content;
         }
     } else {
-    // normal MPD browsing by file
+    // normal MPD browsing
         if (path === '' && keyword === '') {
         // Library home
             renderLibraryHome();
@@ -1119,11 +1120,27 @@ function populateDB(options){
             // console.log('highlighted entry = ', GUI.currentDBpos[GUI.currentDBpos[10]]);
         }
     }
-    $('span', '#db-currentpath').html(path);
+    var breadcrumb = $('span', '#db-currentpath');
+    if (GUI.browsemode === 'album') {
+        if (path === 'Albums') {
+            breadcrumb.html(path);
+        } else {
+            breadcrumb.html('Albums/' + path);
+        }
+    } else if (GUI.browsemode === 'artist') {
+        if (path === 'Artists') {
+            breadcrumb.html(path);
+        } else {
+            breadcrumb.html('Artists/' + path);
+        }
+    } else {
+        breadcrumb.html(path);
+    }
     $('#db-homeSetup').addClass('hide');
     if (uplevel) {
-        $('#db-' + GUI.currentDBpos[GUI.currentDBpos[10]]).addClass('active');
-        customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]], 0);
+        var position = GUI.currentDBpos[GUI.currentDBpos[10]];
+        $('#db-' + position).addClass('active');
+        customScroll('db', position, 0);
     } else {
         customScroll('db', 0, 0);
     }
@@ -1969,6 +1986,7 @@ if ($('#section-index').length) {
                     var entryID = el.attr('id');
                     entryID = entryID.replace('db-','');
                     GUI.currentDBpos[GUI.currentDBpos[10]] = entryID;
+                    GUI.currentDBpath[GUI.currentDBpos[10]] = path;
                     ++GUI.currentDBpos[10];
                     // console.log('getDB path = ', path);
                 } else if (el.hasClass('db-webradio-add')) {
@@ -2008,10 +2026,25 @@ if ($('#section-index').length) {
             if (GUI.currentDBpos[10] === 0) {
                 path = '';
             } else {
-                var cutpos = path.lastIndexOf('/');
-                path = (cutpos !== -1) ? path.slice(0,cutpos):'';
+                if (GUI.browsemode === 'file') {
+                    var cutpos = path.lastIndexOf('/');
+                    path = (cutpos !== -1) ? path.slice(0,cutpos):'';
+                } else {
+                    if (GUI.browsemode === 'album') {
+                        path = GUI.currentDBpath[GUI.currentDBpos[10] - 1];
+                        console.log(path);
+                        if (path === '') {
+                            path = 'Albums';
+                        } else {
+                            GUI.browsemode = 'artist';
+                        }
+                    } else if (GUI.browsemode === 'artist') {
+                        path = 'Artists';
+                    }
+                }
             }
             getDB({
+                browsemode: GUI.browsemode,
                 path: path,
                 plugin: GUI.plugin,
                 uplevel: 1
