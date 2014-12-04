@@ -106,6 +106,10 @@
                         <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC / Pi-DAC+</option>
                         <option value="raspyplay3" <?php if($this->i2smodule === 'raspyplay3'): ?> selected <?php endif ?>>RaspyPlay3</option>
                         <option value="raspyplay4" <?php if($this->i2smodule === 'raspyplay4'): ?> selected <?php endif ?>>RaspyPlay4</option>
+                        <!--<KEW>-->
+                        <!--Adding Transducer settings-->
+                        <option value="transducer" <?php if($this->i2smodule === 'transducer'): ?> selected <?php endif ?>>Transducer</option>
+                        <!-- </KEW> -->
                         <?php else: ?>
                         <option value="wolfsonaudiocard"  selected >Wolfson Audio Card</option>
                         <?php endif ?>

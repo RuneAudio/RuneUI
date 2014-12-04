@@ -4,11 +4,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <!--KEW-->
+    <!-- <KEW> -->
+      <!--IE Tags-->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="msapplication-tap-highlight" content="no" />
-        
-    <!--END KEW-->
+    <!-- </KEW> -->
         <link rel="stylesheet" href="<?=$this->asset('/css/runeui.css')?>">
 	<link rel="shortcut icon" href="<?=$this->asset('/img/favicon.ico')?>">
 	<link rel="apple-touch-icon" sizes="57x57" href="<?=$this->asset('/img/apple-touch-icon-57x57.png')?>">
