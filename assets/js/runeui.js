@@ -409,6 +409,21 @@ function chkKey(key) {
     return (key !== undefined && key !== '');
 }
 
+function setupAlphabetNav() {
+    // <KEW>
+    // look for the named Anchor tags to see which navigation letters to disable
+    setupAlphabetNav();
+    $('.alphabetTag').each(function (index) {
+        console.log("alphabetTag index:" + index + " name: " + $(this).attr('name'));
+        var button = $("a[data-alphabet='" + $(this).attr('name') + "']")[0];
+        if (button) {
+            $(button).removeClass('disabled')
+        }
+    })
+    // </KEW>
+}
+    
+
 // render the Library home screen
 function renderLibraryHome() {
     loadingSpinner('db');
@@ -1136,13 +1151,7 @@ function populateDB(options){
 
             // <KEW>
             // look for the named Anchor tags to see which navigation letters to disable
-            $('.alphabetTag').each(function (index) {
-                console.log("alphabetTag index:" + index + " name: " + $(this).attr('name'));
-                var button = $("a[data-alphabet='" + $(this).attr('name') + "']")[0];
-                if (button) {
-                    $(button).removeClass('disabled')
-                }
-            })
+            setupAlphabetNav();
             // </KEW>
 
 
