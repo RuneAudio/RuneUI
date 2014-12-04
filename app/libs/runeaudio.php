@@ -780,7 +780,7 @@ function _parseFileListResponse($resp)
         $browseMode = TRUE;
         while ($plistLine) {
             // list ( $element, $value ) = explode(": ",$plistLine);
-            if (!strpos($plistLine,'@eaDir')) list ($element, $value) = explode(': ', $plistLine);
+            if (!strpos($plistLine,'@eaDir')) list ($element, $value) = explode(': ', $plistLine, 2);
             if ($element === 'file' OR $element === 'playlist') {
                 $plCounter++;
                 $browseMode = FALSE;
@@ -840,7 +840,7 @@ function _parseStatusResponse($resp)
         $plistFile = "";
         $plCounter = -1;
         while ($plistLine) {
-            list ($element, $value) = explode(": ", $plistLine);
+            list ($element, $value) = explode(": ", $plistLine, 2);
             $plistArray[$element] = $value;
             $plistLine = strtok("\n");
         }
