@@ -360,10 +360,10 @@ html, body {
     }
 }
 #time-knob {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 #volume-knob {
-    margin-top: 20px;
+    margin-top: 30px;
 }
 @countdown-width: 150px;
 @countdown-height: 38px;
@@ -371,7 +371,7 @@ html, body {
 @total-height: 14px;
 #countdown-display {
     position: absolute;
-    top: 125px;
+    top: 115px;
     left: 50%;
     width: @countdown-width;
     margin: -(@countdown-height / 2) 0 0 -(@countdown-width / 2);
@@ -382,7 +382,7 @@ html, body {
 }
 #total {
     position: absolute;
-    top: 125px;
+    top: 115px;
     left: 50%;
     width: @total-width;
     margin: (-(@total-height / 2) + (@countdown-height * 0.8)) 0 0 -(@total-width / 2);
@@ -1843,6 +1843,10 @@ ul.parsley-error-list {
     }
     #volume-knob {
         margin-top: 0;
+    }
+    #countdown-display,
+    #total {
+        top: 125px;
     }
 }
 @media (min-width: @screen-md-min) { // everything above 992px

@@ -398,6 +398,10 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock',$jobID);
                     runelog('env: SWITCH KERNEL',$job->args);
                     if (wrk_kernelswitch($redis,$job->args)) {
+                        if ($job->args === 'linux-rune-rpi_3.12.13-rt21_wosa') {
+                            $redis->set('ao', 'snd_rpi_wsp_1');
+                            $redis->set('orionprofile', 'OrionV2');
+                        }
                         $notification = new stdClass();
                         $notification->title = 'Kernel switch';
                         $notification->text = $job->args.' selected successfully, reboot reqired';

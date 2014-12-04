@@ -104,7 +104,6 @@ function sendMpdCommand($sock, $cmd)
         socket_write($sock, $cmd, strlen($cmd));
     }
     runelog("MPD COMMAND: (socket=".$sock.")", $cmd);
-    //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
 }
 
 // detect end of MPD response
@@ -1193,21 +1192,26 @@ function hashCFG($action, $redis)
 }
 
 
-function runelog($title, $data = null)
+function runelog($title, $data = null, $function_name = null)
 {
 // Connect to Redis backend
     $store = new Redis();
     $store->connect('127.0.0.1', 6379);
     $debug_level = $store->get('debug');
+    if (isset($function_name)) {
+        $function_name = '['.$function_name.'] ';
+    } else {
+        $function_name = '';
+    }
     if ($debug_level !== '0') {
         if(is_array($data) OR is_object($data)) {
-            if (is_array($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = array',0);
-            if (is_object($data)) error_log('[debug='.$debug_level.'] ### '.$title.' ### $data type = object',0);
+            if (is_array($data)) error_log($function_name.'### '.$title.' ### $data type = array',0);
+            if (is_object($data)) error_log($function_name.'### '.$title.' ### $data type = object',0);
             foreach($data as $key => $value) {
-                error_log('[debug='.$debug_level.'] ### '.$title.' ###  [\''.$key.'\'] => '.$value,0);
+                error_log($function_name.'### '.$title.' ###  [\''.$key.'\'] => '.$value,0);
             }
         } else {
-            error_log('[debug='.$debug_level.'] ### '.$title.' ###  '.$data,0);
+            error_log($function_name.'### '.$title.' ###  '.$data,0);
         }
     }
     $store->close();
@@ -1795,9 +1799,10 @@ function wrk_audioOutput($redis, $action, $args = null)
                     if (isset($details->mixer_control)) {
                         $volsteps = sysCmd("amixer -c ".$card_index." get \"".$details->mixer_control."\" | grep Limits | cut -d ':' -f 2 | cut -d ' ' -f 4,6");
                         $volsteps = explode(' ',$volsteps[0]);
-                        $data['volmin'] = $volsteps[0];
-                        $data['volmax'] = $volsteps[1];
-                        $data['mixer_device'] = "hw:".$details->mixer_numid;
+                        if (isset($volsteps[0])) $data['volmin'] = $volsteps[0];
+                        if (isset($volsteps[1])) $data['volmax'] = $volsteps[1];
+                        // $data['mixer_device'] = "hw:".$details->mixer_numid;
+                        $data['mixer_device'] = "hw:".$card_index;
                         $data['mixer_control'] = $details->mixer_control;
                     }
                     if (isset($details->sysname) && $details->sysname === $card) {
@@ -1952,6 +1957,7 @@ function wrk_i2smodule($redis, $args)
 
 function wrk_kernelswitch($redis, $args)
 {
+    $redis->set('i2smodule', 'none');
     $file = '/boot/config.txt';
     $newArray = wrk_replaceTextLine($file, '', 'kernel=', 'kernel='.$args.'.img');
     // Commit changes to /boot/config.txt
@@ -2053,7 +2059,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                         $redis->set('volume', 1);
                         if ($value === 'hardware') {
                             $hwmixer = 1;
-                            break;
+                            continue;
                         }
                     } else {
                         $redis->set('volume', 0);
@@ -2079,21 +2085,21 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     $output .="plugin \t\"ffmpeg\"\n";
                     $output .="enabled \"".$value."\"\n";
                     $output .="}\n";
-                continue;
+                    continue;
                 }
                 if ($param === 'curl') {
-                // --- input plugin ---
-                $output .="\n";
-                $output .="input {\n";
-                $output .="plugin \t\"curl\"\n";
-                    if ($redis->hget('proxy','enable') === '1') {
-                        $output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
-                        if ($redis->hget('proxy','user') !== '') {
-                            $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n";
-                            $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n";
+                    // --- input plugin ---
+                    $output .="\n";
+                    $output .="input {\n";
+                    $output .="plugin \t\"curl\"\n";
+                        if ($redis->hget('proxy','enable') === '1') {
+                            $output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
+                            if ($redis->hget('proxy','user') !== '') {
+                                $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n";
+                                $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n";
+                            }
                         }
-                    }
-                $output .="}\n";
+                    $output .="}\n";
                 continue;
                 }
                 $output .= $param." \t\"".$value."\"\n";
@@ -2101,29 +2107,33 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             $output = $header.$output;
             // --- audio output ---
             $acards = $redis->hGetAll('acards');
+            // debug
+            runelog('detected ACARDS ', $acards, __FUNCTION__);
             $ao = $redis->Get('ao');
             $sub_count = 0;
-            runelog('sub_count ----->(0)'.$sub_count);
             foreach ($acards as $card) {
                 $card_decoded = new stdClass();
                 $card_decoded = json_decode($card);
+                // debug
+                runelog('decoded ACARD ', $card_decoded, __FUNCTION__);
                 if (isset($card_decoded->integrated_sub) && $card_decoded->integrated_sub === 1) {
                     // record UI audio output name
                     $current_card = $card_decoded->name;
                     if ($sub_count >= 1) continue;
                     $card_decoded = json_decode($card_decoded->real_interface);
-                    runelog('current AO ---->  ', $ao);
+                    runelog('current AO ---->  ', $ao, __FUNCTION__);
                     // var_dump($ao);
-                    runelog('current card_name ---->  ', $card_decoded->name);
+                    runelog('current card_name ---->  ', $card_decoded->name, __FUNCTION__);
                     // var_dump($card_decoded->name);
                     // var_dump(strpos($ao, $card_decoded->name));
                     if (strpos($ao,$card_decoded->name) === true OR strpos($ao, $card_decoded->name) === 0) $sub_interface_selected = 1;
                     // debug
                     if (isset($sub_interface_selected)) runelog('sub_card_selected ? >>>> '.$sub_interface_selected);
                     // debug
-                    runelog('this is a sub_interface');
+                    runelog('this is a sub_interface', __FUNCTION__);
                     $sub_interface = 1;
                     $sub_count++;
+                    runelog('sub_count', $sub_count, __FUNCTION__);
                 }
                 $output .="\n";
                 $output .="audio_output {\n";
@@ -2140,7 +2150,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     if (isset($card_decoded->mixer_control)) {
                         $output .="mixer_control \t\"".$card_decoded->mixer_control."\"\n";
                     } else {
-                        $output .="mixer_control \t\"".alsa_findHwMixerControl($card_decoded->device).",0\"\n";
+                        $output .="mixer_control \t\"".alsa_findHwMixerControl(substr($card_decoded->device, 4, 1)).",0\"\n";
                     }
                     $output .="mixer_index \t\"0\"\n";"\t\t  \t\"0\"\n";
                 }
@@ -2155,13 +2165,15 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     if ($ao === $card_decoded->name) $output .="enabled \t\"yes\"\n";
                 }
                 $output .="}\n";
-                unset($current_card);
-                unset($sub_interface);
-                unset($card_decoded);
+                // unset($current_card);
+                // unset($sub_interface);
+                // unset($card_decoded);
+            // debug
+            runelog('conf output (in loop)', $output, __FUNCTION__);
             }
             $output .="\n";
             // debug
-            // runelog($output);
+            runelog('raw mpd.conf', $output, __FUNCTION__);
             // write mpd.conf file
             $fh = fopen('/etc/mpd.conf', 'w');
             fwrite($fh, $output);
