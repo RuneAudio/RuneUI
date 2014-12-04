@@ -588,6 +588,12 @@ function deleteBookmark($redis, $id)
     return $return;
 }
 
+
+// browseDB
+// $sock = MPD Socket
+// $browsemode = ("file", etc.)
+// $query = the path ("NAS/Music", etc.)
+
 function browseDB($sock,$browsemode,$query) {
     switch ($browsemode) {
         case 'file':
@@ -766,7 +772,9 @@ function _parseFileListResponse($resp)
     if (is_null($resp)) {
         return null;
     } else {
+
         $plistArray = array();
+		$plistAlphabet = array();
         $plistLine = strtok($resp, "\n");
         // $plistFile = "";
         $plCounter = -1;
@@ -786,6 +794,21 @@ function _parseFileListResponse($resp)
                 $dirCounter++;
                 // $plistFile = $value;
                 $plistArray[$plCounter]['directory'] = $value;
+
+				// <KEW>
+				// Set up server side Alphabet Navigation
+				// get the first letter, and if it is unique, send it along in the JSON for this item
+		        $str = strtoupper(substr($value, strrpos($value, '/') + 1, 1));
+
+				if (!in_array($str, $plistAlphabet)) {
+					// working with only letters for now
+					if (preg_match('/^\s*[a-z,A-Z]/', $str) > 0) {
+						array_push($plistAlphabet, $str); 
+						$plistArray[$plCounter]['firstLetter'] = $str;
+					};
+				}
+				// </KEW>
+
             } else if ($browseMode) {
                 if ( $element === 'Album' ) {
                     $plCounter++;
@@ -1841,6 +1864,12 @@ function wrk_i2smodule($redis, $args)
     }
     switch ($args) {
         case 'none':
+		// <KEW>
+		// Not sure this section works as expected, but I added the "Remove"
+		// commands to address what could be added by selecting Transducer
+			sysCmd('rmmod snd_soc_rpi_dac').usleep(300000);
+			sysCmd('rmmod snd_soc_pcm1794a').usleep(300000);
+		// </KEW>
             sysCmd('rmmod snd_soc_iqaudio_dac').usleep(300000);
             sysCmd('rmmod snd_soc_hifiberry_digi').usleep(300000);
             sysCmd('rmmod snd_soc_hifiberry_dac').usleep(300000);
@@ -1848,7 +1877,8 @@ function wrk_i2smodule($redis, $args)
             sysCmd('rmmod snd_soc_wm8804').usleep(300000);
             sysCmd('rmmod snd_soc_pcm512x').usleep(300000);
             sysCmd('rmmod snd_soc_pcm5102a');
-            break;
+			
+			break;
         case 'berrynos':
             sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
             sysCmd('modprobe snd_soc_wm8804').usleep(300000);
@@ -1905,6 +1935,16 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
             sysCmd('modprobe snd_soc_iqaudio_dac');
             break;
+		// <KEW>
+		// Adding an entry for the Musica Pristina Trtasnducer DAC, based on PCM 1794
+		case 'transducer':
+			sysCmd('modprobe snd_soc_bcm2708_i2s').usleep(300000);
+			sysCmd('modprobe bcm2708_dmaengine').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm1794a').usleep(300000);
+            sysCmd('modprobe snd_soc_rpi_dac');
+			break;
+
+		// </KEW>
     }
     $redis->set('i2smodule', $args);
     wrk_mpdconf($redis, 'refresh');
