@@ -611,7 +611,16 @@ function browseDB($sock,$browsemode,$query) {
 			}
             break;
 		case 'genre':
-            sendMpdCommand($sock,'list "genre"');
+            if (isset($query) && !empty($query)){
+                sendMpdCommand($sock,'find "genre" "'.html_entity_decode($query).'"');
+            } else {
+                sendMpdCommand($sock,'list "genre"');
+			}
+            break;
+        case 'albumfilter':
+            if (isset($query) && !empty($query)){
+                sendMpdCommand($sock,'find "albumartist" "'.html_entity_decode($query).'" "album" ""');
+            }
             break;
 		case 'globalrandom':
             sendMpdCommand($sock,'listall');
