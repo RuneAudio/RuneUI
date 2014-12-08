@@ -817,7 +817,7 @@ function _parseStatusResponse($resp)
         $plistFile = "";
         $plCounter = -1;
         while ($plistLine) {
-            list ($element, $value) = explode(": ", $plistLine);
+            list ($element, $value) = explode(": ", $plistLine, 2);
             $plistArray[$element] = $value;
             $plistLine = strtok("\n");
         }
@@ -2042,8 +2042,8 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     // --- decoder plugin ---
                     $output .="\n";
                     $output .="decoder {\n";
-                    $output .="plugin \t\"ffmpeg\"\n";
-                    $output .="enabled \"".$value."\"\n";
+                    $output .="\tplugin \t\"ffmpeg\"\n";
+                    $output .="\tenabled \"".$value."\"\n";
                     $output .="}\n";
                     continue;
                 }
@@ -2051,12 +2051,12 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     // --- input plugin ---
                     $output .="\n";
                     $output .="input {\n";
-                    $output .="plugin \t\"curl\"\n";
+                    $output .="\tplugin \t\"curl\"\n";
                         if ($redis->hget('proxy','enable') === '1') {
-                            $output .="proxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
+                            $output .="\tproxy \t\"".($redis->hget('proxy', 'host'))."\"\n";
                             if ($redis->hget('proxy','user') !== '') {
-                                $output .="proxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n";
-                                $output .="proxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n";
+                                $output .="\tproxy_user \t\"".($redis->hget('proxy', 'user'))."\"\n";
+                                $output .="\tproxy_password \t\"".($redis->hget('proxy', 'pass'))."\"\n";
                             }
                         }
                     $output .="}\n";
@@ -2071,16 +2071,17 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             runelog('detected ACARDS ', $acards, __FUNCTION__);
             $ao = $redis->Get('ao');
             $sub_count = 0;
-            foreach ($acards as $card) {
+            foreach ($acards as $main_acard_name => $main_acard_details) {
                 $card_decoded = new stdClass();
-                $card_decoded = json_decode($card);
+                $card_decoded = json_decode($main_acard_details);
                 // debug
-                runelog('decoded ACARD ', $card_decoded, __FUNCTION__);
+                runelog('decoded ACARD '.$card_decoded->name, $card_decoded, __FUNCTION__);
+                // handle sub-interfaces
                 if (isset($card_decoded->integrated_sub) && $card_decoded->integrated_sub === 1) {
                     // record UI audio output name
                     $current_card = $card_decoded->name;
-                    if ($sub_count >= 1) continue;
-                    $card_decoded = json_decode($card_decoded->real_interface);
+                    // if ($sub_count >= 1) continue;
+                    // $card_decoded = json_decode($card_decoded->real_interface);
                     runelog('current AO ---->  ', $ao, __FUNCTION__);
                     // var_dump($ao);
                     runelog('current card_name ---->  ', $card_decoded->name, __FUNCTION__);
@@ -2092,44 +2093,40 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     // debug
                     runelog('this is a sub_interface', __FUNCTION__);
                     $sub_interface = 1;
+                    // debug
                     $sub_count++;
                     runelog('sub_count', $sub_count, __FUNCTION__);
                 }
                 $output .="\n";
                 $output .="audio_output {\n";
-                $output .="name \t\t\"".$card_decoded->name."\"\n";
-                $output .="type \t\t\"".$card_decoded->type."\"\n";
-                $output .="device \t\t\"".$card_decoded->device."\"\n";
-                if (isset($hwmixer)) {
-                    $output .="mixer_type \t\"hardware\"\n";
-                    if (isset($card_decoded->mixer_device)) {
-                        $output .="mixer_device \t\"".$card_decoded->mixer_device."\"\n";
-                    } else {
-                        $output .="mixer_device \t\"hw:".$card_decoded->device."\"\n";
-                    }
-                    if (isset($card_decoded->mixer_control)) {
-                        $output .="mixer_control \t\"".$card_decoded->mixer_control."\"\n";
-                    } else {
-                        $output .="mixer_control \t\"".alsa_findHwMixerControl(substr($card_decoded->device, 4, 1)).",0\"\n";
-                    }
-                    $output .="mixer_index \t\"0\"\n";"\t\t  \t\"0\"\n";
-                }
-                if ($mpdcfg['dsd_usb'] === 'yes') $output .="dsd_usb \t\"yes\"\n";
-                $output .="auto_resample \t\"no\"\n";
-                $output .="auto_format \t\"no\"\n";
-                if (isset($sub_interface_selected)) {
-                    // use UI selector name to enable a sub_interface (ex. switch between AnalogOut / HDMI on RaspberryPI)
-                    $output .="enabled \t\"yes\"\n";
+                // $output .="name \t\t\"".$card_decoded->name."\"\n";
+                if (isset($sub_interface)) {
+                    $output .="\tname \t\t\"".$card_decoded->name."\"\n";
                 } else {
-                    // normal condition
-                    if ($ao === $card_decoded->name) $output .="enabled \t\"yes\"\n";
+                    $output .= $main_acard_name;
                 }
+                $output .="\ttype \t\t\"".$card_decoded->type."\"\n";
+                $output .="\tdevice \t\t\"".$card_decoded->device."\"\n";
+                if (isset($hwmixer)) {
+                     if (isset($card_decoded->mixer_control)) {
+                        $output .="\tmixer_control \t\"".$card_decoded->mixer_control."\"\n";
+                        $output .="\tmixer_type \t\"hardware\"\n";
+                        $output .="\tmixer_device \t\"".substr($card_decoded->device, 0, 4)."\"\n";
+                    } else {
+                        if (!isset($sub_interface)) {
+                            $output .="\tmixer_control \t\"".alsa_findHwMixerControl(substr($card_decoded->device, 5, 1))."\"\n";
+                        }
+                    }
+                    // $output .="\tmixer_index \t\"0\"\n";"\t\t  \t\"0\"\n";
+                }
+                if ($mpdcfg['dsd_usb'] === 'yes') $output .="\tdsd_usb \t\"yes\"\n";
+                $output .="\tauto_resample \t\"no\"\n";
+                $output .="\tauto_format \t\"no\"\n";
+                if ($ao === $main_acard_name) $output .="\tenabled \t\"yes\"\n";
                 $output .="}\n";
-                // unset($current_card);
-                // unset($sub_interface);
-                // unset($card_decoded);
+                unset($sub_interface);
             // debug
-            runelog('conf output (in loop)', $output, __FUNCTION__);
+            // runelog('conf output (in loop)', $output, __FUNCTION__);
             }
             $output .="\n";
             // debug
@@ -2160,7 +2157,7 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                 sysCmd($interface_details->route_cmd);
                 // TODO: improove this function
                 sysCmd('amixer -c 0 set PCM unmute');
-                $mpdout = $interface_details->sysname;
+                // $mpdout = $interface_details->sysname;
             }
         	wrk_mpdconf($redis, 'writecfg');
             wrk_shairport($redis, $args);
@@ -2644,6 +2641,8 @@ function alsa_findHwMixerControl($cardID)
     $cmd = "amixer -c ".$cardID." |grep \"mixer control\"";
     $str = sysCmd($cmd);
     $hwmixerdev = substr(substr($str[0], 0, -(strlen($str[0]) - strrpos($str[0], "'"))), strpos($str[0], "'")+1);
+    runelog('Try to find HwMixer control (str): ', $str);
+    runelog('Try to find HwMixer control: (output)', $hwmixerdev);
     return $hwmixerdev;
 }
 

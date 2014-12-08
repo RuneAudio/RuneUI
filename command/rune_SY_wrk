@@ -222,12 +222,14 @@ sysCmd("/var/www/command/orion_optimize.sh ".$redis->get('orionprofile')." ".$re
 // start php-fpm
 sysCmd('systemctl start php-fpm');
 // PHP 5.5 OPCache
+/*
 if ($redis->get('dev') === '0') {
     // prime PHP OPCache
     runelog('prime PHP OPCache');
     // wrk_opcache('prime',$redis);
     sysCmdAsync("curl -s -X GET 'http://localhost/command/cachectl.php?action=prime'");
 }
+*/
 // mount all sources
 wrk_sourcemount($redis, 'mountall');
 runelog('--- NORMAL STARTUP');
