@@ -612,7 +612,7 @@ function browseDB($sock,$browsemode,$query) {
             break;
 		case 'genre':
             if (isset($query) && !empty($query)){
-                sendMpdCommand($sock,'find "genre" "'.html_entity_decode($query).'"');
+                sendMpdCommand($sock,'list "artist" "genre" "'.html_entity_decode($query).'"');
             } else {
                 sendMpdCommand($sock,'list "genre"');
 			}

@@ -939,20 +939,16 @@ function parseResponse(options) {
                 }
             } else if (GUI.browsemode === 'genre') {
             // browse by genre
-                if (inputArr.file !== undefined) {
-                    content = '<li id="db-' + (i + 1) + '" data-path="';
-                    content += inputArr.file;
-                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
-                    content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
-                    content += ' <span class="bl">';
-                    content +=  inputArr.Artist;
-                    content += ' - ';
-                    content +=  inputArr.Album;
+                if (inputArr.artist !== undefined) {
+                    content = '<li id="db-' + (i + 1) + '" class="db-folder db-artist" data-path="';
+                    content += inputArr.artist;
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-artist"></i><span><i class="fa fa-dot-circle-o"></i>';
+                    content += (inputArr.artist !== '') ? inputArr.artist : 'Unknown artist';
                     content += '</span></li>';
                 } else if (inputArr.genre !== '') {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-genre" data-path="';
                     content += inputArr.genre;
-                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-genre"></i><span><i class="fa fa-tags"></i>';
+                    content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu"></i><span><i class="fa fa-tags"></i>';
                     content += inputArr.genre;
                     content += '</span></li>';
                 }
@@ -1977,7 +1973,7 @@ if ($('#section-index').length) {
                             browsemode: 'artist'
                         });
                     } else if (el.hasClass('db-genre')) {
-                    // browse by album
+                    // browse by genre
                         getDB({
                             path: path,
                             uplevel: 0,
@@ -2080,7 +2076,13 @@ if ($('#section-index').length) {
                             GUI.browsemode = 'artist';
                         }
                     } else if (GUI.browsemode === 'artist') {
-                        path = 'Artists';
+                        path = GUI.currentDBpath[GUI.currentDBpos[10] - 1];
+                        // console.log(path);
+                        if (path === '') {
+                            path = 'Artists';
+                        } else {
+                            GUI.browsemode = 'genre';
+                        }
                     } else if (GUI.browsemode === 'genre') {
                         path = 'Genres';
                     } else if (GUI.browsemode === 'albumfilter') {
