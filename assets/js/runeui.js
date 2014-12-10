@@ -2191,6 +2191,7 @@ if ($('#section-index').length) {
                     getDB({
                         cmd: dataCmd,
                         path: path,
+                        browsemode: GUI.browsemode,
                         querytype: dataType
                     });
                     break;
