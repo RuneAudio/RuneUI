@@ -1452,6 +1452,7 @@ function playbackChannel(){
     pushstream.onstatuschange = function(status) {
         // console.log('[nginx pushtream module] status = ', status);
         if (status === 2) {
+            $('#loader').addClass('hide');
             sendCmd('renderui'); // force UI rendering (backend-call)
         } else {
             // console.log('[nginx pushtream module] status change (' + status + ')');
