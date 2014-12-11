@@ -703,7 +703,64 @@ function getPlaylistPlain(data){
     $('#pl-count').removeClass('hide').html(pos + ((pos !== 1) ? ' entries' : ' entry'));
 }
 
+// format the queue data response in JSON
+function parseQueue(data){
+    var current = parseInt(GUI.json.song) + 1;
+    var state = GUI.json.state;
+    var i, line, lines = data.split('\n');
+    var pos = 1;
+    var songs = []; // array che conterrà tutte le songs
+    var song = {}; // modello base
+    for (i = 0; (line = lines[i]); i += 1) {
+        var infos = line.split(': ');
+        if ( 'file' === infos[0] ) {
+            song.file = infos[1];
+            song.fileExt = infos[1].split('.').pop();
+        }
+        else if ( 'Name' === infos[0] ) {
+            song.name = infos[1];
+        }
+        else if ( 'Last-Modified' === infos[0] ) {
+            song.lastModified = infos[1];
+        }
+        else if ( 'Time' === infos[0] ) {
+            song.time = parseInt(infos[1]);
+            song.timeFormatted = timeConvert(song.time);
+        }
+        else if ( 'Artist' === infos[0] ) {
+            song.artist = infos[1];
+        }
+        else if ( 'Title' === infos[0] ) {
+            song.title = infos[1];
+        }
+        else if ( 'Album' === infos[0] ) {
+            song.album = infos[1];
+            //song.albumArtist = infos[1];
+        }
+        else if ( 'Track' === infos[0] ) {
+            song.track = infos[1];
+        }
+        else if ( 'Date' === infos[0] ) {
+            song.date = infos[1];
+        }
+        else if ( 'Genre' === infos[0] ) {
+            song.genre = infos[1];
+        }
+        else if ( 'Id' === infos[0] ) {
+            song.id = infos[1];
+            song.pos = pos++;
+            if (song.name) {
+                song.webradio = true; // marchiamo che è una web radio
+            }
+            songs.push(song);
+            song = {};
+        }
+    }
+    return songs;
+}
+
 // refresh the queue (TODO: improve in PushStream mode)
+var queueTracks = '';
 function getPlaylistCmd(){
     loadingSpinner('pl');
     $.ajax({
@@ -713,8 +770,9 @@ function getPlaylistCmd(){
                 $('.playlist').addClass('hide');
                 $('#playlist-entries').removeClass('hide');
                 // console.time('getPlaylistPlain timer');
-                getPlaylistPlain(data);
+                queueTracks = parseQueue(data);
                 // console.timeEnd('getPlaylistPlain timer');
+                m.redraw();
                 
                 var current = parseInt(GUI.json.song);
                 if ($('#panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
@@ -2627,3 +2685,52 @@ if ($('#section-index').length) {
     });
 
 }
+
+
+
+// QUEUE RENDERING VIA MITHRIL
+// ----------------------------------------------------------------------------------------------------
+
+var queueEntryHeight = 49;
+var pageY = 0, pageHeight = 0;
+window.onscroll = function(e) {
+	pageY = Math.max(e.pageY || window.pageYOffset, 0);
+	pageHeight = window.innerHeight;
+	m.redraw();
+};
+$(window).trigger('scroll');
+
+m.module(document.getElementById('playlist-entries-container'), {
+	controller: function() {},
+	view: function() {
+		var begin = pageY / queueEntryHeight || 0;
+		var end = begin + (pageHeight / queueEntryHeight || 0 + 2);
+		var offset = pageY % queueEntryHeight;
+		return m('div', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
+			m('ul#playlist-entries.playlist', {style: 'position:relative;top:' + pageY + 'px'}, [
+                (queueTracks)?queueTracks.slice(begin, end).map(function(song) {
+					var icon = null;
+					var bottom = null;
+
+					if (song.webradio) {
+						icon = m('i.fa.fa-microphone');
+						bottom = 'URL: ' + song.file;
+					} else if (song.artist) {
+						bottom = song.artist + ' - ' + song.album;
+					} else {
+						bottom = 'path: ' + song.filename.split('/').pop();
+					}
+
+					return m('li', {id: 'pl-' + song.id}, [
+						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
+						m('span.sn', [
+							song.title,
+							m('span', song.timeFormatted)
+						]),
+						m('span.bl', bottom)
+					]);
+				}):null
+			])
+		]);
+	}
+});
