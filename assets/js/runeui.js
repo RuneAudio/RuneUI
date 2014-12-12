@@ -236,7 +236,7 @@ function customScroll(list, destination, speed) {
         scrollcalc = parseInt((destination + 2)*entryheight - centerheight);
         scrolloffset = Math.abs(scrollcalc - scrolltop);
         scrolloffset = (scrollcalc > scrolltop ? '+':'-') + '=' + scrolloffset + 'px';
-        $('#playlist-entries').find('li').eq(destination).addClass('active');
+        $('[data-queuepos="' + destination + '"]').addClass('active');
     }
     // debug
     // console.log('-------------------------------------------');
@@ -750,7 +750,7 @@ function parseQueue(data){
             song.id = infos[1];
             song.pos = pos++;
             if (song.name) {
-                song.webradio = true; // marchiamo che è una web radio
+                song.webradio = true; // mark it as webradio
             }
             songs.push(song);
             song = {};
@@ -1830,7 +1830,7 @@ if ($('#section-index').length) {
                 sendCmd(cmd);
             } else {
                 // play queue entry
-                var pos = $('li', '#playlist-entries').index(this);
+                var pos = $(this).data('queuepos');
                 cmd = 'play ' + pos;
                 sendCmd(cmd);
                 $('li.active', '#playlist-entries').removeClass('active');
@@ -2703,15 +2703,15 @@ $(window).trigger('scroll');
 m.module(document.getElementById('playlist-entries-container'), {
 	controller: function() {},
 	view: function() {
-		var begin = pageY / queueEntryHeight || 0;
+		var begin = Math.ceil(pageY / queueEntryHeight) || 0;
 		var end = begin + (pageHeight / queueEntryHeight || 0 + 2);
 		var offset = pageY % queueEntryHeight;
-		return m('div', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
+		m('#pl-count', queueTracks.length); // [TODO] check this
+        return m('div', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
 			m('ul#playlist-entries.playlist', {style: 'position:relative;top:' + pageY + 'px'}, [
-                (queueTracks)?queueTracks.slice(begin, end).map(function(song) {
+                (queueTracks)?queueTracks.slice(begin, end).map(function(song, idx) {
 					var icon = null;
 					var bottom = null;
-
 					if (song.webradio) {
 						icon = m('i.fa.fa-microphone');
 						bottom = 'URL: ' + song.file;
@@ -2720,8 +2720,7 @@ m.module(document.getElementById('playlist-entries-container'), {
 					} else {
 						bottom = 'path: ' + song.filename.split('/').pop();
 					}
-
-					return m('li', {id: 'pl-' + song.id}, [
+                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': begin + idx}, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
 							song.title,
@@ -2730,7 +2729,7 @@ m.module(document.getElementById('playlist-entries-container'), {
 						m('span.bl', bottom)
 					]);
 				}):null
-			])
+			]),
 		]);
 	}
 });
