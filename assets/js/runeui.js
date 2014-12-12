@@ -46,6 +46,7 @@ var GUI = {
     currentknob: null,
     currentpath: '',
     currentsong: null,
+    currentqueuepos: 0,
     json: 0,
     libraryhome: '',
     mode: 'websocket',
@@ -59,6 +60,7 @@ var GUI = {
     visibility: 'visible',
     volume: null
 };
+var queueTracks = [];
 
 
 
@@ -216,7 +218,16 @@ function volumeStepSet() {
     setvol(GUI.stepVolumeDelta);
     // console.log('set volume to = ', GUI.stepVolumeDelta);
 }
-    
+
+// highlight the current track in the queue
+function setQueuePos() {
+    if (queueTracks.length !== 0 && GUI.currentqueuepos !== parseInt(GUI.json.song)) {
+        queueTracks[GUI.currentqueuepos].current = false;
+        GUI.currentqueuepos = parseInt(GUI.json.song);
+        queueTracks[GUI.currentqueuepos].current = true;
+    }
+}
+
 // custom scrolling
 function customScroll(list, destination, speed) {
     // console.log('list = ' + list + ', destination = ' + destination + ', speed = ' + speed);
@@ -232,11 +243,16 @@ function customScroll(list, destination, speed) {
         scrollcalc = parseInt((destination)*entryheight - centerheight);
         scrolloffset = scrollcalc;
     } else if (list === 'pl') {
-        //var scrolloffset = parseInt((destination + 2)*entryheight - centerheight);
-        scrollcalc = parseInt((destination + 2)*entryheight - centerheight);
-        scrolloffset = Math.abs(scrollcalc - scrolltop);
-        scrolloffset = (scrollcalc > scrolltop ? '+':'-') + '=' + scrolloffset + 'px';
-        $('[data-queuepos="' + destination + '"]').addClass('active');
+        if (queueTracks.length !== 0) {
+            //var scrolloffset = parseInt((destination + 2)*entryheight - centerheight);
+            scrollcalc = parseInt((destination + 2)*entryheight - centerheight);
+            scrolloffset = Math.abs(scrollcalc - scrolltop);
+            scrolloffset = (scrollcalc > scrolltop ? '+':'-') + '=' + scrolloffset + 'px';
+            // $('[data-queuepos="' + destination + '"]').addClass('active');
+            // queueTracks[destination].current = true;
+            console.log(queueTracks[destination].current);
+            console.log(GUI.currentqueuepos);
+        }
     }
     // debug
     // console.log('-------------------------------------------');
@@ -587,6 +603,8 @@ function updateGUI() {
         // check song update
         // console.log('A = ', GUI.json.currentsong); console.log('B = ', GUI.currentsong);
         if (GUI.currentsong !== GUI.json.currentsong) {
+            setQueuePos();
+            console.log('607 currentqueuepos = ', GUI.currentqueuepos);
             countdownRestart(0);
             if ($('#panel-dx').hasClass('active')) {
                 var current = parseInt(GUI.json.song);
@@ -631,9 +649,9 @@ function updateGUI() {
         if (GUI.currentalbum !== currentalbumstring) {
             if (radioname === null || radioname === undefined || radioname === '') {
                 var covercachenum = Math.floor(Math.random()*1001);
-                $('#cover-art').css('background-image','url(/coverart/?v=' + covercachenum + ')');
+                $('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
             } else {
-                $('#cover-art').css('background-image','url(assets/img/cover-radio.jpg');
+                $('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
             }
         }
         GUI.currentalbum = currentalbumstring;
@@ -760,24 +778,23 @@ function parseQueue(data){
 }
 
 // refresh the queue (TODO: improve in PushStream mode)
-var queueTracks = '';
 function getPlaylistCmd(){
     loadingSpinner('pl');
     $.ajax({
         url: '/db/?cmd=playlist',
         success: function(data){
-            if ( data.length > 4) {
+            if (data.length > 4) {
                 $('.playlist').addClass('hide');
                 $('#playlist-entries').removeClass('hide');
                 // console.time('getPlaylistPlain timer');
                 queueTracks = parseQueue(data);
                 // console.timeEnd('getPlaylistPlain timer');
-                m.redraw();
-                
-                var current = parseInt(GUI.json.song);
-                if ($('#panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
-                    customScroll('pl', current, 200); // highlight current song in playlist
+                setQueuePos();
+                // console.log('793 currentqueuepos = ', GUI.currentqueuepos);
+                if ($('#open-panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
+                    customScroll('pl', GUI.currentqueuepos, 500); // [TODO] remove this when we find a way to highlight the current track at first draw
                 }
+                m.redraw();
             } else {
                 $('.playlist').addClass('hide');
                 $('#playlist-warning').removeClass('hide');
@@ -1707,9 +1724,6 @@ if ($('#section-index').length) {
         libraryChannel();
         // startChannel(queueChannel());
         
-        // first GUI update
-        // updateGUI();
-        
         // PNotify init options
         PNotify.prototype.options.styling = 'fontawesome';
         PNotify.prototype.options.stack.dir1 = 'up';
@@ -1840,6 +1854,7 @@ if ($('#section-index').length) {
 
         // on ready playlist tab
         $('a', '#open-panel-dx').click(function(){
+            // check if the Queue tab is visible
             if ($('#open-panel-dx').hasClass('active')) {
                 var current = parseInt(GUI.json.song);
                 customScroll('pl', current, 500);
@@ -2416,9 +2431,6 @@ if ($('#section-index').length) {
         // open UI rendering channel;
         playbackChannel();
         
-        // first GUI update
-        // updateGUI();
-        
         // PNotify init options
         PNotify.prototype.options.styling = 'fontawesome';
         PNotify.prototype.options.stack.dir1 = 'up';
@@ -2720,7 +2732,7 @@ m.module(document.getElementById('playlist-entries-container'), {
 					} else {
 						bottom = 'path: ' + song.filename.split('/').pop();
 					}
-                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': begin + idx}, [
+                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': begin + idx, 'class': song.current ? 'active' : ''}, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
 							song.title,
