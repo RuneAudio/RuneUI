@@ -631,9 +631,9 @@ function updateGUI() {
         if (GUI.currentalbum !== currentalbumstring) {
             if (radioname === null || radioname === undefined || radioname === '') {
                 var covercachenum = Math.floor(Math.random()*1001);
-                $('#cover-art').css('background-image','url(/coverart/?v=' + covercachenum + ')');
+                $('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
             } else {
-                $('#cover-art').css('background-image','url(assets/img/cover-radio.jpg');
+                $('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
             }
         }
         GUI.currentalbum = currentalbumstring;
