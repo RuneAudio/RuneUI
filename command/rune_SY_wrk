@@ -226,12 +226,10 @@ sysCmd("/var/www/command/orion_optimize.sh ".$redis->get('orionprofile')." ".$re
 // start php-fpm
 sysCmd('systemctl start php-fpm');
 // PHP 5.5 OPCache
-/*
 if ($redis->get('dev') === '0') {
     // prime PHP OPCache
     runelog('prime PHP OPCache');
-    // wrk_opcache('prime',$redis);
-    sysCmdAsync("curl -s -X GET 'http://localhost/command/cachectl.php?action=prime'");
+    sysCmdAsync("curl -s -X GET 'http://127.0.0.1/command/cachectl.php?action=prime'");
 }
 runelog('--- NORMAL STARTUP');
 // --- NORMAL STARTUP //
@@ -546,18 +544,16 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     // Restart PHP service
                     if ($job->action === 'enable') {
-                        wrk_opcache('enable');
+                        wrk_opcache('enable', $redis);
                         runelog('PHP 5.5 OPcache enabled');
-                        sysCmd('systemctl restart php-fpm');
+                        sysCmdAsync('systemctl restart php-fpm', 5);
                         // wrk_opcache('forceprime');
-                        $redis->set('opcache', 1);
                         // send notfy to UI
                         ui_notify_async('PHP OpCache', 'cache enabled', $jobID);
                     } else {
-                        wrk_opcache('disable');
+                        wrk_opcache('disable', $redis);
                         runelog('PHP 5.5 OPcache disabled');
-                        sysCmd('systemctl restart php-fpm');
-                        $redis->set('opcache', 0);
+                        sysCmdAsync('systemctl restart php-fpm', 5);
                         // send notfy to UI
                         ui_notify_async('PHP OpCache', 'cache disabled', $jobID);
                     }

@@ -156,7 +156,6 @@ function redisDatastore($redis,$action) {
             $transaction = $redis->multi();
             // RuneAudio Libs & config
             $transaction->sAdd('php_opcache_prime', '/srv/http/app/config/config.php');
-            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/runeaudio.php');
             // RuneAudio Controllers
             $transaction->sAdd('php_opcache_prime', '/srv/http/index.php');
             $transaction->sAdd('php_opcache_prime', '/srv/http/db/index.php');
