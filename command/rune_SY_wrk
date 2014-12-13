@@ -78,7 +78,7 @@ if ($arch_db !== $arch) {
     $playerid_db = '';
 }
 // check git branch
-$gitbranch = sysCmd("git branch | grep \"*\" | cut -d ' ' -f 2");
+$gitbranch = sysCmd("cd /var/www/ ; git branch | grep \"*\" | cut -d ' ' -f 2");
 runelog('GIT BRANCH: ', $gitbranch[0]);
 $redis->hSet('git', 'branch', $gitbranch[0]);
 if ($playerid_db === '') {
