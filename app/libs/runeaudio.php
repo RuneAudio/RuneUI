@@ -2333,13 +2333,17 @@ function wrk_sourcemount($redis, $action, $id)
             }
             break;
         case 'mountall':
+            $test = 1;
             $mounts = $redis->keys('mount_*');
             foreach ($mounts as $key) {
                 $mp = $redis->hGetAll($key);
                 if (!wrk_checkMount($mp['name'])) {
-                    $return = wrk_sourcemount($redis, 'mount', $mp['id']);
+                    if (wrk_sourcemount($redis, 'mount', $mp['id']) === 0) {
+                        $test = 0;
+                    }
                 }
             }
+            $return = $test;
             break;
     }
     return $return;
