@@ -1383,6 +1383,7 @@ $updateh = 0;
             }
             //// if ($scanwifi) sysCmdAsync('/var/www/command/refresh_nics');
             // check wpa_supplicant auto-start and purge interface list
+            /* TODO marked for deletion
             $wpa_supplicant_start = sysCmd("ls -lah /etc/systemd/system/multi-user.target.wants/wpa_supplicant@*.service | cut -d '@' -f 2 | cut -d '.' -f 1");
             $disable_wpa_supplicant = array_diff($wpa_supplicant_start, $interfaces);
             if (!empty($disable_wpa_supplicant)) {
@@ -1390,6 +1391,7 @@ $updateh = 0;
                     unlink('/etc/systemd/system/multi-user.target.wants/wpa_supplicant@'.$interface_name.'.service');
                 }
             }
+            */
             $transaction->exec();
             break;
         case 'getnics':

@@ -77,6 +77,10 @@ if ($arch_db !== $arch) {
     // reset playerID if architectureID not match. This condition "fire" another first-run process
     $playerid_db = '';
 }
+// check git branch
+$gitbranch = sysCmd("git branch | grep \"*\" | cut -d ' ' -f 2");
+runelog('GIT BRANCH: ', $gitbranch[0]);
+$redis->hSet('git', 'branch', $gitbranch[0]);
 if ($playerid_db === '') {
     // RUNEAUDIO FIRST RUN PROCESS --- //
     runelog('>>>>>>RUNEAUDIO FIRST RUN PROCESS ---');

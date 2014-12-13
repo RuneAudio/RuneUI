@@ -51,6 +51,13 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="col-sm-2 control-label">Git branch</label>
+                    <div class="col-sm-10">
+                        <input class="form-control input-lg" type="text" id="gitbranch" name="gitbranch" value="<?php echo $this->gitbranch; ?>" disabled autocomplete="off">
+                        <span class="help-block">Current Git branch.</span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="col-sm-2 control-label">Blank playerID</label>
                     <div class="col-sm-10">
                         <input class="btn btn-default btn-lg" type="submit" name="syscmd" value="blankplayerid" id="syscmd-blankplayerid" <?php if($this->dev !== '1'): ?> disabled <?php endif ?>>
