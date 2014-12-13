@@ -66,10 +66,6 @@
         <div class="btnlist btnlist-bottom">
             <div id="db-controls">
                 <button id="db-homeSetup" class="btn btn-default hide" type="button" title="Setup the Library home screen"><i class="fa fa-gear"></i></button>
-                <!--<KEW>-->
-                <!--Alphabet nav button defined-->
-                <button id="overlay-alphabet-open" class="btn btn-default hide" type="button" title="Navigate by first letter"><i class="fa fa-font"></i></button>
-                <!-- </KEW>-->
                 <button id="db-firstPage" class="btn btn-default" type="button" title="Scroll to the top"><i class="fa fa-angle-double-up"></i></button>
                 <button id="db-prevPage" class="btn btn-default" type="button" title="Scroll one page up"><i class="fa fa-angle-up"></i></button>
                 <button id="db-nextPage" class="btn btn-default" type="button" title="Scroll one page down"><i class="fa fa-angle-down"></i></button>
@@ -96,11 +92,9 @@
             <span id="pl-count" class="hide">2143 entries</span>
         </div>
         <div id="playlist">
-            <div id="playlist-entries-container">
-				<ul id="playlist-entries" class="playlist">
-					<!-- playing queue entries -->
-				</ul>
-			</div>
+            
+			<!-- playing queue entries -->
+			
             <ul id="pl-editor" class="playlist hide">
                 <!-- playlists -->
             </ul>
@@ -320,7 +314,7 @@
         </div>
     </div>
 </div>
-<div id="overlay-social" class="overlay overlay-scale closed">
+<div id="overlay-social" class="overlay-scale closed">
     <nav>
         <ul>
             <li><span>Share this track</span></li>
@@ -332,7 +326,7 @@
         </ul>
     </nav>
 </div>
-<div id="overlay-playsource" class="overlay overlay-scale closed">
+<div id="overlay-playsource" class="overlay-scale closed">
     <nav>
         <ul>
             <li><span>Playback source</span></li>
@@ -344,96 +338,3 @@
         </ul>
     </nav>
 </div>
-<!--
-<KEW>
-An overlay to manage navigating to first letters 
--->
-<div id="overlay-alphabet" class="overlay overlay-scale closed">
-  <nav>
-    <ul>
-      <li>
-        <a data-alphabet="A" class="btn btn-default btn-lg btn-block disabled" title="A">A</a>
-      </li>
-      <li>
-        <a data-alphabet="B" class="btn btn-default btn-lg btn-block disabled" title="B">B</a>
-      </li>
-      <li>
-        <a data-alphabet="C" class="btn btn-default btn-lg btn-block disabled" title="C">C</a>
-      </li>
-      <li>
-        <a data-alphabet="D" class="btn btn-default btn-lg btn-block disabled" title="D">D</a>
-      </li>
-      <li>
-        <a data-alphabet="E" class="btn btn-default btn-lg btn-block disabled" title="E">E</a>
-      </li>
-      <li>
-        <a data-alphabet="F" class="btn btn-default btn-lg btn-block disabled" title="F">F</a>
-      </li>
-      <li>
-        <a data-alphabet="G" class="btn btn-default btn-lg btn-block disabled" title="G">G</a>
-      </li>
-      <li>
-        <a data-alphabet="H" class="btn btn-default btn-lg btn-block disabled" title="H">H</a>
-      </li>
-      <li>
-        <a data-alphabet="I" class="btn btn-default btn-lg btn-block disabled" title="I">I</a>
-      </li>
-      <li>
-        <a data-alphabet="J" class="btn btn-default btn-lg btn-block disabled" title="J">J</a>
-      </li>
-      <li>
-        <a data-alphabet="K" class="btn btn-default btn-lg btn-block disabled" title="K">K</a>
-      </li>
-      <li>
-        <a data-alphabet="L" class="btn btn-default btn-lg btn-block disabled" title="L">L</a>
-      </li>
-      <li>
-        <a data-alphabet="M" class="btn btn-default btn-lg btn-block disabled" title="M">M</a>
-      </li>
-      <li>
-        <a data-alphabet="N" class="btn btn-default btn-lg btn-block disabled" title="N">N</a>
-      </li>
-      <li>
-        <a data-alphabet="O" class="btn btn-default btn-lg btn-block disabled" title="O">O</a>
-      </li>
-      <li>
-        <a data-alphabet="P" class="btn btn-default btn-lg btn-block disabled" title="P">P</a>
-      </li>
-      <li>
-        <a data-alphabet="Q" class="btn btn-default btn-lg btn-block disabled" title="Q">Q</a>
-      </li>
-      <li>
-        <a data-alphabet="R" class="btn btn-default btn-lg btn-block disabled" title="R">R</a>
-      </li>
-      <li>
-        <a data-alphabet="S" class="btn btn-default btn-lg btn-block disabled" title="S">S</a>
-      </li>
-      <li>
-        <a data-alphabet="T" class="btn btn-default btn-lg btn-block disabled" title="T">T</a>
-      </li>
-      <li>
-        <a data-alphabet="U" class="btn btn-default btn-lg btn-block disabled" title="U">U</a>
-      </li>
-      <li>
-        <a data-alphabet="V" class="btn btn-default btn-lg btn-block disabled" title="V">V</a>
-      </li>
-      <li>
-        <a data-alphabet="W" class="btn btn-default btn-lg btn-block disabled" title="W">W</a>
-      </li>
-      <li>
-        <a data-alphabet="X" class="btn btn-default btn-lg btn-block disabled" title="X">X</a>
-      </li>
-      <li>
-        <a data-alphabet="Y" class="btn btn-default btn-lg btn-block disabled" title="Y">Y</a>
-      </li>
-      <li>
-        <a data-alphabet="Z" class="btn btn-default btn-lg btn-block disabled" title="Z">Z</a>
-      </li>
-      <li><button id="overlay-alphabet-close" class="btn btn-link" type="button">
-          <i class="fa fa-times"></i> close this layer
-        </button>
-      </li>
-    </ul>
-  </nav>
-</div>
-<!-- </KEW> -->

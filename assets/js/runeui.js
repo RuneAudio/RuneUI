@@ -36,16 +36,17 @@
 // ====================================================================================================
 
 var GUI = {
-    DBentry: ['','',''],
+    DBentry: ['', '', ''],
     DBupdate: 0,
     activePlayer: '',
     browsemode: 'file',
-    currentDBpos: [0,0,0,0,0,0,0,0,0,0,0],
-    currentDBpath: ['','','','','','','','','','',''],
+    currentDBpos: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    currentDBpath: ['', '', '', '', '', '', '', '', '', '', ''],
     currentalbum: null,
     currentknob: null,
     currentpath: '',
     currentsong: null,
+    currentqueuepos: 0,
     json: 0,
     libraryhome: '',
     mode: 'websocket',
@@ -59,6 +60,8 @@ var GUI = {
     visibility: 'visible',
     volume: null
 };
+var queueTracks = [];
+var isCustomScroll = false;
 
 
 
@@ -69,11 +72,11 @@ var GUI = {
 // send a MPD playback control command
 function sendCmd(inputcmd) {
     var request = new XMLHttpRequest();
-    request.open('GET', '/command/?cmd='+inputcmd, true);
-    request.onreadystatechange = function() {
-        if (this.readyState === 4){
-        // TODO: check this
-            if (this.status >= 200 && this.status < 400){
+    request.open('GET', '/command/?cmd=' + inputcmd, true);
+    request.onreadystatechange = function () {
+        if (this.readyState === 4) {
+            // TODO: check this
+            if (this.status >= 200 && this.status < 400) {
                 // Success! resp = this.responseText;
             } else {
                 // Error
@@ -85,37 +88,35 @@ function sendCmd(inputcmd) {
 }
 
 // check WebSocket support
-function checkWebSocket(){
-    if (window.WebSocket){
+function checkWebSocket() {
+    if (window.WebSocket) {
         // console.log('WebSockets supported');
         return 'websocket';
-        console.log('websocket');
     } else {
         // console.log('WebSockets not supported');
-        console.log('longpolling');
         return 'longpolling';
     }
 }
 
 // check HTML5 Workers support
-function checkWorkers(){
+function checkWorkers() {
     if ((window.Worker && window.Blob) || (Modernizr.webworkers && Modernizr.blobconstructor)) {
-        console.log('WebWorkers supported');
+        // console.log('WebWorkers supported');
         return true;
     } else {
-        console.log('WebWorkers not supported');
+        // console.log('WebWorkers not supported');
         return false;
     }
 }
 
 // recover the path from input string
 function parsePath(str) {
-    var cutpos = str && str.length? str.lastIndexOf('/'):0;
+    var cutpos = str && str.length ? str.lastIndexOf('/') : 0;
     // console.log('parsePath.cutpos', cutpos)
     //-- verify this switch! (Orion)
     var songpath = '';
-    if (cutpos && cutpos !== -1){
-        songpath = str.slice(0,cutpos);
+    if (cutpos && cutpos !== -1) {
+        songpath = str.slice(0, cutpos);
     }
     return songpath;
 }
@@ -126,8 +127,8 @@ function refreshTimer(startFrom, stopTo, state) {
     // console.log('state = ', state);
     var display = $('#countdown-display');
     display.countdown('destroy');
-    display.countdown({ since: ((state !== 'stop' || state !== undefined)? -(startFrom) : 0), compact: true, format: 'MS' });
-    if (state !== 'play'){
+    display.countdown({ since: ((state !== 'stop' || state !== undefined) ? -(startFrom) : 0), compact: true, format: 'MS' });
+    if (state !== 'play') {
         // console.log('startFrom = ', startFrom);
         display.countdown('pause');
     }
@@ -136,14 +137,14 @@ function refreshTimer(startFrom, stopTo, state) {
 // update playback progress knob
 function refreshKnob() {
     window.clearInterval(GUI.currentKnob);
-    var initTime = parseInt(GUI.json.song_percent)*10;
+    var initTime = parseInt(GUI.json.song_percent) * 10;
     var delta = parseInt(GUI.json.time);
-    var step = parseInt(1000/delta);
+    var step = parseInt(1000 / delta);
     // console.log('initTime = ' + initTime + ', delta = ' + delta + ', step = ' + step);
     var time = $('#time');
     time.val(initTime, false).trigger('update');
     if (GUI.state === 'play') {
-        GUI.currentKnob = setInterval(function() {
+        GUI.currentKnob = setInterval(function () {
             // console.log('initTime = ', initTime);
             initTime = initTime + ((GUI.visibility !== 'visible') ? step : 1);
             time.val(initTime, false).trigger('update');
@@ -161,11 +162,11 @@ function timeConvert(seconds) {
     return mm + ':' + ss;
 }
 function timeConvert2(ss) {
-    var hr = Math.floor(ss/3600);
-    var mm = Math.floor((ss -(hr * 3600))/60);
-    ss = Math.floor(ss -(hr*3600) -(mm * 60));
+    var hr = Math.floor(ss / 3600);
+    var mm = Math.floor((ss - (hr * 3600)) / 60);
+    ss = Math.floor(ss - (hr * 3600) - (mm * 60));
     if (hr > 0) {
-        if (hr < 10){
+        if (hr < 10) {
             hr = '0' + hr;
         }
         hr += ':';
@@ -180,7 +181,7 @@ function timeConvert2(ss) {
 // reset countdown
 function countdownRestart(startFrom) {
     var display = $('#countdown-display').countdown('destroy');
-    display.countdown({since: -(startFrom), compact: true, format: 'MS'});
+    display.countdown({ since: -(startFrom), compact: true, format: 'MS' });
 }
 
 // set volume with knob
@@ -196,7 +197,7 @@ function volumeStepCalc(direction) {
     var i = 0;
     var way = direction;
     GUI.volume = parseInt($('#volume').val());
-    var volumeStep = function volumeStepCycle(way){
+    var volumeStep = function volumeStepCycle(way) {
         i++;
         if (direction === 'up') {
             GUI.stepVolumeDelta = parseInt(GUI.volume) + i;
@@ -208,8 +209,8 @@ function volumeStepCalc(direction) {
     };
     volumeStep();
     // console.log('GUI.volume = ', GUI.volume);
-    
-    GUI.stepVolumeInt = window.setInterval(function() {
+
+    GUI.stepVolumeInt = window.setInterval(function () {
         volumeStep();
     }, 200);
 }
@@ -218,27 +219,38 @@ function volumeStepSet() {
     setvol(GUI.stepVolumeDelta);
     // console.log('set volume to = ', GUI.stepVolumeDelta);
 }
-    
+
+// highlight the current track in the queue
+function setQueuePos() {
+    if (queueTracks.length !== 0 && GUI.currentqueuepos !== parseInt(GUI.json.song)) {
+        queueTracks[GUI.currentqueuepos].current = false;
+        GUI.currentqueuepos = parseInt(GUI.json.song);
+        queueTracks[GUI.currentqueuepos].current = true;
+    }
+}
+
 // custom scrolling
 function customScroll(list, destination, speed) {
+    isCustomScroll = true;
     // console.log('list = ' + list + ', destination = ' + destination + ', speed = ' + speed);
-    if (typeof(speed) === 'undefined') {
+    if (typeof (speed) === 'undefined') {
         speed = 500;
     }
     var entryheight = 49;
-    var centerheight = parseInt($(window).height()/2);
+    var centerheight = parseInt($(window).height() / 2);
     var scrolltop = $(window).scrollTop();
     var scrollcalc = 0;
     var scrolloffset = 0;
     if (list === 'db') {
-        scrollcalc = parseInt((destination)*entryheight - centerheight);
+        scrollcalc = parseInt((destination) * entryheight - centerheight);
         scrolloffset = scrollcalc;
     } else if (list === 'pl') {
-        //var scrolloffset = parseInt((destination + 2)*entryheight - centerheight);
-        scrollcalc = parseInt((destination + 2)*entryheight - centerheight);
-        scrolloffset = Math.abs(scrollcalc - scrolltop);
-        scrolloffset = (scrollcalc > scrolltop ? '+':'-') + '=' + scrolloffset + 'px';
-        $('[data-queuepos="' + destination + '"]').addClass('active');
+        if (queueTracks.length !== 0) {
+            //var scrolloffset = parseInt((destination + 2)*entryheight - centerheight);
+            scrollcalc = parseInt((destination + 2) * entryheight - centerheight);
+            scrolloffset = Math.abs(scrollcalc - scrolltop);
+            scrolloffset = (scrollcalc > scrolltop ? '+' : '-') + '=' + scrolloffset + 'px';
+        }
     }
     // debug
     // console.log('-------------------------------------------');
@@ -246,7 +258,8 @@ function customScroll(list, destination, speed) {
     // console.log('scrolltop = ', scrolltop);
     // console.log('scrollcalc = ', scrollcalc);
     // console.log('scrolloffset = ', scrolloffset);
-    $.scrollTo( (scrollcalc >0? scrolloffset:0), speed);
+    $.scrollTo((scrollcalc > 0 ? scrolloffset : 0), speed);
+    isCustomScroll = false;
 }
 
 // [!] scrolling debug purpose only
@@ -295,8 +308,8 @@ function customNotify(notify) {
                 buttons: [{
                     text: notify.btntext,
                     addClass: 'btn-default btn-block  uppercase',
-                    click: function() {
-                        $.post('/settings/', { 'syscmd' : 'reboot' });
+                    click: function () {
+                        $.post('/settings/', { 'syscmd': 'reboot' });
                         toggleLoader();
                     }
                 },
@@ -387,21 +400,21 @@ function setPlaybackSource() {
     $('#playsource-' + source).removeClass('inactive');
     // update volume knob and control buttons
     if (activePlayer === 'Spotify' || activePlayer === 'Airplay') {
-        $('#volume').trigger('configure', {'readOnly': true, 'fgColor': '#1A242F'}).css({'color': '#1A242F'});
+        $('#volume').trigger('configure', { 'readOnly': true, 'fgColor': '#1A242F' }).css({ 'color': '#1A242F' });
         $('.volume button').prop('disabled', true);
         $('#single').addClass('disabled');
     } else {
-        $('#volume').trigger('configure', {'readOnly': false, 'fgColor': '#0095D8'}).css({'color': '#0095D8'});
+        $('#volume').trigger('configure', { 'readOnly': false, 'fgColor': '#0095D8' }).css({ 'color': '#0095D8' });
         $('.volume button').prop('disabled', false);
         $('#single').removeClass('disabled');
     }
     // style the queue
-    $('#playlist-entries').removeClass(function(index, css) {
-        return (css.match (/(^|\s)playlist-\S+/g) || []).join(' ');
+    $('#playlist-entries').removeClass(function (index, css) {
+        return (css.match(/(^|\s)playlist-\S+/g) || []).join(' ');
     }).addClass('playlist-' + source);
     // toggle queue buttons
-    $('#pl-manage').removeClass(function(index, css) {
-        return (css.match (/(^|\s)pl-manage-\S+/g) || []).join(' ');
+    $('#pl-manage').removeClass(function (index, css) {
+        return (css.match(/(^|\s)pl-manage-\S+/g) || []).join(' ');
     }).addClass('pl-manage-' + source);
 }
 
@@ -409,34 +422,12 @@ function chkKey(key) {
     return (key !== undefined && key !== '');
 }
 
-function setupAlphabetNav() {
-    // <KEW>
-    // look for the named Anchor tags to see which navigation letters to disable
-    setupAlphabetNav();
-    $('.alphabetTag').each(function (index) {
-        console.log("alphabetTag index:" + index + " name: " + $(this).attr('name'));
-        var button = $("a[data-alphabet='" + $(this).attr('name') + "']")[0];
-        if (button) {
-            $(button).removeClass('disabled')
-        }
-    })
-    // </KEW>
-}
-    
-
 // render the Library home screen
 function renderLibraryHome() {
     loadingSpinner('db');
     $('#database-entries').addClass('hide');
     $('#db-level-up').addClass('hide');
     $('#db-homeSetup').removeClass('hide').removeClass('btn-primary').addClass('btn-default');
-
-    // <KEW>
-    // by default, the Library panel does not need the Alphabet nav
-    $('#overlay-alphabet-open').addClass('hide');
-    // </KEW>
-
-
     $('#home-blocks').removeClass('hide');
     var obj = GUI.libraryhome,
         i = 0,
@@ -450,14 +441,14 @@ function renderLibraryHome() {
     // Set active player
     setPlaybackSource();
     if (notMPD) {
-        toggleMPD =  ' inactive';
+        toggleMPD = ' inactive';
     }
     // bookmarks blocks
-    for (i = 0; (bookmark = obj.bookmarks[i]); i += 1) {
+    for (i = 0; (bookmark = obj.bookmarks[i]) ; i += 1) {
         content += divOpen + '<div id="home-bookmark-' + bookmark.id + '" class="home-block home-bookmark' + toggleMPD + '" data-path="' + bookmark.path + '"><i class="fa fa-star"></i><h3>' + bookmark.name + '</h3>bookmark</div>' + divClose;
     }
     if (chkKey(obj.networkMounts)) {
-    // network mounts block
+        // network mounts block
         if (obj.networkMounts === 0) {
             if (notMPD) {
                 content += divOpen + '<div id="home-nas" class="home-block inactive"><i class="fa fa-sitemap"></i><h3>Network mounts (0)</h3>network attached storages</div>' + divClose;
@@ -469,7 +460,7 @@ function renderLibraryHome() {
         }
     }
     if (chkKey(obj.localStorages)) {
-    // local storages block
+        // local storages block
         if (obj.localStorages === 0) {
             content += '';
         } else {
@@ -477,7 +468,7 @@ function renderLibraryHome() {
         }
     }
     if (chkKey(obj.USBMounts)) {
-    // USB mounts block
+        // USB mounts block
         if (obj.USBMounts === 0) {
             if (notMPD) {
                 content += divOpen + '<div id="home-usb" class="home-block inactive"><i class="fa fa-hdd-o"></i><h3>USB storage (0)</h3>no USB storage plugged</div>' + divClose;
@@ -489,7 +480,7 @@ function renderLibraryHome() {
         }
     }
     if (chkKey(obj.webradio)) {
-    // webradios block
+        // webradios block
         if (obj.webradio === 0) {
             if (notMPD) {
                 content += divOpen + '<div id="home-webradio" class="home-block inactive"><i class="fa fa-microphone"></i><h3>My Webradios (0)</h3>webradio local playlists</div>' + divClose;
@@ -501,7 +492,7 @@ function renderLibraryHome() {
         }
     }
     if (chkKey(obj.Spotify)) {
-    // Spotify block
+        // Spotify block
         if (obj.Spotify === '0') {
             content += divOpen + '<a id="home-spotify" class="home-block' + toggleSpotify + '" href="/settings/#features-management"><i class="fa fa-spotify"></i><h3>Spotify<span id="home-count-spotify"></span></h3>click to configure</a>' + divClose;
         } else {
@@ -513,7 +504,7 @@ function renderLibraryHome() {
         }
     }
     if (chkKey(obj.Dirble)) {
-    // Dirble block
+        // Dirble block
         content += divOpen + '<div id="home-dirble" class="home-block' + toggleMPD + '" data-plugin="Dirble" data-path="Dirble"><i class="fa fa-globe"></i><h3>Dirble <span id="home-count-dirble">(' + obj.Dirble + ')</span></h3>radio stations open directory</div>' + divClose;
     }
     // Jamendo (static)
@@ -550,9 +541,9 @@ function refreshState() {
             $('#countdown-display').countdown('destroy');
         }
         // if (GUI.stream === 'radio') {
-            // $('#elapsed').html('&infin;');
+        // $('#elapsed').html('&infin;');
         // } else {
-            // $('#elapsed').html('00:00');
+        // $('#elapsed').html('00:00');
         // }
         if (GUI.stream === 'radio') {
             $('#total').html('<span>&infin;</span>');
@@ -569,9 +560,9 @@ function refreshState() {
         if (GUI.stream === 'radio') {
             $('#total').html('<span>&infin;</span>');
         } else {
-            $('#total').html((GUI.json.time !== undefined)? timeConvert(GUI.json.time) : '00:00');
+            $('#total').html((GUI.json.time !== undefined) ? timeConvert(GUI.json.time) : '00:00');
         }
-        var fileinfo = (GUI.json.audio_channels && GUI.json.audio_sample_depth && GUI.json.audio_sample_rate) ? (GUI.json.audio_channels + ', ' + GUI.json.audio_sample_depth + ' bit, ' + GUI.json.audio_sample_rate +' kHz, '+GUI.json.bitrate+' kbps') : '&nbsp;';
+        var fileinfo = (GUI.json.audio_channels && GUI.json.audio_sample_depth && GUI.json.audio_sample_rate) ? (GUI.json.audio_channels + ', ' + GUI.json.audio_sample_depth + ' bit, ' + GUI.json.audio_sample_rate + ' kHz, ' + GUI.json.bitrate + ' kbps') : '&nbsp;';
         $('#format-bitrate').html(fileinfo);
         $('li', '#playlist-entries').removeClass('active');
         var current = parseInt(GUI.json.song);
@@ -611,6 +602,7 @@ function updateGUI() {
         // check song update
         // console.log('A = ', GUI.json.currentsong); console.log('B = ', GUI.currentsong);
         if (GUI.currentsong !== GUI.json.currentsong) {
+            setQueuePos();
             countdownRestart(0);
             if ($('#panel-dx').hasClass('active')) {
                 var current = parseInt(GUI.json.song);
@@ -649,15 +641,15 @@ function updateGUI() {
         } else {
             $('#single').removeClass('btn-primary');
         }
-        
+
         GUI.currentsong = currentsong;
         var currentalbumstring = currentartist + ' - ' + currentalbum;
         if (GUI.currentalbum !== currentalbumstring) {
             if (radioname === null || radioname === undefined || radioname === '') {
-                var covercachenum = Math.floor(Math.random()*1001);
-                $('#cover-art').css('background-image','url(/coverart/?v=' + covercachenum + ')');
+                var covercachenum = Math.floor(Math.random() * 1001);
+                $('#cover-art').css('background-image', 'url("/coverart/?v=' + covercachenum + '")');
             } else {
-                $('#cover-art').css('background-image','url(assets/img/cover-radio.jpg');
+                $('#cover-art').css('background-image', 'url("assets/img/cover-radio.jpg")');
             }
         }
         GUI.currentalbum = currentalbumstring;
@@ -665,32 +657,32 @@ function updateGUI() {
 }
 
 // render the playing queue from the data response 
-function getPlaylistPlain(data){
+function getPlaylistPlain(data) {
     var current = parseInt(GUI.json.song) + 1;
     var state = GUI.json.state;
-    var content = '', time = '', artist = '', album = '', title = '', name='', str = '', filename = '', path = '', id = 0, songid = '', bottomline = '', totaltime = '', pos = 0;
-    var i, line, lines = data.split('\n'), infos=[];
-    for (i = 0; (line = lines[i]); i += 1) {
+    var content = '', time = '', artist = '', album = '', title = '', name = '', str = '', filename = '', path = '', id = 0, songid = '', bottomline = '', totaltime = '', pos = 0;
+    var i, line, lines = data.split('\n'), infos = [];
+    for (i = 0; (line = lines[i]) ; i += 1) {
         infos = line.split(': ');
-        if ( 'Time' === infos[0] ) {
+        if ('Time' === infos[0]) {
             time = parseInt(infos[1]);
         }
-        else if ( 'Artist' === infos[0] ) {
+        else if ('Artist' === infos[0]) {
             artist = infos[1];
         }
-        else if ( 'Title' === infos[0] ) {
+        else if ('Title' === infos[0]) {
             title = infos[1];
         }
-        else if ( 'Name' === infos[0] ) {
+        else if ('Name' === infos[0]) {
             name = infos[1];
         }
-        else if ( 'Album' === infos[0] ) {
+        else if ('Album' === infos[0]) {
             album = infos[1];
         }
-        else if ( 'file' === infos[0] ) {
+        else if ('file' === infos[0]) {
             str = infos[1];
         }
-        else if ( 'Id' === infos[0] ) {
+        else if ('Id' === infos[0]) {
             songid = infos[1];
             if (title === '' || album === '') {
                 path = parsePath(str);
@@ -720,7 +712,7 @@ function getPlaylistPlain(data){
     $('#playlist-entries').removeClass('hide');
     //$('#playlist-entries').html(content);
     var pl_entries = document.getElementById('playlist-entries');
-    if( pl_entries ){ pl_entries.innerHTML = content; }
+    if (pl_entries) { pl_entries.innerHTML = content; }
     $('#pl-filter-results').addClass('hide').html('');
     $('#pl-filter').val('');
     $('#pl-manage').removeClass('hide');
@@ -728,49 +720,49 @@ function getPlaylistPlain(data){
 }
 
 // format the queue data response in JSON
-function parseQueue(data){
+function parseQueue(data) {
     var current = parseInt(GUI.json.song) + 1;
     var state = GUI.json.state;
     var i, line, lines = data.split('\n');
     var pos = 1;
     var songs = []; // array che conterrà tutte le songs
     var song = {}; // modello base
-    for (i = 0; (line = lines[i]); i += 1) {
+    for (i = 0; (line = lines[i]) ; i += 1) {
         var infos = line.split(': ');
-        if ( 'file' === infos[0] ) {
+        if ('file' === infos[0]) {
             song.file = infos[1];
             song.fileExt = infos[1].split('.').pop();
         }
-        else if ( 'Name' === infos[0] ) {
+        else if ('Name' === infos[0]) {
             song.name = infos[1];
         }
-        else if ( 'Last-Modified' === infos[0] ) {
+        else if ('Last-Modified' === infos[0]) {
             song.lastModified = infos[1];
         }
-        else if ( 'Time' === infos[0] ) {
+        else if ('Time' === infos[0]) {
             song.time = parseInt(infos[1]);
             song.timeFormatted = timeConvert(song.time);
         }
-        else if ( 'Artist' === infos[0] ) {
+        else if ('Artist' === infos[0]) {
             song.artist = infos[1];
         }
-        else if ( 'Title' === infos[0] ) {
+        else if ('Title' === infos[0]) {
             song.title = infos[1];
         }
-        else if ( 'Album' === infos[0] ) {
+        else if ('Album' === infos[0]) {
             song.album = infos[1];
             //song.albumArtist = infos[1];
         }
-        else if ( 'Track' === infos[0] ) {
+        else if ('Track' === infos[0]) {
             song.track = infos[1];
         }
-        else if ( 'Date' === infos[0] ) {
+        else if ('Date' === infos[0]) {
             song.date = infos[1];
         }
-        else if ( 'Genre' === infos[0] ) {
+        else if ('Genre' === infos[0]) {
             song.genre = infos[1];
         }
-        else if ( 'Id' === infos[0] ) {
+        else if ('Id' === infos[0]) {
             song.id = infos[1];
             song.pos = pos++;
             if (song.name) {
@@ -784,24 +776,24 @@ function parseQueue(data){
 }
 
 // refresh the queue (TODO: improve in PushStream mode)
-var queueTracks = '';
-function getPlaylistCmd(){
+function getPlaylistCmd() {
     loadingSpinner('pl');
     $.ajax({
         url: '/db/?cmd=playlist',
-        success: function(data){
-            if ( data.length > 4) {
+        success: function (data) {
+            if (data.length > 4) {
                 $('.playlist').addClass('hide');
                 $('#playlist-entries').removeClass('hide');
                 // console.time('getPlaylistPlain timer');
                 queueTracks = parseQueue(data);
+                $('#playlist').height(queueTracks.length * 49);
                 // console.timeEnd('getPlaylistPlain timer');
-                m.redraw();
-                
-                var current = parseInt(GUI.json.song);
-                if ($('#panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
-                    customScroll('pl', current, 200); // highlight current song in playlist
+                setQueuePos();
+                // console.log('793 currentqueuepos = ', GUI.currentqueuepos);
+                if ($('#open-panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
+                    customScroll('pl', GUI.currentqueuepos, 500); // [TODO] remove this when we find a way to highlight the current track at first draw
                 }
+                m.redraw();
             } else {
                 $('.playlist').addClass('hide');
                 $('#playlist-warning').removeClass('hide');
@@ -817,13 +809,13 @@ function getPlaylistCmd(){
 function getPlaylist(text) {
     data = text[0];
     // console.log(data);
-    if ( data.length > 4) {
+    if (data.length > 4) {
         $('.playlist').addClass('hide');
         $('#playlist-entries').removeClass('hide');
         // console.time('getPlaylistPlain timer');
         getPlaylistPlain(data);
         // console.timeEnd('getPlaylistPlain timer');
-        
+
         var current = parseInt(GUI.json.song);
         if ($('#panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
             customScroll('pl', current, 200); // center the scroll and highlight current song in playlist
@@ -838,7 +830,7 @@ function getPlaylist(text) {
 }
 
 // launch the Playback UI refresh from the data response
-function renderUI(text){
+function renderUI(text) {
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
@@ -850,8 +842,8 @@ function renderUI(text){
     // console.log('GUI.json.time = ', GUI.json.time);
     // console.log('GUI.json.state = ', GUI.json.state);
     if ($('#section-index').length) {
-        var elapsed = (GUI.json.elapsed !== '' && GUI.json.elapsed !== undefined)? GUI.json.elapsed : 0;
-        var time = (GUI.json.time !== '' && GUI.json.time !== undefined && GUI.json.time !== null)? GUI.json.time : 0;
+        var elapsed = (GUI.json.elapsed !== '' && GUI.json.elapsed !== undefined) ? GUI.json.elapsed : 0;
+        var time = (GUI.json.time !== '' && GUI.json.time !== undefined && GUI.json.time !== null) ? GUI.json.time : 0;
         refreshTimer(parseInt(elapsed), parseInt(time), GUI.json.state);
         if (GUI.stream !== 'radio') {
             refreshKnob();
@@ -868,12 +860,12 @@ function renderUI(text){
 }
 
 // render saved playlists
-function renderPlaylists(data){
+function renderPlaylists(data) {
     var content = '', playlistname = '';
-    var i, line, lines=data.split('\n'), infos=[];
-    for (i = 0; (line = lines[i]); i += 1 ) {
+    var i, line, lines = data.split('\n'), infos = [];
+    for (i = 0; (line = lines[i]) ; i += 1) {
         infos = line.split(': ');
-        if( 'playlist' === infos[0] ) {
+        if ('playlist' === infos[0]) {
             playlistname = infos[1];
             content += '<li class="pl-folder" data-path="' + playlistname + '"><i class="fa fa-bars pl-action" data-target="#context-menu-playlist" data-toggle="context" title="Actions"></i><span><i class="fa fa-list-ol"></i>' + playlistname + '</span></li>';
             playlistname = '';
@@ -891,11 +883,11 @@ function renderPlaylists(data){
 }
 
 // get saved playlists
-function getPlaylists(){
+function getPlaylists() {
     loadingSpinner('pl');
     $.ajax({
         url: '/command/?cmd=listplaylists',
-        success: function(data){
+        success: function (data) {
             renderPlaylists(data);
         }
     });
@@ -910,20 +902,20 @@ function parseResponse(options) {
         inpath = options.inpath || '',
         querytype = options.querytype || '',
         content = '';
-        
+
     // DEBUG
     // console.log('parseResponse OPTIONS: inputArr = ' + inputArr + ', respType = ' + respType + ', i = ' + i + ', inpath = ' + inpath +', querytype = ' + querytype);
     // console.log(inputArr);
-    
+
     switch (respType) {
         case 'playlist':
             // code placeholder
-        break;
-        
+            break;
+
         case 'db':
-        // normal MPD browsing by file
+            // normal MPD browsing by file
             if (GUI.browsemode === 'file') {
-            // browse by file
+                // browse by file
                 if (inpath === '' && inputArr.file !== undefined) {
                     inpath = parsePath(inputArr.file);
                 }
@@ -935,17 +927,17 @@ function parseResponse(options) {
                     // console.log('inputArr.Album: ', inputArr.Album);
                     content = '<li id="db-' + (i + 1) + '" data-path="';
                     if (inputArr.Title !== undefined) {
-                    // files
+                        // files
                         content += inputArr.file;
                         content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
                         content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
                         content += ' <span class="bl">';
-                        content +=  inputArr.Artist;
+                        content += inputArr.Artist;
                         content += ' - ';
-                        content +=  inputArr.Album;
+                        content += inputArr.Album;
                     } else {
                         if (inpath !== 'Webradio') {
-                        // files with no tags
+                            // files with no tags
                             content += inputArr.file;
                             content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
                             content += inputArr.file.replace(inpath + '/', '') + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
@@ -953,17 +945,17 @@ function parseResponse(options) {
                             content += ' path: ';
                             content += inpath;
                         } else {
-                        // webradio playlists
+                            // webradio playlists
                             content += inputArr.playlist;
                             content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-webradio"></i><i class="fa fa-microphone db-icon db-radio"></i>';
-                            content += '<span class="sn">' + inputArr.playlist.replace(inpath + '/', '').replace('.' + inputArr.fileext , '');
+                            content += '<span class="sn">' + inputArr.playlist.replace(inpath + '/', '').replace('.' + inputArr.fileext, '');
                             content += '</span><span class="bl">webradio';
                         }
                     }
                     content += '</span></li>';
                 } else if (inputArr.playlist !== undefined) {
                     if (inputArr.fileext === 'cue') {
-                    // CUE files
+                        // CUE files
                         content = '<li id="db-' + (i + 1) + '" data-path="';
                         content += inputArr.playlist;
                         content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-file-text db-icon"></i><span class="sn">';
@@ -974,7 +966,7 @@ function parseResponse(options) {
                         content += '</span></li>';
                     }
                 } else {
-                // folders
+                    // folders
                     content = '<li id="db-' + (i + 1) + '" class="db-folder" data-path="';
                     content += inputArr.directory;
                     if (inpath !== '') {
@@ -983,37 +975,29 @@ function parseResponse(options) {
                         content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-root"></i><i class="fa fa-hdd-o icon-root"></i><span>';
                     }
                     content += inputArr.directory.replace(inpath + '/', '');
-
-                    // <KEW>
-                    // Add an Anchor tag to manage navigation to the first letter when the PHP returns it to us
-                    if (inputArr.firstLetter) {
-                        content += '<a name="' + inputArr.firstLetter + '" href="#" class="alphabetTag"></a>';
-                    }
-                    // </KEW>
-
                     content += '</span></li>';
                 }
             } else if (GUI.browsemode === 'album' || GUI.browsemode === 'albumfilter') {
-            // browse by album
+                // browse by album
                 if (inputArr.file !== undefined) {
                     content = '<li id="db-' + (i + 1) + '" data-path="';
                     content += inputArr.file;
                     content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i><i class="fa fa-music db-icon"></i><span class="sn">';
                     content += inputArr.Title + ' <span>' + timeConvert(inputArr.Time) + '</span></span>';
                     content += ' <span class="bl">';
-                    content +=  inputArr.Artist;
+                    content += inputArr.Artist;
                     content += ' - ';
-                    content +=  inputArr.Album;
+                    content += inputArr.Album;
                     content += '</span></li>';
                 } else if (inputArr.album !== '') {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-album" data-path="';
-                    content += inputArr.album.replace(/\"/g,'&quot;');
+                    content += inputArr.album.replace(/\"/g, '&quot;');
                     content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-album"></i><span><i class="fa fa-dot-circle-o"></i>';
                     content += inputArr.album;
                     content += '</span></li>';
                 }
             } else if (GUI.browsemode === 'artist') {
-            // browse by artist
+                // browse by artist
                 if (inputArr.album !== undefined) {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-album" data-path="';
                     content += inputArr.album;
@@ -1028,7 +1012,7 @@ function parseResponse(options) {
                     content += '</span></li>';
                 }
             } else if (GUI.browsemode === 'genre') {
-            // browse by genre
+                // browse by genre
                 if (inputArr.artist !== undefined) {
                     content = '<li id="db-' + (i + 1) + '" class="db-folder db-artist" data-path="';
                     content += inputArr.artist;
@@ -1043,13 +1027,12 @@ function parseResponse(options) {
                     content += '</span></li>';
                 }
             }
+            break;
 
-        break;
-        
         case 'Spotify':
-        // Spotify plugin
+            // Spotify plugin
             if (querytype === '') {
-            // folders
+                // folders
                 content = '<li id="db-' + (i + 1) + '" class="db-spotify db-folder" data-path="';
                 content += inputArr.index;
                 content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-spotify-pl"></i><span><i class="fa fa-folder-open"></i>';
@@ -1058,32 +1041,32 @@ function parseResponse(options) {
                 content += inputArr.tracks;
                 content += ')</span></li>';
             } else if (querytype === 'tracks') {
-            // playlists
+                // playlists
                 content = '<li id="db-' + (i + 1) + '" class="db-spotify" data-path="';
                 content += inputArr.index;
                 content += '" data-plid="';
                 content += inpath;
                 content += '" data-type="spotify-track"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-spotify"></i><i class="fa fa-spotify db-icon"></i><span class="sn">';
-                content += inputArr.title + ' <span>' + timeConvert(inputArr.duration/1000) + '</span></span>';
+                content += inputArr.title + ' <span>' + timeConvert(inputArr.duration / 1000) + '</span></span>';
                 content += ' <span class="bl">';
-                content +=  inputArr.artist;
+                content += inputArr.artist;
                 content += ' - ';
-                content +=  inputArr.album;
+                content += inputArr.album;
                 content += '</span></li>';
             }
-        break;
-        
+            break;
+
         case 'Dirble':
-        // Dirble plugin
+            // Dirble plugin
             if (querytype === '') {
-            // folders
+                // folders
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder" data-path="';
                 content += inputArr.id;
                 content += '"><span><i class="fa fa-folder-open"></i>';
                 content += inputArr.name;
                 content += '</span></li>';
             } else if (querytype === 'stations') {
-            // stations
+                // stations
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-radio" data-path="';
                 content += inputArr.name + ' | ' + inputArr.streamurl;
                 content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-dirble"></i><i class="fa fa-microphone db-icon"></i>';
@@ -1092,24 +1075,24 @@ function parseResponse(options) {
                 content += inputArr.website;
                 content += '</span></li>';
             }
-        break;
-        
+            break;
+
         case 'Jamendo':
-        // Jamendo plugin
+            // Jamendo plugin
             // if (querytype === 'radio') {
-                content = '<li id="db-' + (i + 1) + '" class="db-jamendo db-folder" data-path="';
-                content += inputArr.stream;
-                content += '"><img class="jamendo-cover" src="/tun/' + inputArr.image + '" alt=""><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i>';
-                content += inputArr.dispname + '</div></li>';
+            content = '<li id="db-' + (i + 1) + '" class="db-jamendo db-folder" data-path="';
+            content += inputArr.stream;
+            content += '"><img class="jamendo-cover" src="/tun/' + inputArr.image + '" alt=""><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-file"></i>';
+            content += inputArr.dispname + '</div></li>';
             // }
-        break;
-        
+            break;
+
     }
     return content;
 } // end parseResponse()
 
 // populate the Library view lists with entries
-function populateDB(options){
+function populateDB(options) {
     // DEFAULTS
     var data = options.data || '',
         path = options.path || '',
@@ -1121,14 +1104,14 @@ function populateDB(options){
         content = '',
         i = 0,
         row = [];
-        
+
     // DEBUG
     // console.log('populateDB OPTIONS: data = ' + data + ', path = ' + path + ', uplevel = ' + uplevel + ', keyword = ' + keyword +', querytype = ' + querytype);
 
     if (plugin !== '') {
-    // plugins
+        // plugins
         if (plugin === 'Spotify') {
-        // Spotify plugin
+            // Spotify plugin
             $('#database-entries').removeClass('hide');
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
@@ -1137,7 +1120,7 @@ function populateDB(options){
             }
             document.getElementById('database-entries').innerHTML = '';
             data = (querytype === 'tracks') ? data.tracks : data.playlists;
-            for (i = 0; (row = data[i]); i += 1) {
+            for (i = 0; (row = data[i]) ; i += 1) {
                 content += parseResponse({
                     inputArr: row,
                     respType: 'Spotify',
@@ -1149,7 +1132,7 @@ function populateDB(options){
             document.getElementById('database-entries').innerHTML = content;
         }
         if (plugin === 'Dirble') {
-        // Dirble plugin
+            // Dirble plugin
             $('#database-entries').removeClass('hide');
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
@@ -1158,7 +1141,7 @@ function populateDB(options){
             }
             document.getElementById('database-entries').innerHTML = '';
             // console.log(data);
-            for (i = 0; (row = data[i]); i += 1) {
+            for (i = 0; (row = data[i]) ; i += 1) {
                 content += parseResponse({
                     inputArr: row,
                     respType: 'Dirble',
@@ -1169,7 +1152,7 @@ function populateDB(options){
             document.getElementById('database-entries').innerHTML = content;
         }
         if (plugin === 'Jamendo') {
-        // Jamendo plugin
+            // Jamendo plugin
             $('#database-entries').removeClass('hide');
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
@@ -1177,7 +1160,7 @@ function populateDB(options){
                 GUI.currentpath = path;
             }
             document.getElementById('database-entries').innerHTML = '';
-            for (i = 0; (row = data[i]); i += 1) {
+            for (i = 0; (row = data[i]) ; i += 1) {
                 content += parseResponse({
                     inputArr: row,
                     respType: 'Jamendo',
@@ -1188,13 +1171,13 @@ function populateDB(options){
             document.getElementById('database-entries').innerHTML = content;
         }
     } else {
-    // normal MPD browsing
+        // normal MPD browsing
         if (path === '' && keyword === '') {
-        // Library home
+            // Library home
             renderLibraryHome();
             return;
         } else {
-        // browsing
+            // browsing
             $('#database-entries').removeClass('hide');
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
@@ -1204,13 +1187,13 @@ function populateDB(options){
             // console.log(' new GUI.currentpath = ', GUI.currentpath);
             document.getElementById('database-entries').innerHTML = '';
             if (keyword !== '') {
-            // search results
+                // search results
                 var results = (data.length) ? data.length : '0';
                 var s = (data.length === 1) ? '' : 's';
                 $('#db-level-up').addClass('hide');
                 $('#db-search-results').removeClass('hide').html('<i class="fa fa-times sx"></i><span class="visible-xs-inline">back</span><span class="hidden-xs">' + results + ' result' + s + ' for "<span class="keyword">' + keyword + '</span>"</span>');
             }
-            for (i = 0; (row = data[i]); i += 1) {
+            for (i = 0; (row = data[i]) ; i += 1) {
                 content += parseResponse({
                     inputArr: row,
                     respType: 'db',
@@ -1222,15 +1205,6 @@ function populateDB(options){
                 content += '<li id="webradio-add" class="db-webradio-add"><i class="fa fa-plus-circle db-icon"></i><span class="sn"><em>add new</em></span><span class="bl">add a webradio to your library</span></li>';
             }
             document.getElementById('database-entries').innerHTML = content;
-
-
-            // <KEW>
-            // look for the named Anchor tags to see which navigation letters to disable
-            setupAlphabetNav();
-            // </KEW>
-
-
-
             // DEBUG
             // console.log('GUI.currentDBpos = ', GUI.currentDBpos);
             // console.log('level = ', GUI.currentDBpos[10]);
@@ -1260,13 +1234,6 @@ function populateDB(options){
         breadcrumb.html(path);
     }
     $('#db-homeSetup').addClass('hide');
-
-    // <KEW>
-    // Show the Alphabet nav button
-    $('#overlay-alphabet-open').removeClass('hide'); 
-    // </KEW>
-
-
     if (uplevel) {
         var position = GUI.currentDBpos[GUI.currentDBpos[10]];
         $('#db-' + position).addClass('active');
@@ -1278,7 +1245,7 @@ function populateDB(options){
 } // end populateDB()
 
 // launch the right AJAX call for Library rendering
-function getDB(options){
+function getDB(options) {
     // DEFAULTS
     var cmd = options.cmd || 'browse',
         path = options.path || '',
@@ -1287,18 +1254,18 @@ function getDB(options){
         plugin = options.plugin || '',
         querytype = options.querytype || '',
         args = options.args || '';
-        
+
     // DEBUG
     // console.log('OPTIONS: cmd = ' + cmd + ', path = ' + path + ', browsemode = ' + browsemode + ', uplevel = ' + uplevel + ', plugin = ' + plugin);
-    
+
     loadingSpinner('db');
     GUI.browsemode = browsemode;
-    
+
     if (plugin !== '') {
-    // plugins
+        // plugins
         if (plugin === 'Spotify') {
-        // Spotify plugin
-            $.post('/db/?cmd=spotify', { 'plid': args }, function(data){
+            // Spotify plugin
+            $.post('/db/?cmd=spotify', { 'plid': args }, function (data) {
                 populateDB({
                     data: data,
                     path: path,
@@ -1310,8 +1277,8 @@ function getDB(options){
             }, 'json');
         }
         else if (plugin === 'Dirble') {
-        // Dirble plugin
-            $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function(data){
+            // Dirble plugin
+            $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function (data) {
                 populateDB({
                     data: data,
                     path: path,
@@ -1322,8 +1289,8 @@ function getDB(options){
             }, 'json');
         }
         else if (plugin === 'Jamendo') {
-        // Jamendo plugin
-            $.post('/db/?cmd=jamendo', { 'querytype': (querytype === '') ? 'radio' : querytype, 'args': args }, function(data){
+            // Jamendo plugin
+            $.post('/db/?cmd=jamendo', { 'querytype': (querytype === '') ? 'radio' : querytype, 'args': args }, function (data) {
                 populateDB({
                     data: data.results,
                     path: path,
@@ -1333,10 +1300,10 @@ function getDB(options){
             }, 'json');
         }
     } else {
-    // normal browsing
+        // normal browsing
         if (cmd === 'search') {
             var keyword = $('#db-search-keyword').val();
-            $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function(data) {
+            $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function (data) {
                 populateDB({
                     data: data,
                     path: path,
@@ -1345,7 +1312,7 @@ function getDB(options){
                 });
             }, 'json');
         } else if (cmd === 'browse') {
-            $.post('/db/?cmd=browse', { 'path': path, 'browsemode': GUI.browsemode }, function(data) {
+            $.post('/db/?cmd=browse', { 'path': path, 'browsemode': GUI.browsemode }, function (data) {
                 populateDB({
                     data: data,
                     path: path,
@@ -1353,9 +1320,9 @@ function getDB(options){
                 });
             }, 'json');
         } else {
-        // EXAMPLE: cmd === 'update', 'addplay', 'addreplaceplay', 'update'
+            // EXAMPLE: cmd === 'update', 'addplay', 'addreplaceplay', 'update'
             loadingSpinner('db', 'hide');
-            $.post('/db/?cmd='+cmd, { 'path': path, 'querytype': querytype }, function(path) {
+            $.post('/db/?cmd=' + cmd, { 'path': path, 'querytype': querytype }, function (path) {
                 // console.log('add= ', path);
             }, 'json');
         }
@@ -1374,7 +1341,7 @@ function onreleaseKnob(value) {
             // console.log('seekto = ', seekto);
             $('#time').val(value);
             $('#countdown-display').countdown('destroy');
-            $('#countdown-display').countdown({since: -seekto, compact: true, format: 'MS'});
+            $('#countdown-display').countdown({ since: -seekto, compact: true, format: 'MS' });
         } else {
             $('#time').val(0).trigger('change');
         }
@@ -1396,7 +1363,7 @@ function commandButton(el) {
             $('#total').html('00:00');
         }
     }
-    // play/pause
+        // play/pause
     else if (dataCmd === 'play') {
         var state = GUI.state;
         //if (json.currentsong != null) {
@@ -1413,7 +1380,7 @@ function commandButton(el) {
         } else if (state === 'stop') {
             cmd = 'play';
             if ($('#section-index').length) {
-                $('#countdown-display').countdown({since: 0, compact: true, format: 'MS'});
+                $('#countdown-display').countdown({ since: 0, compact: true, format: 'MS' });
             }
         }
         //$(this).find('i').toggleClass('fa fa-play').toggleClass('fa fa-pause');
@@ -1422,24 +1389,24 @@ function commandButton(el) {
         // console.log('sendCmd(' + cmd + ');');
         return;
         // } else {
-            // $(this).addClass('btn-primary');
-            // $('#stop').removeClass('btn-primary');
-            // $('#time').val(0, false).trigger('update');
-            // $('#countdown-display').countdown({since: 0, compact: true, format: 'MS'});
+        // $(this).addClass('btn-primary');
+        // $('#stop').removeClass('btn-primary');
+        // $('#time').val(0, false).trigger('update');
+        // $('#countdown-display').countdown({since: 0, compact: true, format: 'MS'});
         // }
     }
-    // previous/next
+        // previous/next
     else if (dataCmd === 'previous' || dataCmd === 'next') {
         if ($('#section-index').length) {
             $('#countdown-display').countdown('pause');
             window.clearInterval(GUI.currentKnob);
         }
     }
-    // step volume control
+        // step volume control
     else if (el.hasClass('btn-volume')) {
         var vol;
         var knobvol = parseInt($('#volume').val());
-        if (GUI.volume === null ) {
+        if (GUI.volume === null) {
             GUI.volume = knobvol;
         }
         if (dataCmd === 'volumedn' && parseInt(GUI.volume) > 0) {
@@ -1451,7 +1418,7 @@ function commandButton(el) {
             GUI.volume = vol;
             $('#volumemute').removeClass('btn-primary');
         } else if (dataCmd === 'volumemute') {
-            if (knobvol !== 0 ) {
+            if (knobvol !== 0) {
                 GUI.volume = knobvol;
                 el.addClass('btn-primary');
                 vol = 0;
@@ -1469,9 +1436,9 @@ function commandButton(el) {
 
     // toggle buttons
     if (el.hasClass('btn-toggle')) {
-        cmd = dataCmd + (el.hasClass('btn-primary')? ' 0':' 1');
+        cmd = dataCmd + (el.hasClass('btn-primary') ? ' 0' : ' 1');
         el.toggleClass('btn-primary');
-    // send command
+        // send command
     } else {
         cmd = dataCmd;
     }
@@ -1489,7 +1456,7 @@ function libraryHome(text) {
 function listWLANs(text) {
     var i = 0, content = '', inrange = '', stored = '', wlans = text[0];
     // console.log(wlans);
-    $.each(wlans, function(i) {
+    $.each(wlans, function (i) {
         content += '<p><a href="/network/wlan/' + wlans[i].nic + '/' + wlans[i].ESSID + '" class="btn btn-lg btn-default btn-block" title="See network properties">';
         if (wlans[i].connected !== 0) {
             content += '<i class="fa fa-check green sx"></i>';
@@ -1500,8 +1467,8 @@ function listWLANs(text) {
             if (wlans[i].encryption === 'on') {
                 content += '<i class="fa fa-rss fa-wifi"></i><i class="fa fa-lock sx"></i>';
             } else {
-                if (wlans[i].storedprofile !== 1 ) {
-                content += '<i class="fa fa-rss fa-wifi sx"></i>';
+                if (wlans[i].storedprofile !== 1) {
+                    content += '<i class="fa fa-rss fa-wifi sx"></i>';
                 }
             }
         }
@@ -1518,14 +1485,14 @@ function listWLANs(text) {
     }
     document.getElementById('wifiNetworks').innerHTML = inrange;
     document.getElementById('wifiStored').innerHTML = stored;
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({ url: '/command/?cmd=wifiscan' });
 }
 
 // draw the NICs details table
 function nicsDetails(text) {
     var i = 0, content = '', nics = text[0];
     // console.log(nics);
-    $.each(nics, function(i) {
+    $.each(nics, function (i) {
         if (i === $('#nic-details').data('name')) {
             content += '<tr><th>Name:</th><td><strong>' + i + '<strong></td></tr>';
             content += '<tr><th>Type:</th><td>wireless</td></tr>';
@@ -1535,7 +1502,7 @@ function nicsDetails(text) {
                 content += '<tr><th>Status:</th><td><i class="fa fa-check green sx"></i>connected</td></tr>';
                 content += '<tr><th>Associated SSID:</th><td><strong>' + nics[i].currentssid + '</strong></td></tr>';
             }
-            
+
             content += '<tr><th>Assigned IP:</th><td>' + ((nics[i].ip !== null) ? ('<strong>' + nics[i].ip + '</strong>') : 'none') + '</td></tr>';
             content += '<tr><th>Speed:</th><td>' + ((nics[i].speed !== null) ? nics[i].speed : 'unknown') + '</td></tr>';
             // content += '<tr><th>Netmask:</th><td>' + nics[i].netmask + '</td></tr>';
@@ -1548,7 +1515,7 @@ function nicsDetails(text) {
 }
 
 // open the Playback UI refresh channel
-function playbackChannel(){
+function playbackChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1556,7 +1523,7 @@ function playbackChannel(){
         reconnectOnChannelUnavailableInterval: 5000
     });
     pushstream.onmessage = renderUI;
-    pushstream.onstatuschange = function(status) {
+    pushstream.onstatuschange = function (status) {
         // console.log('[nginx pushtream module] status = ', status);
         if (status === 2) {
             $('#loader').addClass('hide');
@@ -1570,15 +1537,15 @@ function playbackChannel(){
         }
     };
     // pushstream.onerror = function() {
-        // toggleLoader();
-        // console.log('[nginx pushtream module] error');
+    // toggleLoader();
+    // console.log('[nginx pushtream module] error');
     // };
     pushstream.addChannel('playback');
     pushstream.connect();
 }
 
 // open the playing queue channel
-function queueChannel(){
+function queueChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1587,14 +1554,14 @@ function queueChannel(){
     pushstream.onmessage = getPlaylist;
     // pushstream.onstatuschange = function(status) {
     // force queue rendering (backend-call)
-        // if (status === 2) sendCmd('renderpl');
+    // if (status === 2) sendCmd('renderpl');
     // };
     pushstream.addChannel('queue');
     pushstream.connect();
 }
 
 // open the library channel
-function libraryChannel(){
+function libraryChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1606,7 +1573,7 @@ function libraryChannel(){
 }
 
 // open the notify messages channel
-function notifyChannel(){
+function notifyChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1618,7 +1585,7 @@ function notifyChannel(){
 }
 
 // open the in range Wi-Fi networks list channel
-function wlansChannel(){
+function wlansChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1627,11 +1594,11 @@ function wlansChannel(){
     pushstream.onmessage = listWLANs;
     pushstream.addChannel('wlans');
     pushstream.connect();
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({ url: '/command/?cmd=wifiscan' });
 }
 
 // open the NIC details channel
-function nicsChannel(){
+function nicsChannel() {
     var pushstream = new PushStream({
         host: window.location.hostname,
         port: window.location.port,
@@ -1645,38 +1612,38 @@ function nicsChannel(){
 // trigger home overlays
 function overlayTrigger(overlayID) {
     // var triggerBttn = $('#overlay-social-open'),
-        // overlay = $('#overlay-social'),
-        // closeBttn = $('button.overlay-close');
+    // overlay = $('#overlay-social'),
+    // closeBttn = $('button.overlay-close');
     var overlay = $(overlayID),
         triggerBttn = $(overlayID + '-open'),
         closeBttn = $(overlayID + '-close');
-        transEndEventNames = {
-            'WebkitTransition': 'webkitTransitionEnd',
-            'MozTransition': 'transitionend',
-            'OTransition': 'oTransitionEnd',
-            'msTransition': 'MSTransitionEnd',
-            'transition': 'transitionend'
-        };
-        // transEndEventName = transEndEventNames[ Modernizr.prefixed( 'transition' ) ],
-        // support = { transitions : Modernizr.csstransitions };
+    transEndEventNames = {
+        'WebkitTransition': 'webkitTransitionEnd',
+        'MozTransition': 'transitionend',
+        'OTransition': 'oTransitionEnd',
+        'msTransition': 'MSTransitionEnd',
+        'transition': 'transitionend'
+    };
+    // transEndEventName = transEndEventNames[ Modernizr.prefixed( 'transition' ) ],
+    // support = { transitions : Modernizr.csstransitions };
     function toggleOverlay() {
         if (overlay.hasClass('open')) {
             overlay.removeClass('open');
             overlay.addClass('closed');
-            var onEndTransitionFn = function(ev) {
+            var onEndTransitionFn = function (ev) {
                 if (support.transitions) {
                     if (ev.propertyName !== 'visibility') {
                         return;
                     }
-                    this.removeEventListener( transEndEventName, onEndTransitionFn );
+                    this.removeEventListener(transEndEventName, onEndTransitionFn);
                 }
                 overlay.removeClass('closed');
             };
             // if (support.transitions) {
-                // overlay.addEventListener( transEndEventName, onEndTransitionFn );
+            // overlay.addEventListener( transEndEventName, onEndTransitionFn );
             // }
             // else {
-                // onEndTransitionFn();
+            // onEndTransitionFn();
             // }
         }
         else if (overlay.hasClass('closed')) {
@@ -1691,23 +1658,23 @@ function overlayTrigger(overlayID) {
             }
         }
     }
-    triggerBttn.click(function(){
+    triggerBttn.click(function () {
         toggleOverlay();
     });
-    closeBttn.click(function(){
+    closeBttn.click(function () {
         toggleOverlay();
     });
 }
 
 // check visibility of the window
-function getHiddenProp(){
-    var prefixes = ['webkit','moz','ms','o'];
+function getHiddenProp() {
+    var prefixes = ['webkit', 'moz', 'ms', 'o'];
     // if 'hidden' is natively supported just return it
     if ('hidden' in document) {
         return 'hidden';
     }
     // otherwise loop over all the known prefixes until we find one
-    for (var i = 0; i < prefixes.length; i++){
+    for (var i = 0; i < prefixes.length; i++) {
         if ((prefixes[i] + 'Hidden') in document) {
             return prefixes[i] + 'Hidden';
         }
@@ -1736,29 +1703,27 @@ function visChange() {
 
 if ($('#section-index').length) {
 
-// ====================================================================================================
-// PLAYBACK SECTION
-// ====================================================================================================
+    // ====================================================================================================
+    // PLAYBACK SECTION
+    // ====================================================================================================
 
-    jQuery(document).ready(function($){ 'use strict';
+    jQuery(document).ready(function ($) {
+        'use strict';
 
         // INITIALIZATION
         // ----------------------------------------------------------------------------------------------------
-        
+
         // check WebSocket support
         GUI.mode = checkWebSocket();
-        
+
         // first connection with MPD daemon
         // open UI rendering channel;
         playbackChannel();
-        
+
         // open library channel
         libraryChannel();
         // startChannel(queueChannel());
-        
-        // first GUI update
-        // updateGUI();
-        
+
         // PNotify init options
         PNotify.prototype.options.styling = 'fontawesome';
         PNotify.prototype.options.stack.dir1 = 'up';
@@ -1769,45 +1734,45 @@ if ($('#section-index').length) {
         PNotify.prototype.options.stack.spacing2 = 10;
         // open notify channel
         notifyChannel();
-        
+
         // use the property name to generate the prefixed event name
         var visProp = getHiddenProp();
         if (visProp) {
-            var evtname = visProp.replace(/[H|h]idden/,'') + 'visibilitychange';
+            var evtname = visProp.replace(/[H|h]idden/, '') + 'visibilitychange';
             document.addEventListener(evtname, visChange);
         }
 
         // BUTTONS
         // ----------------------------------------------------------------------------------------------------
-        
+
         // playback buttons
-        $('.btn-cmd').click(function(){
+        $('.btn-cmd').click(function () {
             var el = $(this);
             commandButton(el);
         });
-        
+
         $('#volume-step-dn').on({
-            mousedown : function () {
+            mousedown: function () {
                 volumeStepCalc('dn');
             },
-            mouseup : function () {
+            mouseup: function () {
                 volumeStepSet();
             }
         });
-        
+
         $('#volume-step-up').on({
-            mousedown : function () {
+            mousedown: function () {
                 volumeStepCalc('up');
             },
-            mouseup : function () {
+            mouseup: function () {
                 volumeStepSet();
             }
         });
-        
-        
+
+
         // KNOBS
         // ----------------------------------------------------------------------------------------------------
-        
+
         // playback knob
         $('#time').knob({
             inline: false,
@@ -1832,7 +1797,7 @@ if ($('#section-index').length) {
             release: function (value) {
                 setvol(value);
             },
-            draw: function() {
+            draw: function () {
                 // "tron" case
                 if (this.$.data('skin') === 'tron') {
                     this.cursorExt = 0.05;
@@ -1846,13 +1811,13 @@ if ($('#section-index').length) {
                         this.g.stroke();
                     }
                     this.g.beginPath();
-                    this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
+                    this.g.strokeStyle = r ? this.o.fgColor : this.fgColor;
                     this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
                     this.g.stroke();
                     this.g.lineWidth = 2;
                     this.g.beginPath();
                     this.g.strokeStyle = this.o.fgColor;
-                    this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 13 + this.lineWidth, 0, 2 * Math.PI, false);
+                    this.g.arc(this.xy, this.xy, this.radius - this.lineWidth + 13 + this.lineWidth, 0, 2 * Math.PI, false);
                     this.g.stroke();
                     return false;
                 }
@@ -1864,9 +1829,9 @@ if ($('#section-index').length) {
         // ----------------------------------------------------------------------------------------------------
 
         var playlist = $('#playlist-entries');
-        
+
         // click on queue entry
-        playlist.on('click', 'li', function(e) {
+        playlist.on('click', 'li', function (e) {
             var cmd = '';
             if ($(e.target).hasClass('pl-action')) {
                 // remove queue entry
@@ -1888,7 +1853,8 @@ if ($('#section-index').length) {
         });
 
         // on ready playlist tab
-        $('a', '#open-panel-dx').click(function(){
+        $('a', '#open-panel-dx').click(function () {
+            // check if the Queue tab is visible
             if ($('#open-panel-dx').hasClass('active')) {
                 var current = parseInt(GUI.json.song);
                 customScroll('pl', current, 500);
@@ -1900,16 +1866,16 @@ if ($('#section-index').length) {
         });
 
         // open Library tab
-        $('#open-library').click(function(){
+        $('#open-library').click(function () {
             $('#open-panel-dx').removeClass('active');
             $('#open-panel-sx').addClass('active');
         });
 
         // Queue on the fly filtering
-        $('#pl-filter').keyup(function(){
-            $.scrollTo(0 , 500);
+        $('#pl-filter').keyup(function () {
+            $.scrollTo(0, 500);
             var filter = $(this).val(), count = 0;
-            $('li', '#playlist-entries').each(function(){
+            $('li', '#playlist-entries').each(function () {
                 var el = $(this);
                 if (el.text().search(new RegExp(filter, 'i')) < 0) {
                     el.hide();
@@ -1928,9 +1894,9 @@ if ($('#section-index').length) {
                 $('#pl-filter-results').addClass('hide').html('');
             }
         });
-        
+
         // close filter results
-        $('#pl-filter-results').click(function(){
+        $('#pl-filter-results').click(function () {
             $(this).addClass('hide');
             $('#pl-count').removeClass('hide');
             if ($(this).hasClass('back-to-queue')) {
@@ -1939,7 +1905,7 @@ if ($('#section-index').length) {
                 $('#pl-currentpath').addClass('hide');
                 $('#pl-manage').removeClass('hide');
             } else {
-                $('li', '#playlist-entries').each(function(){
+                $('li', '#playlist-entries').each(function () {
                     var el = $(this);
                     el.show();
                 });
@@ -1948,48 +1914,48 @@ if ($('#section-index').length) {
             }
             customScroll('pl', parseInt(GUI.json.song), 500);
         });
-        
+
         // playlists management
-        $('#pl-manage-list').click(function(){
+        $('#pl-manage-list').click(function () {
             getPlaylists();
         });
-        
+
         // save current Queue to playlist
-        $('#modal-pl-save-btn').click(function(){
+        $('#modal-pl-save-btn').click(function () {
             var playlistname = $('#pl-save-name').val();
             sendCmd('save "' + playlistname + '"');
         });
-        
+
         // playlists management - actions context menu
-        $('#pl-editor').on('click', '.pl-action', function(e) {
+        $('#pl-editor').on('click', '.pl-action', function (e) {
             e.preventDefault();
             var path = $(this).parent().attr('data-path');
             GUI.DBentry[0] = path;
         });
-        
+
         // playlist rename action
-        $('#pl-rename-button').click(function(){
+        $('#pl-rename-button').click(function () {
             var oldname = $('#pl-rename-oldname').text();
             var newname = $('#pl-rename-name').val();
             sendCmd('rename "' + oldname + '" "' + newname + '"');
             getPlaylists();
         });
-        
+
         // sort Queue entries
         var sortlist = document.getElementById('playlist-entries');
         new Sortable(sortlist, {
             ghostClass: 'sortable-ghost',
-            onUpdate: function (evt){
+            onUpdate: function (evt) {
                 sortOrder(evt.item.getAttribute('id'));
             }
         });
-        
-        
+
+
         // LIBRARY
         // ----------------------------------------------------------------------------------------------------
-        
+
         // on ready Library tab
-        $('a', '#open-panel-sx').click(function(){
+        $('a', '#open-panel-sx').click(function () {
             if ($('#open-panel-sx').hasClass('active')) {
                 customScroll('pl', parseInt(GUI.json.song), 500);
             }
@@ -1997,9 +1963,9 @@ if ($('#section-index').length) {
         .on('shown.bs.tab', function (e) {
             customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]], 0);
         });
-        
+
         // click on Library home block
-        $('#home-blocks').on('click', '.home-block', function(e) {
+        $('#home-blocks').on('click', '.home-block', function (e) {
             if (!$(this).hasClass('inactive')) {
                 if ($(this).is('#home-spotify-switch')) {
                     $('#overlay-playsource-open').trigger('click');
@@ -2007,7 +1973,7 @@ if ($('#section-index').length) {
                     var bookmarkID = $(this).attr('id');
                     bookmarkID = bookmarkID.replace('home-bookmark-', '');
                     var bookmarkName = $(this).find('h3').text();
-                    $.post('/db/?cmd=bookmark', { 'id' : bookmarkID, 'name' : bookmarkName });
+                    $.post('/db/?cmd=bookmark', { 'id': bookmarkID, 'name': bookmarkName });
                 } else {
                     ++GUI.currentDBpos[10];
                     getDB({
@@ -2021,9 +1987,9 @@ if ($('#section-index').length) {
                 $('#overlay-playsource-open').trigger('click');
             }
         });
-        
+
         // setup Library home
-        $('#db-homeSetup').click(function(){
+        $('#db-homeSetup').click(function () {
             var editbtn = $(this);
             if (editbtn.hasClass('btn-primary')) {
                 editbtn.removeClass('btn-primary').addClass('btn-default');
@@ -2033,16 +1999,16 @@ if ($('#section-index').length) {
                 $('.home-block.home-bookmark').append('<div class="home-block-remove" title="Remove this bookmark"><span class="block-remove">&times;</span></div>');
             }
         });
-        
+
         var db = $('#database-entries');
-        
+
         // click on Library list entry
-        db.on('click', 'li', function(e) {
+        db.on('click', 'li', function (e) {
             var path = '',
                 browsemode = '';
             var el = $(this);
             if ($(e.target).hasClass('db-action')) {
-            // actions context menu
+                // actions context menu
                 e.preventDefault();
                 if (el.data('type') === 'spotify-track') {
                     path = el.data('plid') + '-' + el.data('path');
@@ -2052,13 +2018,13 @@ if ($('#section-index').length) {
                 GUI.DBentry[0] = path;
                 // console.log('getDB path = ', GUI.DBentry);
             } else {
-            // list browsing
+                // list browsing
                 $('li.active', '#database-entries').removeClass('active');
                 el.addClass('active');
                 if (el.hasClass('db-folder')) {
                     path = el.data('path');
                     if (el.hasClass('db-album')) {
-                    // browse by album
+                        // browse by album
                         if (path !== '') {
                             getDB({
                                 path: path,
@@ -2074,22 +2040,22 @@ if ($('#section-index').length) {
                             });
                         }
                     } else if (el.hasClass('db-artist')) {
-                    // browse by album
+                        // browse by album
                         getDB({
                             path: path,
                             uplevel: 0,
                             browsemode: 'artist'
                         });
                     } else if (el.hasClass('db-genre')) {
-                    // browse by genre
+                        // browse by genre
                         getDB({
                             path: path,
                             uplevel: 0,
                             browsemode: 'genre'
                         });
                     } else if (el.hasClass('db-spotify')) {
-                    // Spotify playlists
-                        path = GUI.currentpath    + '/' + el.find('span').text();
+                        // Spotify playlists
+                        path = GUI.currentpath + '/' + el.find('span').text();
                         getDB({
                             path: path,
                             plugin: 'Spotify',
@@ -2098,8 +2064,8 @@ if ($('#section-index').length) {
                         });
                         GUI.plugin = 'Spotify';
                     } else if (el.hasClass('db-dirble')) {
-                    // Dirble folders
-                        path = GUI.currentpath    + '/' + el.find('span').text();
+                        // Dirble folders
+                        path = GUI.currentpath + '/' + el.find('span').text();
                         getDB({
                             path: path,
                             plugin: 'Dirble',
@@ -2108,18 +2074,18 @@ if ($('#section-index').length) {
                         });
                         GUI.plugin = 'Dirble';
                     } else if (el.hasClass('db-jamendo')) {
-                    // Jamendo folders
+                        // Jamendo folders
                         // path = GUI.currentpath    + '/' + el.find('span').text();
                         // var querytype = 'radio';
                         // var args = el.data('path');
                         // getDB({
-                            // path: path,
-                            // plugin: 'Jamendo',
-                            // querytype: querytype,
-                            // args : args
+                        // path: path,
+                        // plugin: 'Jamendo',
+                        // querytype: querytype,
+                        // args : args
                         // });
                     } else {
-                    // browse by file (default)
+                        // browse by file (default)
                         browsemode = el.data('browsemode');
                         //GUI.currentDBpos[GUI.currentDBpos[10]] = $('.database .db-entry').index(this);
                         getDB({
@@ -2129,7 +2095,7 @@ if ($('#section-index').length) {
                         });
                     }
                     var entryID = el.attr('id');
-                    entryID = entryID.replace('db-','');
+                    entryID = entryID.replace('db-', '');
                     GUI.currentDBpos[GUI.currentDBpos[10]] = entryID;
                     GUI.currentDBpath[GUI.currentDBpos[10]] = path;
                     ++GUI.currentDBpos[10];
@@ -2140,7 +2106,7 @@ if ($('#section-index').length) {
             }
         });
         // double click on Library list entry
-        db.on('dblclick', 'li', function(e) {
+        db.on('dblclick', 'li', function (e) {
             var el = $(this);
             if (!$(e.target).hasClass('db-action')) {
                 $('li.active', '#database-entries').removeClass('active');
@@ -2165,7 +2131,7 @@ if ($('#section-index').length) {
         });
 
         // browse level up (back arrow)
-        $('#db-level-up').click(function(){
+        $('#db-level-up').click(function () {
             --GUI.currentDBpos[10];
             var path = GUI.currentpath;
             if (GUI.currentDBpos[10] === 0) {
@@ -2173,7 +2139,7 @@ if ($('#section-index').length) {
             } else {
                 if (GUI.browsemode === 'file') {
                     var cutpos = path.lastIndexOf('/');
-                    path = (cutpos !== -1) ? path.slice(0,cutpos):'';
+                    path = (cutpos !== -1) ? path.slice(0, cutpos) : '';
                 } else {
                     if (GUI.browsemode === 'album') {
                         path = GUI.currentDBpath[GUI.currentDBpos[10] - 1];
@@ -2209,7 +2175,7 @@ if ($('#section-index').length) {
         });
 
         // close search results
-        $('#db-search-results').click(function(){
+        $('#db-search-results').click(function () {
             $(this).addClass('hide');
             $('#db-level-up').removeClass('hide');
             getDB({
@@ -2218,7 +2184,7 @@ if ($('#section-index').length) {
         });
 
         // context dropdown menu
-        $('a', '.context-menu').click(function(){
+        $('a', '.context-menu').click(function () {
             var dataCmd = $(this).data('cmd');
             var dataType = $(this).data('type');
             var path = GUI.DBentry[0];
@@ -2227,26 +2193,26 @@ if ($('#section-index').length) {
                 case 'pl-add':
                     sendCmd('load "' + path + '"');
                     break;
-                    
+
                 case 'pl-replace':
                     sendCmd('clear');
                     sendCmd('load "' + path + '"');
                     break;
-                    
+
                 case 'pl-rename':
                     $('#modal-pl-rename').modal();
                     $('#pl-rename-oldname').text(path);
                     break;
-                    
+
                 case 'pl-rm':
                     $.ajax({
                         url: '/command/?cmd=rm%20%22' + path + '%22',
-                        success: function(data){
+                        success: function (data) {
                             getPlaylists(data);
                         }
                     });
                     break;
-                    
+
                 case 'wradd':
                     path = path.split(' | ')[1];
                     getDB({
@@ -2254,7 +2220,7 @@ if ($('#section-index').length) {
                         path: path
                     });
                     break;
-                    
+
                 case 'wraddplay':
                     path = path.split(' | ')[1];
                     getDB({
@@ -2262,7 +2228,7 @@ if ($('#section-index').length) {
                         path: path
                     });
                     break;
-                    
+
                 case 'wraddreplaceplay':
                     path = path.split(' | ')[1];
                     getDB({
@@ -2270,12 +2236,12 @@ if ($('#section-index').length) {
                         path: path
                     });
                     break;
-                    
+
                 case 'wredit':
                     $('#modal-webradio-edit').modal();
                     $.post('/db/?cmd=readradio', {
                         filename: path
-                    }, function(data){
+                    }, function (data) {
                         // get parsed content of .pls file and populate the form fields
                         var name = $('#webradio-edit-name');
                         name.val(data.name);
@@ -2283,17 +2249,17 @@ if ($('#section-index').length) {
                         $('#webradio-edit-url').val(data.url);
                     }, 'json');
                     break;
-                    
+
                 case 'wrdelete':
                     $('#modal-webradio-delete').modal();
                     $('#webradio-delete-name').text(path.replace('Webradio/', ''));
                     break;
-                    
+
                 case 'wrsave':
                     var parameters = path.split(' | ');
-                    $.post('/db/?cmd=addradio', { 'radio[label]' : parameters[0], 'radio[url]' : parameters[1] });
+                    $.post('/db/?cmd=addradio', { 'radio[label]': parameters[0], 'radio[url]': parameters[1] });
                     break;
-                    
+
                 default:
                     getDB({
                         cmd: dataCmd,
@@ -2306,13 +2272,13 @@ if ($('#section-index').length) {
         });
 
         // add webradio
-        $('#webradio-add-button').click(function(){
+        $('#webradio-add-button').click(function () {
             var radioname = $('#webradio-add-name').val();
             var radiourl = $('#webradio-add-url').val();
             if (radioname === '' || radiourl === '') {
-                renderMSG([{'title': 'Missing fields', 'text': 'Please fill both fields to continue', 'icon': 'fa fa-warning'}]);
+                renderMSG([{ 'title': 'Missing fields', 'text': 'Please fill both fields to continue', 'icon': 'fa fa-warning' }]);
             } else {
-                $.post('/db/?cmd=addradio', { 'radio[label]' : radioname, 'radio[url]' : radiourl }, function(data){
+                $.post('/db/?cmd=addradio', { 'radio[label]': radioname, 'radio[url]': radiourl }, function (data) {
                     // console.log('SENT');
                 }, 'json');
                 $('#modal-webradio-add').modal('hide');
@@ -2320,150 +2286,119 @@ if ($('#section-index').length) {
                 $('#webradio-add-url').val('');
             }
         });
-        
+
         // edit webradio
-        $('#webradio-edit-button').click(function(){
+        $('#webradio-edit-button').click(function () {
             var name = $('#webradio-edit-name');
             $.post('/db/?cmd=editradio', {
                 'radio[newlabel]': name.val(),
                 'radio[label]': name.data('file-name'),
                 'radio[url]': $('#webradio-edit-url').val()
-            }, function(data){
+            }, function (data) {
                 // console.log('editedradio', data);
             }, 'json');
         });
-        
+
         // delete webradio
-        $('#webradio-delete-button').click(function(){
-        // console.log( $('#webradio-delete-name').text() );
+        $('#webradio-delete-button').click(function () {
+            // console.log( $('#webradio-delete-name').text() );
             var radioname = $('#webradio-delete-name').text();
-            $.post('/db/?cmd=deleteradio', { 'radio[label]' : radioname }, function(data){
+            $.post('/db/?cmd=deleteradio', { 'radio[label]': radioname }, function (data) {
                 // console.log('SENT');
             }, 'json');
         });
-        
-        
+
+
         // GENERAL
         // ----------------------------------------------------------------------------------------------------
-        
+
         // scroll buttons
-        $('#db-alphabet').click(function () {
-            //$(window)[0].location.hash = "R";
-            $('#overlay-alphabet-open').trigger('click');
+        $('#db-firstPage').click(function () {
+            $.scrollTo(0, 500);
         });
-        $('#db-firstPage').click(function(){
-            $.scrollTo(0 , 500);
-        });
-        $('#db-prevPage').click(function(){
+        $('#db-prevPage').click(function () {
             var scrolloffset = '-=' + $(window).height() + 'px';
-            $.scrollTo(scrolloffset , 500);
+            $.scrollTo(scrolloffset, 500);
         });
-        $('#db-nextPage').click(function(){
+        $('#db-nextPage').click(function () {
             var scrolloffset = '+=' + $(window).height() + 'px';
-            $.scrollTo(scrolloffset , 500);
+            $.scrollTo(scrolloffset, 500);
         });
-        $('#db-lastPage').click(function(){
+        $('#db-lastPage').click(function () {
             $.scrollTo('100%', 500);
         });
 
-        $('#pl-firstPage').click(function(){
-            $.scrollTo(0 , 500);
+        $('#pl-firstPage').click(function () {
+            $.scrollTo(0, 500);
         });
-        $('#pl-prevPage').click(function(){
+        $('#pl-prevPage').click(function () {
             var scrollTop = $(window).scrollTop();
             var scrolloffset = scrollTop - $(window).height();
-            $.scrollTo(scrolloffset , 500);
+            $.scrollTo(scrolloffset, 500);
         });
-        $('#pl-nextPage').click(function(){
+        $('#pl-nextPage').click(function () {
             var scrollTop = $(window).scrollTop();
             var scrolloffset = scrollTop + $(window).height();
-            $.scrollTo(scrolloffset , 500);
+            $.scrollTo(scrolloffset, 500);
         });
-        $('#pl-lastPage').click(function(){
+        $('#pl-lastPage').click(function () {
             $.scrollTo('100%', 500);
         });
-        
+
         // open tab from external link
         var url = document.location.toString();
         // console.log('url = ', url);
-        if ( url.match('#') ) {
+        if (url.match('#')) {
             $('#menu-bottom a[href="/#' + url.split('#')[1] + '"]').tab('show');
         }
         // do not scroll with HTML5 history API
-        $('#menu-bottom a').on('shown', function(e) {
-            if(history.pushState) {
+        $('#menu-bottom a').on('shown', function (e) {
+            if (history.pushState) {
                 history.pushState(null, null, e.target.hash);
             } else {
                 window.location.hash = e.target.hash; // Polyfill for old browsers
             }
-        }).on('click', function() {
+        }).on('click', function () {
             if ($('#overlay-social').hasClass('open')) {
                 $('.overlay-close').trigger('click');
             }
         });
-        
+
         // tooltips
         if ($('.ttip').length) {
             $('.ttip').tooltip();
         }
-        
+
         // remove the 300ms click delay on mobile browsers
         FastClick.attach(document.body);
-        
+
         // system poweroff
-        $('#syscmd-poweroff').click(function(){
-            $.post('/settings/', { 'syscmd' : 'poweroff' });
+        $('#syscmd-poweroff').click(function () {
+            $.post('/settings/', { 'syscmd': 'poweroff' });
             toggleLoader();
         });
         // system reboot
-        $('#syscmd-reboot').click(function(){
-            $.post('/settings/', { 'syscmd' : 'reboot' });
+        $('#syscmd-reboot').click(function () {
+            $.post('/settings/', { 'syscmd': 'reboot' });
             toggleLoader();
         });
-        
+
         // social share overlay
         overlayTrigger('#overlay-social');
         // play source overlay
         overlayTrigger('#overlay-playsource');
-
-
-
-        // <KEW>
-        // alphabet library navigation overlay setup
-        overlayTrigger('#overlay-alphabet');
-       
-        // implement a means of scrolling to the selected letter,
-        // plus a little to accomdate the fixed header
-        $('#overlay-alphabet a').click(function () {
-            $('#overlay-alphabet-close').trigger("click");
-           
-            // **
-            // this may need to be tweaked to play well with other hash tags
-            if (window.location.hash.length == 0) {
-                window.location.hash = '#' + $(this).attr('data-alphabet'); // navigate to the letter
-            } else {
-                window.location.hash = $(this).attr('data-alphabet'); // navigate to the letter
-            }
-
-            var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop - 80; // use the actual height of "header"
-            $.scrollTo(scrolloffset, 500);
-        })
-        // </KEW>
-
-
         // play source manual switch
-        $('#playsource-mpd').click(function(){
+        $('#playsource-mpd').click(function () {
             if ($(this).hasClass('inactive')) {
-                $.ajax({url: '/command/?switchplayer=MPD'});
+                $.ajax({ url: '/command/?switchplayer=MPD' });
                 // close switch buttons layer
                 $('#overlay-playsource-close').trigger('click');
             }
         });
-        $('#playsource-spotify').click(function(){
+        $('#playsource-spotify').click(function () {
             if ($(this).hasClass('inactive')) {
                 if (GUI.libraryhome.Spotify === '1') {
-                    $.ajax({url: '/command/?switchplayer=Spotify'});
+                    $.ajax({ url: '/command/?switchplayer=Spotify' });
                     // close switch buttons layer
                     $('#overlay-playsource-close').trigger('click');
                 } else {
@@ -2475,30 +2410,28 @@ if ($('#section-index').length) {
                 }
             }
         });
-        
+
     });
-    
+
 } else {
 
-// ====================================================================================================
-// OTHER SECTIONS
-// ====================================================================================================
+    // ====================================================================================================
+    // OTHER SECTIONS
+    // ====================================================================================================
 
-    jQuery(document).ready(function($){ 'use strict';
-        
+    jQuery(document).ready(function ($) {
+        'use strict';
+
         // INITIALIZATION
         // ----------------------------------------------------------------------------------------------------
-         
+
         // check WebSocket support
         GUI.mode = checkWebSocket();
-        
+
         // first connection with MPD daemon
         // open UI rendering channel;
         playbackChannel();
-        
-        // first GUI update
-        // updateGUI();
-        
+
         // PNotify init options
         PNotify.prototype.options.styling = 'fontawesome';
         PNotify.prototype.options.stack.dir1 = 'up';
@@ -2509,46 +2442,46 @@ if ($('#section-index').length) {
         PNotify.prototype.options.stack.spacing2 = 10;
         // open notify channel
         notifyChannel();
-        
-        
+
+
         // BUTTONS
         // ----------------------------------------------------------------------------------------------------
-        
+
         // playback buttons
-        $('.btn-cmd').click(function(){
+        $('.btn-cmd').click(function () {
             var el = $(this);
             commandButton(el);
         });
-        
+
         // system poweroff
-        $('#syscmd-poweroff').click(function(){
-            $.post('/settings/', { 'syscmd' : 'poweroff' });
+        $('#syscmd-poweroff').click(function () {
+            $.post('/settings/', { 'syscmd': 'poweroff' });
             toggleLoader();
         });
         // system reboot
-        $('#syscmd-reboot').click(function(){
-            $.post('/settings/', { 'syscmd' : 'reboot' });
+        $('#syscmd-reboot').click(function () {
+            $.post('/settings/', { 'syscmd': 'reboot' });
             toggleLoader();
         });
-        
-        
+
+
         // COMMON
         // ----------------------------------------------------------------------------------------------------
-        
+
         // Bootstrap-select
         $('.selectpicker').selectpicker();
-        
+
 
         // SOURCES
         // ----------------------------------------------------------------------------------------------------
-        
+
         if ($('#section-sources').length) {
-        
+
             // enable/disable CIFS auth section
             if ($('#mount-type').val() === 'nfs') {
                 $('#mount-cifs').addClass('disabled').children('.disabler').removeClass('hide');
             }
-            $('#mount-type').change(function(){
+            $('#mount-type').change(function () {
                 if ($(this).val() === 'cifs' || $(this).val() === 'osx') {
                     $('#mount-cifs').removeClass('disabled').children('.disabler').addClass('hide');
                 }
@@ -2556,9 +2489,9 @@ if ($('#section-index').length) {
                     $('#mount-cifs').addClass('disabled').children('.disabler').removeClass('hide');
                 }
             });
-            
+
             // enable/disable CIFS user and password fields
-            $('#nas-guest').change(function(){
+            $('#nas-guest').change(function () {
                 if ($(this).prop('checked')) {
                     //console.log('checked');
                     $('#mount-auth').addClass('disabled').children('.disabler').removeClass('hide');
@@ -2567,17 +2500,17 @@ if ($('#section-index').length) {
                     $('#mount-auth').removeClass('disabled').children('.disabler').addClass('hide');
                 }
             });
-            
+
             // show advanced options
-            $('#nas-advanced').change(function(){
+            $('#nas-advanced').change(function () {
                 if ($(this).prop('checked')) {
                     $('#mount-advanced-config').removeClass('hide');
                 } else {
                     $('#mount-advanced-config').addClass('hide');
                 }
             });
-            
-            $('#show-mount-advanced-config').click(function(e){
+
+            $('#show-mount-advanced-config').click(function (e) {
                 e.preventDefault();
                 if ($(this).hasClass('active')) {
                     $('#mount-advanced-config').toggleClass('hide');
@@ -2591,22 +2524,22 @@ if ($('#section-index').length) {
                     $(this).find('span').html('hide advanced options');
                 }
             });
-            
-            $('#usb-mount-list a').click(function(){
+
+            $('#usb-mount-list a').click(function () {
                 var mountName = $(this).data('mount');
                 $('#usb-umount-name').html(mountName);
                 $('#usb-umount').val(mountName);
             });
         }
-        
-            
+
+
         // SETTINGS
         // ----------------------------------------------------------------------------------------------------
-        
+
         if ($('#section-settings').length) {
-            
+
             // show/hide AirPlay name form
-            $('#airplay').change(function(){
+            $('#airplay').change(function () {
                 if ($(this).prop('checked')) {
                     $('#airplayName').removeClass('hide');
                     $('#airplayBox').addClass('boxed-group');
@@ -2615,9 +2548,9 @@ if ($('#section-index').length) {
                     $('#airplayBox').removeClass('boxed-group');
                 }
             });
-            
+
             // show/hide Last.fm auth form  
-            $('#scrobbling-lastfm').change(function(){
+            $('#scrobbling-lastfm').change(function () {
                 if ($(this).prop('checked')) {
                     $('#lastfmAuth').removeClass('hide');
                     $('#lastfmBox').addClass('boxed-group');
@@ -2626,9 +2559,9 @@ if ($('#section-index').length) {
                     $('#lastfmBox').removeClass('boxed-group');
                 }
             });
-            
+
             // show/hide proxy settings form  
-            $('#proxy').change(function(){
+            $('#proxy').change(function () {
                 if ($(this).prop('checked')) {
                     $('#proxyAuth').removeClass('hide');
                     $('#proxyBox').addClass('boxed-group');
@@ -2637,9 +2570,9 @@ if ($('#section-index').length) {
                     $('#proxyBox').removeClass('boxed-group');
                 }
             });
-            
+
             // show/hide UPnP/dlna name form
-            $('#dlna').change(function(){
+            $('#dlna').change(function () {
                 if ($(this).prop('checked')) {
                     $('#dlnaName').removeClass('hide');
                     $('#dlnaBox').addClass('boxed-group');
@@ -2648,9 +2581,9 @@ if ($('#section-index').length) {
                     $('#dlnaBox').removeClass('boxed-group');
                 }
             });
-            
+
             // show/hide Spotify auth form
-            $('#spotify').change(function(){
+            $('#spotify').change(function () {
                 if ($(this).prop('checked')) {
                     $('#spotifyAuth').removeClass('hide');
                     $('#spotifyBox').addClass('boxed-group');
@@ -2661,19 +2594,19 @@ if ($('#section-index').length) {
             });
 
         }
-        
-        
+
+
         // NETWORK
         // ----------------------------------------------------------------------------------------------------
-        
+
         if ($('#section-network').length) {
-            
+
             // show/hide static network configuration based on select value
             var netManualConf = $('#network-manual-config');
             if ($('#dhcp').val() === '0') {
                 netManualConf.removeClass('hide');
             }
-            $('#dhcp').change(function(){
+            $('#dhcp').change(function () {
                 if ($(this).val() === '0') {
                     netManualConf.removeClass('hide');
                 }
@@ -2681,13 +2614,13 @@ if ($('#section-index').length) {
                     netManualConf.addClass('hide');
                 }
             });
-            
+
             // show/hide WiFi security configuration based on select value
             var WiFiKey = $('#wifi-security-key');
             if ($('#wifi-security').val() !== 'open') {
                 WiFiKey.removeClass('hide');
             }
-            $('#wifi-security').change(function(){
+            $('#wifi-security').change(function () {
                 if ($(this).val() !== 'open') {
                     WiFiKey.removeClass('hide');
                 }
@@ -2695,18 +2628,18 @@ if ($('#section-index').length) {
                     WiFiKey.addClass('hide');
                 }
             });
-            
+
             // refresh in range Wi-Fi networks list
             if ($('#wifiNetworks').length) {
                 // open wlans channel
                 wlansChannel();
-                
+
                 // open nics channel
                 nicsChannel();
             }
-            
+
             // show/hide WiFi stored profile box
-            $('#wifiProfiles').change(function(){
+            $('#wifiProfiles').change(function () {
                 if ($(this).prop('checked')) {
                     $('#wifiProfilesBox').addClass('hide');
                 } else {
@@ -2715,16 +2648,16 @@ if ($('#section-index').length) {
             });
 
         }
-        
+
 
         // MPD
         // ----------------------------------------------------------------------------------------------------
-        
+
         if ($('#section-mpd').length) {
-            
+
             // output interface select
-            $('#audio-output-interface').change(function(){
-                renderMSG([{'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'delay': 5000 }]);
+            $('#audio-output-interface').change(function () {
+                renderMSG([{ 'title': 'Switching audio output', 'text': 'Please wait for the config update...', 'icon': 'fa fa-cog fa-spin', 'delay': 5000 }]);
                 var output = $(this).val();
                 $.ajax({
                     type: 'POST',
@@ -2732,25 +2665,25 @@ if ($('#section-index').length) {
                     data: { ao: output }
                 });
             });
-            
+
             // MPD config manual edit
-            $('.manual-edit-confirm').find('.btn-primary').click(function(){
+            $('.manual-edit-confirm').find('.btn-primary').click(function () {
                 $('#mpdconf_editor').removeClass('hide');
                 $('#manual-edit-warning').addClass('hide');
             });
         }
-        
-        
+
+
         // DEBUG
         // ----------------------------------------------------------------------------------------------------
-        
+
         if ($('#section-debug').length) {
 
-            ZeroClipboard.config({swfPath: '/assets/js/vendor/ZeroClipboard.swf'});
+            ZeroClipboard.config({ swfPath: '/assets/js/vendor/ZeroClipboard.swf' });
             var client = new ZeroClipboard(document.getElementById('copy-to-clipboard'));
-            client.on('ready', function(readyEvent){
+            client.on('ready', function (readyEvent) {
                 // alert('ZeroClipboard SWF is ready!');
-                client.on('aftercopy', function(event){
+                client.on('aftercopy', function (event) {
                     // alert('Copied text to clipboard: ' + event.data['text/plain']);
                     new PNotify({
                         title: 'Copied to clipboard',
@@ -2761,7 +2694,7 @@ if ($('#section-index').length) {
             });
 
         }
-        
+
     });
 
 }
@@ -2772,44 +2705,67 @@ if ($('#section-index').length) {
 // ----------------------------------------------------------------------------------------------------
 
 var queueEntryHeight = 49;
-var pageY = 0, pageHeight = 0;
-window.onscroll = function(e) {
-	pageY = Math.max(e.pageY || window.pageYOffset, 0);
-	pageHeight = window.innerHeight;
-	m.redraw();
+var pageY = 0,
+    pageHeight = window.innerHeight,
+    pageOldY = 0;
+window.resize = function () {
+    pageHeight = window.innerHeight;
 };
-$(window).trigger('scroll');
+window.onscroll = function (e) {
+    pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
+    var diff = Math.abs(pageOldY - (pageY - pageHeight * 0.5));
+    console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
+    if (diff > pageHeight) {
+        pageOldY = pageY;
+        m.redraw();
+    }
+};
+// $(window).trigger('scroll');
 
-m.module(document.getElementById('playlist-entries-container'), {
-	controller: function() {},
-	view: function() {
-		var begin = Math.ceil(pageY / queueEntryHeight) || 0;
-		var end = begin + (pageHeight / queueEntryHeight || 0 + 2);
-		var offset = pageY % queueEntryHeight;
-		m('#pl-count', queueTracks.length); // [TODO] check this
-        return m('div', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
-			m('ul#playlist-entries.playlist', {style: 'position:relative;top:' + pageY + 'px'}, [
-                (queueTracks)?queueTracks.slice(begin, end).map(function(song, idx) {
-					var icon = null;
-					var bottom = null;
-					if (song.webradio) {
-						icon = m('i.fa.fa-microphone');
-						bottom = 'URL: ' + song.file;
-					} else if (song.artist) {
-						bottom = song.artist + ' - ' + song.album;
-					} else {
-						bottom = 'path: ' + song.filename.split('/').pop();
-					}
-                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': begin + idx}, [
+m.module(document.getElementById('playlist'), {
+    controller: function () { },
+    view: function () {
+        var begin = Math.ceil(pageY / queueEntryHeight) || 0; // first visible entry
+        var visibleEntries = (Math.floor(pageHeight / queueEntryHeight || 0 + 2));
+        var end = begin + visibleEntries; // last visible entry
+        var offset = pageY % queueEntryHeight;
+        // var offset = 0;
+        var next = visibleEntries * 2; // amount of following blocks
+        var previous = visibleEntries * 2; // amount of preceeding blocks
+        var start = Math.max(begin - previous, 0); // max index of the future block
+        var finish = Math.min(end + next, Math.max(queueTracks.length - 1, 0)); // min index of the prior block
+        // console.log('visibleEntries=' + visibleEntries + ', next=' + next + ', previous=' + previous);
+        console.log('begin=' + begin + ', end=' + end + ', offset=' + offset + ', start=' + start + ', finish=' + finish + ', total=' + queueTracks.length);
+        console.log('count=' + parseInt(finish - start));
+
+        // return m('#queue-entries-container', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
+        return m('#queue-entries-container', [
+			m('ul#playlist-entries', { style: 'position:relative;top:' + pageY + 'px' }, [
+                (queueTracks) ? queueTracks.slice(start, finish).map(function (song, idx) {
+                    var icon = null;
+                    var bottom = null;
+                    if (song.webradio) {
+                        icon = m('i.fa.fa-microphone');
+                        bottom = 'URL: ' + song.file;
+                    } else if (song.artist) {
+                        bottom = song.artist + ' - ' + song.album;
+                    } else {
+                        if (song.file) {
+                            bottom = 'path: ' + song.file.split('/').pop();
+                        } else {
+                            console.log(song);
+                        }
+                    }
+                    return m('li', { id: 'pl-' + song.id, 'data-queuepos': start + idx, 'class': song.current ? 'active' : '' }, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
 							song.title,
 							m('span', song.timeFormatted)
 						]),
 						m('span.bl', bottom)
-					]);
-				}):null
+                    ]);
+                }) : null
 			]),
-		]);
-	}
+        ]);
+    }
 });
