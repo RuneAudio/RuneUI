@@ -92,11 +92,9 @@
             <span id="pl-count" class="hide">2143 entries</span>
         </div>
         <div id="playlist">
-            <div id="playlist-entries-container">
-				<ul id="playlist-entries" class="playlist">
-					<!-- playing queue entries -->
-				</ul>
-			</div>
+            
+			<!-- playing queue entries -->
+			
             <ul id="pl-editor" class="playlist hide">
                 <!-- playlists -->
             </ul>

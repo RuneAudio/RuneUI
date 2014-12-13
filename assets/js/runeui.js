@@ -61,6 +61,8 @@ var GUI = {
     volume: null
 };
 var queueTracks = [];
+var isCustomScroll = false;
+var listEntryHeight = 50;
 
 
 
@@ -230,28 +232,25 @@ function setQueuePos() {
 
 // custom scrolling
 function customScroll(list, destination, speed) {
+    isCustomScroll = true;
     // console.log('list = ' + list + ', destination = ' + destination + ', speed = ' + speed);
     if (typeof(speed) === 'undefined') {
         speed = 500;
     }
-    var entryheight = 49;
+    var entryheight = 50;
     var centerheight = parseInt($(window).height()/2);
     var scrolltop = $(window).scrollTop();
     var scrollcalc = 0;
     var scrolloffset = 0;
     if (list === 'db') {
-        scrollcalc = parseInt((destination)*entryheight - centerheight);
+        scrollcalc = parseInt((destination)*listEntryHeight - centerheight);
         scrolloffset = scrollcalc;
     } else if (list === 'pl') {
         if (queueTracks.length !== 0) {
-            //var scrolloffset = parseInt((destination + 2)*entryheight - centerheight);
-            scrollcalc = parseInt((destination + 2)*entryheight - centerheight);
+            //var scrolloffset = parseInt((destination + 2)*listEntryHeight - centerheight);
+            scrollcalc = parseInt((destination + 2)*listEntryHeight - centerheight);
             scrolloffset = Math.abs(scrollcalc - scrolltop);
             scrolloffset = (scrollcalc > scrolltop ? '+':'-') + '=' + scrolloffset + 'px';
-            // $('[data-queuepos="' + destination + '"]').addClass('active');
-            // queueTracks[destination].current = true;
-            console.log(queueTracks[destination].current);
-            console.log(GUI.currentqueuepos);
         }
     }
     // debug
@@ -260,7 +259,8 @@ function customScroll(list, destination, speed) {
     // console.log('scrolltop = ', scrolltop);
     // console.log('scrollcalc = ', scrollcalc);
     // console.log('scrolloffset = ', scrolloffset);
-    $.scrollTo( (scrollcalc >0? scrolloffset:0), speed);
+    $.scrollTo((scrollcalc >0? scrolloffset:0), speed);
+    isCustomScroll = false;
 }
 
 // [!] scrolling debug purpose only
@@ -604,7 +604,6 @@ function updateGUI() {
         // console.log('A = ', GUI.json.currentsong); console.log('B = ', GUI.currentsong);
         if (GUI.currentsong !== GUI.json.currentsong) {
             setQueuePos();
-            console.log('607 currentqueuepos = ', GUI.currentqueuepos);
             countdownRestart(0);
             if ($('#panel-dx').hasClass('active')) {
                 var current = parseInt(GUI.json.song);
@@ -789,6 +788,7 @@ function getPlaylistCmd(){
                 // console.time('getPlaylistPlain timer');
                 queueTracks = parseQueue(data);
                 // console.timeEnd('getPlaylistPlain timer');
+                $('#playlist').height(queueTracks.length * listEntryHeight);
                 setQueuePos();
                 // console.log('793 currentqueuepos = ', GUI.currentqueuepos);
                 if ($('#open-panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
@@ -2333,12 +2333,12 @@ if ($('#section-index').length) {
         });
         $('#pl-prevPage').click(function(){
             var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop - $(window).height();
+            var scrolloffset = scrollTop - $(window).height() - 160;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-nextPage').click(function(){
             var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop + $(window).height();
+            var scrolloffset = scrollTop + $(window).height() - 160;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-lastPage').click(function(){
@@ -2703,25 +2703,43 @@ if ($('#section-index').length) {
 // QUEUE RENDERING VIA MITHRIL
 // ----------------------------------------------------------------------------------------------------
 
-var queueEntryHeight = 49;
-var pageY = 0, pageHeight = 0;
-window.onscroll = function(e) {
-	pageY = Math.max(e.pageY || window.pageYOffset, 0);
-	pageHeight = window.innerHeight;
-	m.redraw();
+var pageY = 0,
+    pageHeight = window.innerHeight - 160,
+    visibleEntries = (Math.floor(pageHeight / listEntryHeight || 0 + 2)), // max number of visible entries on screen
+    pageOldY = 0;
+window.resize = function() {
+	pageHeight = window.innerHeight - 160;
+    visibleEntries = (Math.floor(pageHeight / listEntryHeight || 0 + 2));
 };
-$(window).trigger('scroll');
+window.onscroll = function(e) {
+	pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
+    var diff = Math.abs(pageOldY - (pageY - pageHeight));
+    // console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
+	if (diff > pageHeight) {
+        pageOldY = pageY;
+        m.redraw();
+    }
+};
+// $(window).trigger('scroll');
 
-m.module(document.getElementById('playlist-entries-container'), {
+m.module(document.getElementById('playlist'), {
 	controller: function() {},
 	view: function() {
-		var begin = Math.ceil(pageY / queueEntryHeight) || 0;
-		var end = begin + (pageHeight / queueEntryHeight || 0 + 2);
-		var offset = pageY % queueEntryHeight;
-		m('#pl-count', queueTracks.length); // [TODO] check this
-        return m('div', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
-			m('ul#playlist-entries.playlist', {style: 'position:relative;top:' + pageY + 'px'}, [
-                (queueTracks)?queueTracks.slice(begin, end).map(function(song, idx) {
+        var begin = Math.floor(pageY / listEntryHeight) || 0; // first visible entry
+		var end = begin + visibleEntries; // last visible entry
+		var offset = pageY % listEntryHeight;
+        var buffer = 2; // amount of preceeding and following blocks to load
+        var start = Math.max(begin - visibleEntries * buffer, 0); // index of the first block
+        var finish = Math.min(end + visibleEntries * buffer, Math.max(queueTracks.length - 1, 0)); // index of the last block
+        // var offsetUL = pageY - (listEntryHeight * (begin - start));
+        var offsetUL = start * listEntryHeight;
+        // console.log('visibleEntries=' + visibleEntries + ', next=' + next + ', previous=' + previous);
+        console.log('visible:' + begin + '->' + end + '(' + visibleEntries + '), loaded:' + start + '->' + finish + '(' + parseInt(finish - start) + ') of ' + queueTracks.length + ', offset:' + offset + ', offsetUL:' + offsetUL + 'px');
+        
+        // return m('#queue-entries-container', {style: 'height:' + (queueTracks.length * listEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
+        return m('#queue-entries-container', [
+			m('ul#playlist-entries', {style: 'position:relative;top:' + offsetUL + 'px'}, [
+                (queueTracks)?queueTracks.slice(start, finish).map(function(song, idx) {
 					var icon = null;
 					var bottom = null;
 					if (song.webradio) {
@@ -2730,9 +2748,13 @@ m.module(document.getElementById('playlist-entries-container'), {
 					} else if (song.artist) {
 						bottom = song.artist + ' - ' + song.album;
 					} else {
-						bottom = 'path: ' + song.filename.split('/').pop();
+						if (song.file) {
+                            bottom = 'path: ' + song.file.split('/').pop();
+                        } else {
+                            console.log(song);
+                        }
 					}
-                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': begin + idx, 'class': song.current ? 'active' : ''}, [
+                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': start + idx, 'class': song.current ? 'active' : ''}, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
 							song.title,
