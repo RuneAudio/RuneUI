@@ -750,11 +750,17 @@ function sysCmd($syscmd)
     return $output;
 }
 
-function sysCmdAsync($syscmd) {
-exec($syscmd." > /dev/null 2>&1 &", $output);
-// runelog('sysCmdAsync($str)',$syscmd);
-// runelog('sysCmdAsync() output:',$output);
-return $output;
+function sysCmdAsync($syscmd, $waitsec = null) {
+    if (isset($waitsec)) {
+        $cmdstr = "/var/www/command/cmd_async ".base64_encode($syscmd);
+    } else {
+        $cmdstr = "/var/www/command/cmd_async ".base64_encode($syscmd);
+    }
+    exec($cmdstr." > /dev/null 2>&1 &", $output);
+    runelog('sysCmdAsync($cmdstr) decoded', $syscmd, __FUNCTION__);
+    runelog('sysCmdAsync($cmdstr) encoded', $cmdstr, __FUNCTION__);
+    runelog('sysCmdAsync() output:', $output, __FUNCTION__);
+    return $output;
 }
 
 function getMpdDaemonDetalis()
@@ -1298,29 +1304,24 @@ function wrk_backup($bktype)
 
 function wrk_opcache($action, $redis)
 {
+// debug
+runelog('wrk_opcache ', $action);
     switch ($action) {
         case 'prime':
-            if ($redis->get('opcache') == 1) {
-            $ch = curl_init('http://localhost/command/cachectl.php?action=prime');
-            curl_exec($ch);
-            curl_close($ch);
-            }
-            runelog('wrk_opcache ', $action);
+            opcache_reset();
+            if ($redis->get('opcache') == 1) sysCmd('curl http://127.0.0.1/command/cachectl.php?action=prime');
             break;
         case 'forceprime':
-            $ch = curl_init('http://localhost/command/cachectl.php?action=prime');
-            curl_exec($ch);
-            curl_close($ch);
-            runelog('wrk_opcache ', $action);
+            opcache_reset();
+            sysCmd('curl http://127.0.0.1/command/cachectl.php?action=prime');
             break;
         case 'reset':
-            $ch = curl_init('http://localhost/command/cachectl.php?action=reset');
-            curl_exec($ch);
-            curl_close($ch);
-            runelog('wrk_opcache ', $action);
+            // sysCmd('curl http://127.0.0.1/clear');
+            // reset cache
+            OpCacheCtl('reset', '/srv/http/');
+            opcache_reset();
             break;
         case 'enable':
-            wrk_opcache('reset');
             // opcache.ini
             $file = '/etc/php/conf.d/opcache.ini';
             $newArray = wrk_replaceTextLine($file, '', 'opcache.enable', 'opcache.enable=1', 'zend_extension', 1);
@@ -1328,10 +1329,9 @@ function wrk_opcache($action, $redis)
             $fp = fopen($file, 'w');
             fwrite($fp, implode("", $newArray));
             fclose($fp);
-            runelog('wrk_opcache ', $action);
+            $redis->set('opcache', 1);
             break;
         case 'disable':
-            wrk_opcache('reset');
             // opcache.ini
             // -- REWORK NEEDED --
             $file = '/etc/php/conf.d/opcache.ini';
@@ -1340,7 +1340,7 @@ function wrk_opcache($action, $redis)
             $fp = fopen($file, 'w');
             fwrite($fp, implode("", $newArray));
             fclose($fp);
-            runelog('wrk_opcache ', $action);
+            $redis->set('opcache', 0);
             break;
     }
 }

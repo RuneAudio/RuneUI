@@ -1,4 +1,5 @@
-<?php
+#!/usr/bin/php
+<?php 
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -26,37 +27,31 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: command/cachectl.php
+ *  file: command/cmd_async {cmd} {usec wait} 
  *  version: 1.3
  *  coder: Simone De Gregori
  *
  */
 // common include
-include('/srv/http/app/config/config.php');
-opcache_invalidate ('/srv/http/command/cachectl.php');
-// insect GET['action']
-if (isset($_GET['action'])) {
-    switch ($_GET['action']) {
-        case 'prime':
-            OpCacheCtl('prime', '/srv/http/', $redis);
-            break;
-        case 'primeall':
-            OpCacheCtl('primeall', '/srv/http/');
-            break;
-        case 'reset':
-            runelog('cacheCTL RESET');
-            OpCacheCtl('reset', '/srv/http/');
-            opcache_reset();
-            echo "PHP OPCACHE CLEARED";
-            break;
-        case 'debug':
-            // opcache_reset();
-            echo "<pre>";
-            echo "OPcache status:\n";
-            print_r(opcache_get_status());
-            echo "OPcache configuration:\n";
-            print_r(opcache_get_configuration());
-            echo "</pre>";
-            break;
+ini_set('display_errors', '1');
+// ini_set('error_reporting', -1);
+ini_set('error_log', '/var/log/runeaudio/cmd_async.log');
+// Connect to Redis backend
+$redis = new Redis();
+$redis->connect('/tmp/redis.sock');
+include('/var/www/app/libs/runeaudio.php');
+
+if (isset($argv[1])) {
+$argv[1] = base64_decode($argv[1]);
+    if (isset($argv[2])) {
+        settype($argv[2], 'integer');
+        echo "wait for ".$argv[2]." seconds\n";
+        sleep($argv[2]);
     }
+    echo "execute command: ".$argv[1]."\n";
+    $output = sysCmd($argv[1]);
+    echo "command response:\n";
+    foreach ($output as $line) echo "\t".$line."\n";
+} else {
+    echo "cmd_async {cmd} {sec wait}\n";
 }
