@@ -231,8 +231,6 @@ if ($redis->get('dev') === '0') {
     runelog('prime PHP OPCache');
     sysCmdAsync("curl -s -X GET 'http://127.0.0.1/command/cachectl.php?action=prime'");
 }
-// mount all sources
-wrk_sourcemount($redis, 'mountall');
 runelog('--- NORMAL STARTUP');
 // --- NORMAL STARTUP //
 $start4 = microtime(true);
@@ -245,6 +243,8 @@ $redis->close();
 sysCmdAsync('/var/www/command/refresh_nics ; /var/www/command/debug_collector');
 runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
+$all_mounted = 0;
+$retries_mounting = 0;
 while (1) {
 // Connect to Redis backend
 $redis->pconnect('/tmp/redis.sock');
@@ -783,6 +783,23 @@ $redis->pconnect('/tmp/redis.sock');
             runelog('(loop) delete job_queue', $jobID);
         } // end foreach loop
     } // end if loop
+    // mount all sources
+    if ($all_mounted === 0) {
+        runelog('wrk_SY: try to mount all shares!');
+        $all_mounted = wrk_sourcemount($redis, 'mountall');
+        if ($all_mounted === 1) {
+            runelog('wrk_SY: all shares mounted successfully!');
+        } else {
+            $retries_mounting++;
+            runelog('wrk_SY: error mounting shares, try it again! Count: '.$retries_mounting);
+            if ($retries_mounting > 20) {
+                $all_mounted = 1;
+                runelog('wrk_SY: mounting: tried it 20 times (10 seconds) => capitulating!');
+                ui_notify_async('ERROR','Failed to mount network shares');
+            }
+            usleep(500000);
+        }
+    }
     // unload CPU
     usleep(500000);
 } // end while loop
