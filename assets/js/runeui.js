@@ -89,8 +89,10 @@ function checkWebSocket(){
     if (window.WebSocket){
         // console.log('WebSockets supported');
         return 'websocket';
+        console.log('websocket');
     } else {
         // console.log('WebSockets not supported');
+        console.log('longpolling');
         return 'longpolling';
     }
 }
@@ -98,10 +100,10 @@ function checkWebSocket(){
 // check HTML5 Workers support
 function checkWorkers(){
     if ((window.Worker && window.Blob) || (Modernizr.webworkers && Modernizr.blobconstructor)) {
-        // console.log('WebWorkers supported');
+        console.log('WebWorkers supported');
         return true;
     } else {
-        // console.log('WebWorkers not supported');
+        console.log('WebWorkers not supported');
         return false;
     }
 }
@@ -407,12 +409,34 @@ function chkKey(key) {
     return (key !== undefined && key !== '');
 }
 
+function setupAlphabetNav() {
+    // <KEW>
+    // look for the named Anchor tags to see which navigation letters to disable
+    setupAlphabetNav();
+    $('.alphabetTag').each(function (index) {
+        console.log("alphabetTag index:" + index + " name: " + $(this).attr('name'));
+        var button = $("a[data-alphabet='" + $(this).attr('name') + "']")[0];
+        if (button) {
+            $(button).removeClass('disabled')
+        }
+    })
+    // </KEW>
+}
+    
+
 // render the Library home screen
 function renderLibraryHome() {
     loadingSpinner('db');
     $('#database-entries').addClass('hide');
     $('#db-level-up').addClass('hide');
     $('#db-homeSetup').removeClass('hide').removeClass('btn-primary').addClass('btn-default');
+
+    // <KEW>
+    // by default, the Library panel does not need the Alphabet nav
+    $('#overlay-alphabet-open').addClass('hide');
+    // </KEW>
+
+
     $('#home-blocks').removeClass('hide');
     var obj = GUI.libraryhome,
         i = 0,
@@ -901,6 +925,14 @@ function parseResponse(options) {
                         content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-root"></i><i class="fa fa-hdd-o icon-root"></i><span>';
                     }
                     content += inputArr.directory.replace(inpath + '/', '');
+
+                    // <KEW>
+                    // Add an Anchor tag to manage navigation to the first letter when the PHP returns it to us
+                    if (inputArr.firstLetter) {
+                        content += '<a name="' + inputArr.firstLetter + '" href="#" class="alphabetTag"></a>';
+                    }
+                    // </KEW>
+
                     content += '</span></li>';
                 }
             } else if (GUI.browsemode === 'album' || GUI.browsemode === 'albumfilter') {
@@ -953,6 +985,7 @@ function parseResponse(options) {
                     content += '</span></li>';
                 }
             }
+
         break;
         
         case 'Spotify':
@@ -1131,6 +1164,15 @@ function populateDB(options){
                 content += '<li id="webradio-add" class="db-webradio-add"><i class="fa fa-plus-circle db-icon"></i><span class="sn"><em>add new</em></span><span class="bl">add a webradio to your library</span></li>';
             }
             document.getElementById('database-entries').innerHTML = content;
+
+
+            // <KEW>
+            // look for the named Anchor tags to see which navigation letters to disable
+            setupAlphabetNav();
+            // </KEW>
+
+
+
             // DEBUG
             // console.log('GUI.currentDBpos = ', GUI.currentDBpos);
             // console.log('level = ', GUI.currentDBpos[10]);
@@ -1160,6 +1202,13 @@ function populateDB(options){
         breadcrumb.html(path);
     }
     $('#db-homeSetup').addClass('hide');
+
+    // <KEW>
+    // Show the Alphabet nav button
+    $('#overlay-alphabet-open').removeClass('hide'); 
+    // </KEW>
+
+
     if (uplevel) {
         var position = GUI.currentDBpos[GUI.currentDBpos[10]];
         $('#db-' + position).addClass('active');
@@ -2240,6 +2289,10 @@ if ($('#section-index').length) {
         // ----------------------------------------------------------------------------------------------------
         
         // scroll buttons
+        $('#db-alphabet').click(function () {
+            //$(window)[0].location.hash = "R";
+            $('#overlay-alphabet-open').trigger('click');
+        });
         $('#db-firstPage').click(function(){
             $.scrollTo(0 , 500);
         });
@@ -2314,6 +2367,33 @@ if ($('#section-index').length) {
         overlayTrigger('#overlay-social');
         // play source overlay
         overlayTrigger('#overlay-playsource');
+
+
+
+        // <KEW>
+        // alphabet library navigation overlay setup
+        overlayTrigger('#overlay-alphabet');
+       
+        // implement a means of scrolling to the selected letter,
+        // plus a little to accomdate the fixed header
+        $('#overlay-alphabet a').click(function () {
+            $('#overlay-alphabet-close').trigger("click");
+           
+            // **
+            // this may need to be tweaked to play well with other hash tags
+            if (window.location.hash.length == 0) {
+                window.location.hash = '#' + $(this).attr('data-alphabet'); // navigate to the letter
+            } else {
+                window.location.hash = $(this).attr('data-alphabet'); // navigate to the letter
+            }
+
+            var scrollTop = $(window).scrollTop();
+            var scrolloffset = scrollTop - 80; // use the actual height of "header"
+            $.scrollTo(scrolloffset, 500);
+        })
+        // </KEW>
+
+
         // play source manual switch
         $('#playsource-mpd').click(function(){
             if ($(this).hasClass('inactive')) {
