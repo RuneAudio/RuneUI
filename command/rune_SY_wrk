@@ -485,6 +485,7 @@ $redis->pconnect('/tmp/redis.sock');
                     }
                     if ($job->action === 'reset') {
                         wrk_mpdconf($redis, 'reset');
+                        wrk_mpdconf($redis, 'restart');
                     }
                     if ($job->action === 'switchao') {
                         wrk_mpdconf($redis, 'switchao', $job->args, $jobID);
@@ -500,7 +501,7 @@ $redis->pconnect('/tmp/redis.sock');
                     wrk_mpdconf($redis, 'stop');
                     // write mpd.conf file
                     $fh = fopen('/etc/mpd.conf', 'w');
-                    fwrite($fh, $job['args']);
+                    fwrite($fh, $job->args);
                     fclose($fh);
                     wrk_mpdconf($redis, 'start');
                     $redis->sRem('w_lock', $jobID);

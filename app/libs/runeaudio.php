@@ -1951,6 +1951,13 @@ function wrk_kernelswitch($redis, $args)
 
 function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
 {
+// check if we are in "advanced mode" (manual edit mode)
+if ($action === 'reset') {
+    $redis->set('mpdconf_advanced', 0);
+    $mpdconf_advanced = 0;
+} else {
+    $mpdconf_advanced = $redis->get('mpdconf_advanced');
+}
     // set mpd.conf file header
     $header = "###################################\n";
     $header .= "# Auto generated mpd.conf file\n";
@@ -2141,13 +2148,24 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
             }
             $output .="\n";
             // debug
-            runelog('raw mpd.conf', $output, __FUNCTION__);
-            // write mpd.conf file
-            $fh = fopen('/etc/mpd.conf', 'w');
-            fwrite($fh, $output);
-            fclose($fh);
-            // update hash
-            $redis->set('mpdconfhash', md5_file('/etc/mpd.conf'));
+            // runelog('raw mpd.conf', $output, __FUNCTION__);
+            // check if mpd.conf was modified outside RuneUI (advanced mode)
+            runelog('mpd.conf advanced state', $mpdconf_advanced);
+            if ($mpdconf_advanced !== '1' OR $mpdconf_advanced === '') {
+                if ($mpdconf_advanced !== '') {
+                    runelog('mpd.conf advanced mode OFF');
+                } else {
+                    runelog('mpd.conf advanced mode RESET STATE');
+                }
+                // write mpd.conf file
+                $fh = fopen('/etc/mpd.conf', 'w');
+                fwrite($fh, $output);
+                fclose($fh);
+                // update hash
+                $redis->set('mpdconfhash', md5_file('/etc/mpd.conf'));
+            } else {
+                runelog('mpd.conf advanced mode ON');
+            }
             break;
         case 'update':
             foreach ($args as $param => $value) {
