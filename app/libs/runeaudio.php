@@ -2121,7 +2121,7 @@ if ($action === 'reset') {
                 if (isset($sub_interface)) {
                     $output .="\tname \t\t\"".$card_decoded->name."\"\n";
                 } else {
-                    $output .= $main_acard_name;
+                    $output .="\tname \t\t\"".$main_acard_name."\"\n";
                 }
                 $output .="\ttype \t\t\"".$card_decoded->type."\"\n";
                 $output .="\tdevice \t\t\"".$card_decoded->device."\"\n";
