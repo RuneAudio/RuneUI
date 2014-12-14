@@ -227,12 +227,12 @@ function setQueuePos() {
         queueTracks[GUI.currentqueuepos].current = false;
         GUI.currentqueuepos = parseInt(GUI.json.song);
         queueTracks[GUI.currentqueuepos].current = true;
+        m.redraw();
     }
 }
 
 // custom scrolling
 function customScroll(list, destination, speed) {
-    isCustomScroll = true;
     // console.log('list = ' + list + ', destination = ' + destination + ', speed = ' + speed);
     if (typeof(speed) === 'undefined') {
         speed = 500;
@@ -258,8 +258,9 @@ function customScroll(list, destination, speed) {
     // console.log('scrolltop = ', scrolltop);
     // console.log('scrollcalc = ', scrollcalc);
     // console.log('scrolloffset = ', scrolloffset);
-    $.scrollTo((scrollcalc >0? scrolloffset:0), speed);
-    isCustomScroll = false;
+    isCustomScroll = true;
+    $.scrollTo((scrollcalc > 0 ? scrolloffset : 0), speed, {onAfter: function(){ m.redraw(); isCustomScroll = false; }});
+    
 }
 
 // [!] scrolling debug purpose only
@@ -2328,7 +2329,8 @@ if ($('#section-index').length) {
         });
 
         $('#pl-firstPage').click(function(){
-            $.scrollTo(0 , 500);
+            isCustomScroll = true;
+            $.scrollTo(0 , 500, {onAfter: function(){ m.redraw(); isCustomScroll = false; }});
         });
         $('#pl-prevPage').click(function(){
             var scrollTop = $(window).scrollTop();
@@ -2340,10 +2342,12 @@ if ($('#section-index').length) {
             var scrollTop = $(window).scrollTop();
             var scrolloffset = scrollTop + $(window).height() - 160;
             // console.log('scrolloffset = ', scrolloffset);
+            
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-lastPage').click(function(){
-            $.scrollTo('100%', 500);
+            isCustomScroll = true;
+            $.scrollTo('100%', 500, {onAfter: function(){ m.redraw(); isCustomScroll = false; }});
         });
         
         // open tab from external link
@@ -2713,12 +2717,14 @@ window.resize = function() {
     visibleEntries = (Math.floor(pageHeight / listEntryHeight || 0 + 2));
 };
 window.onscroll = function(e) {
-	pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
-    var diff = Math.abs(pageOldY - (pageY - pageHeight));
-    // console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
-	if (diff > pageHeight) {
-        pageOldY = pageY;
-        m.redraw();
+	if (!isCustomScroll) {
+        pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
+        var diff = Math.abs(pageOldY - (pageY - pageHeight));
+        // console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
+        if (diff > pageHeight) {
+            pageOldY = pageY;
+            m.redraw();
+        }
     }
 };
 // $(window).trigger('scroll');
@@ -2729,7 +2735,7 @@ m.module(document.getElementById('playlist'), {
         var begin = Math.floor(pageY / listEntryHeight) || 0; // first visible entry
 		var end = begin + visibleEntries; // last visible entry
 		var offset = pageY % listEntryHeight;
-        var buffer = 2; // amount of preceeding and following blocks to load
+        var buffer = 4; // amount of preceeding and following blocks to load
         var start = Math.max(begin - visibleEntries * buffer, 0); // index of the first block
         var finish = Math.min(end + visibleEntries * buffer, Math.max(queueTracks.length - 1, 0)); // index of the last block
         // var offsetUL = pageY - (listEntryHeight * (begin - start));
