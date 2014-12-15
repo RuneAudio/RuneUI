@@ -1347,11 +1347,12 @@ runelog('wrk_opcache ', $action);
 
 function wrk_netconfig($redis, $action, $args = null, $configonly = null)
 {
-$updateh = 0;
+    // nics blacklist
+    $excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
+
+    $updateh = 0;
     switch ($action) {
         case 'setnics':
-            // nics blacklist
-            $excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
             // flush nics Redis hash table
             $transaction = $redis->multi();
             $transaction->del('nics');
@@ -1381,46 +1382,71 @@ $updateh = 0;
                     $transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 0)));
                 }
             }
-            //// if ($scanwifi) sysCmdAsync('/var/www/command/refresh_nics');
-            // check wpa_supplicant auto-start and purge interface list
-            /* TODO marked for deletion
-            $wpa_supplicant_start = sysCmd("ls -lah /etc/systemd/system/multi-user.target.wants/wpa_supplicant@*.service | cut -d '@' -f 2 | cut -d '.' -f 1");
-            $disable_wpa_supplicant = array_diff($wpa_supplicant_start, $interfaces);
-            if (!empty($disable_wpa_supplicant)) {
-                foreach ($disable_wpa_supplicant as $interface_name) {
-                    unlink('/etc/systemd/system/multi-user.target.wants/wpa_supplicant@'.$interface_name.'.service');
-                }
-            }
-            */
             $transaction->exec();
             break;
         case 'getnics':
-             foreach ($redis->hGetAll('nics') as $interface => $details) {
-                $interfaces[$interface] = json_decode($details);
+            $interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
+            $interfaces = array_diff($interfaces, $excluded_nics);
+            foreach ($interfaces as $interface) {
+                $ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
+                $netmask = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f2");
+                if (isset($netmask[0]) && isset($ip[0])) {
+                    $netmask = "255.255.255.0";//netmask($netmask[0]);
+                } else {
+                    unset($netmask);
+                }
+                if (isset($netmask[0])) {
+                    $gw = sysCmd("route -n |grep \"0.0.0.0\" |grep \"UG\" |cut -d' ' -f10");
+                    $dns = sysCmd("cat /etc/resolv.conf |grep \"nameserver\" |cut -d' ' -f2");
+                }
+                $type = sysCmd("iwconfig ".$interface." 2>&1 | grep \"no wireless\"");
+                if (empty($type[0])) {
+                    $speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d ':' -f 2 | cut -d ' ' -f 1-2");
+                    $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
+                    $actinterfaces[$interface] = (object) ['ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0], 'wireless' => 1, 'currentssid' => $currentSSID[0]];
+                    $redis->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 1, 'currentssid' => $currentSSID[0])));
+                } else {
+                    $speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
+                    $actinterfaces[$interface] = (object) ['ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0], 'wireless' => 0];
+                    $redis->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 0)));
+                }
             }
-            return $interfaces;
+            return $actinterfaces;
+            break;
+        case 'getstoredwlans':
+            sysCmd('/www/command/refresh_nics');
+            $wlans_profiles = json_decode($redis->Get('stored_profiles'));
+            foreach ($wlans_profiles as $profile) {
+                runelog('  Get stored wlan profiles:'.$profile);
+                if ($nicdetail->currentssid === $profile) {
+                    $connected = 1;
+                } else {
+                    $connected = 0;
+                }
+                $wlans[] = json_encode(array('ssid' => $profile, 'encryption' => 'on', 'connected' => $connected, 'storedprofile' => 1));
+            }
+            return $wlans;
             break;
         case 'writecfg':
             // ArchLinux netctl config for wired ethernet
                 $nic = "Description='".$args->name." connection'\n";
                 $nic .= "Interface=".$args->name."\n";
-                $nic .= "ForceConnect=yes\n";
-                $nic .= "SkipNoCarrier=yes\n";
             if ($args->wireless === '1') {
                 // Wireless configuration
                 $nic .= "Connection=wireless\n";
-                $nic .= "Security=wpa-config\n";
-                $nic .= "WPAConfigFile='/etc/wpa_supplicant/wpa_supplicant.conf'\n";
+                $nic .= "Security=wpa-configsection\n";
             } else {
                 // Wired configuration
+                $nic .= "ForceConnect=yes\n";
+                $nic .= "SkipNoCarrier=yes\n";
                 $nic .= "Connection=ethernet\n";
             }
             if ($args->dhcp === '1') {
                 // DHCP configuration
                 $nic .= "IP=dhcp\n";
                 // Prepare data object for Redis record
-                $args = array( 'name' => $args->name, 'dhcp' => $args->dhcp );
-                $args = (object) $args;
+                $dhcpargs = array( 'name' => $args->name, 'dhcp' => $args->dhcp );
+                $dhcpargs = (object) $args;
             } else {
                 // STATIC configuration
                 $nic .= "AutoWired=yes\n";
@@ -1433,8 +1459,66 @@ $updateh = 0;
                     $nic .= "DNS=('".$args->dns1."')\n";
                 }
             }
-            // ntp sync after connect
-            $nic .= "ExecUpPost='/usr/bin/ntpd -gq || true'\n";
+            if ($args->wireless === '1') {
+                $nic .= "WPAConfigSection=(\n";
+                if ($args->newssid === "add") {
+                    $nic .= "    'ssid=\"".$args->ssid."\"'\n";
+                    $nic .= "    'scan_ssid=1'\n";
+                } else {
+                    $nic .= "    'ssid=\"".$args->newssid."\"'\n";
+                }
+                //$key = $args->key;
+                switch ($args->encryption) {
+                    case 'none':
+                        $nic .= "    'key_mgmt=NONE'\n";
+                        break;
+                    case 'wep':
+                        $nic .= "    'key_mgmt=NONE'\n";
+                        $nic .= "    'wep_tx_keyidx=0'\n";
+                        $wepkey = $args->key;
+                        if (ctype_xdigit($wepkey) && (strlen($wepkey) == 10 OR strlen($wepkey) == 26 OR strlen($wepkey) == 32)) {
+                            $nic .= "    'wep_key0=".$wepkey."'\n";
+                        } elseif (strlen($wepkey) <= 16) {
+                            $nic .= "    'wep_key0=\"".$wepkey."\"'\n";
+                        } else {
+                            $nic .= "    'wep_key0=\"* wrong wepkey *\"'\n";
+                            ui_notify_async('WIFI-Config ERROR', "You entered a wrong key!\n");
+                            return '';
+                       }
+                        //            auth_alg=SHARED
+                        break;
+                    case 'wpa':
+                        $wpakey = $args->key;
+                        if (ctype_xdigit($wpakey) && strlen($wpakey) == 64) {
+                            $nic .= "    'psk=".$wpakey."'\n";
+                        } elseif (strlen($wpakey) >= 8 && strlen($wpakey) <= 63) {
+                            $nic .= "    'psk=\"".$wpakey."\"'\n";
+                        } else {
+                            $nic .= "    'psk=\"* wrong wepkey *\"'\n";
+                            ui_notify_async('WIFI-Config ERROR', "You entered a wrong key!\n");
+                            return '';
+                        }
+                        $nic .= "    'key_mgmt=WPA-PSK'\n";
+                        if (strpos($args->ie, "WPA2") !== false) {
+                            $nic .= "    'proto=RSN'\n";
+                        } else {
+                            $nic .= "    'proto=WPA'\n";
+                        }
+                        if (strpos($args->GroupCipher, "CCMP") !== false) {
+                            $nic .= "    'group=CCMP'\n";
+                        } else {
+                            $nic .= "    'group=TKIP'\n";
+                        }           
+                        if (strpos($args->PairwiseCiphers1, "CCMP") !== false OR strpos($args->PairwiseCiphers2, "CCMP") !== false) {
+                            $nic .= "    'pairwise=CCMP'\n";
+                        } else {
+                            $nic .= "    'pairwise=TKIP'\n";
+                        }
+                }
+                $nic .= "    'priority=3'\n";
+                $nic .= ")\n";
+            }
+
             // set advanced DNS options
             $newArray = wrk_replaceTextLine('/etc/resolvconf.conf', '', 'resolv_conf_options=', "resolv_conf_options=('timeout:".$redis->hGet('resolvconf', 'timeout')." attempts:".$redis->hGet('resolvconf', 'attempts')."')", '#name_servers=127.0.0.1', 1);
             // Commit changes to /etc/resolvconf.conf
@@ -1445,11 +1529,27 @@ $updateh = 0;
             sysCmd('resolvconf -u');
 
             // write current network config
-            $redis->set($args->name, json_encode($args));
-            $fp = fopen('/etc/netctl/'.$args->name, 'w');
+            runelog("wireless = ".$args->wireless);
+            if ($args->wireless === '1') {
+                // wireless
+                runelog("save as wireless");
+                if ($args->newssid === "add") {
+                    $redis->Set($args->ssid, json_encode($args));
+                    $fp = fopen('/etc/netctl/'.$args->ssid, 'w');
+                } else {
+                    $redis->Set($args->newssid, json_encode($args));
+                    $fp = fopen('/etc/netctl/'.$args->newssid, 'w');
+                }
+            } else {
+                // wired
+                runelog("save as wired");
+                $redis->Set($args->name, json_encode($args));
+                $fp = fopen('/etc/netctl/'.$args->name, 'w');
+            }
             fwrite($fp, $nic);
             fclose($fp);
             if (!isset($configonly)) $updateh = 1;
+            //$updateh = 1;
             break;
         case 'manual':
             $file = '/etc/netctl/'.$args['name'];
@@ -1468,195 +1568,68 @@ $updateh = 0;
             break;
     }
     if ($updateh === 1) {
-        runelog('wireless NIC?', $args->wireless);
+        sysCmd('mpc pause');
+        //sysCmd('systemctl stop mpd');
         // activate configuration (RuneOS)
-        wrk_mpdPlaybackStatus($redis, 'record');
-        sysCmd('netctl stop '.$args->name);
-        sysCmd('ip addr flush dev '.$args->name);
-        if ($args->dhcp === '1') {
-        // dhcp configuration
-            if ($args->wireless !== '1') {
-                // $cmd = 'systemctl enable ifplugd@'.$args->name;
-                sysCmd("ln -s '/usr/lib/systemd/system/netctl-ifplugd@.service' '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'");
-                sysCmd('systemctl daemon-reload');
-                sysCmd('systemctl start netctl-ifplugd@'.$args->name);
+        runelog("wireless = ".$args->wireless);
+        if ($args->wireless !== '1') {
+            sysCmd('systemctl reenable netctl-ifplugd@'.$args->name);
+            if ($args->reboot === '1') {
+                runelog('**** reboot requested ****', $args->name);
+                $return = 'reboot';
+            } else {
+                runelog('**** no reboot requested ****', $args->name);
+                sysCmd('systemctl restart netctl-ifplugd@'.$args->name);
+                $return = '';
             }
-            // sysCmd('systemctl daemon-reload');
         } else {
-        // static configuration
-            if ($args->wireless !== '1') {
-                // $cmd = 'systemctl disable ifplugd@'.$args->name;
-                sysCmd("rm '/etc/systemd/system/multi-user.target.wants/netctl-ifplugd@".$args->name.".service'");
-                sysCmd('systemctl daemon-reload');
-                // kill ifplugd
-                sysCmd('killall ifplugd');
-            }
-            // get pids of dhcpcd
-            $pids = sysCmd('pgrep -xf "dhcpcd -4 -q -t 30 -L '.$args->name.'"');
-            foreach ($pids as $pid) {
-                // debug
-                runelog('kill pid:', $pid);
-                // kill dhcpcd
-                sysCmd('kill '.$pid);
-            }
+            sysCmd('systemctl reenable netctl-auto@'.$args->name);
+            sysCmd('systemctl restart netctl-auto@'.$args->name);
+            sysCmd('netctl-auto enable '.$args->newssid);
+            sysCmd('netctl-auto switch-to '.$args->newssid);
+            runelog('**** wireless => do not reboot ****', $args->name);
+            $return = '';
         }
-        // start netctl profile for wired nics
-        if ($args->wireless !== '1') sysCmd('netctl start '.$args->name);
-        sysCmd('systemctl restart mpd');
-        // set process priority
-        sysCmdAsync('sleep 1 && rune_prio nice');
     }
     // update hash if necessary
     $updateh === 0 || $redis->set($args->name.'_hash', md5_file('/etc/netctl/'.$args->name));
     if (wrk_mpdPlaybackStatus($redis, 'laststate') === 'playing') sysCmd('mpc play');
+    return $return;
 }
 
 function wrk_wifiprofile($redis, $action, $args)
 {
     switch ($action) {
         case 'add':
-            $args->id = wrk_wpa_cli('add', $args);
-            if ($args->id !== false) {
-                unset($args->action);
-                $return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
-            }
+            runelog('**** wrk_wifiprofile ADD ****', $args->ssid);
+            wrk_wifiprofile($redis, 'connect', $args);
             break;
         case 'edit':
-            if(wrk_wpa_cli('edit', $args, $redis)) {
-                unset($args->action);
-                unset($args->edit);
-                $return = $redis->hSet('wlan_profiles', $args->ssid, json_encode($args));
-            }
+            runelog('**** wrk_wifiprofile EDIT ****', $args->ssid);
+            wrk_wifiprofile($redis, 'connect', $args);
             break;
         case 'delete':
-            if (wrk_wpa_cli('delete', $args)) $return = $redis->hDel('wlan_profiles', $args->ssid);
+            runelog('**** wrk_wifiprofile DELETE ****', $args->ssid);
+            wrk_wifiprofile($redis, 'disconnect', $args);
+            $redis->Del($args->ssid);
+            $redis->Del('stored_profiles');
+            sysCmd("rm /etc/netctl/".$args->ssid);
+            sysCmdAsync("systemctl restart netctl-auto@".$args->nic);
+            $return = 1;
             break;
         case 'connect':
-            if (wrk_wpa_cli('connect')) {
-                $redis->Set('wlan_autoconnect', 1);
-                $return = 1;
-            }
+            runelog('**** wrk_wifiprofile CONNECT ****', $args->ssid);
+            sysCmdAsync("netctl-auto switch-to ".$args->ssid);
+            $redis->Set('wlan_autoconnect', 1);
+            $return = 1;
             break;
         case 'disconnect':
-            if (wrk_wpa_cli('disconnect')) {
-                $redis->Set('wlan_autoconnect', 0);
-                $return = 1;
-            }
+            runelog('**** wrk_wifiprofile DISCONNECT ****', $args->ssid);
+            sysCmdAsync("netctl-auto disable ".$args->ssid);
+            $redis->Set('wlan_autoconnect', 0);
+            $return = 1;
             break;
     }
-    return $return;
-}
-
-function wrk_wpa_cli($action, $args = null, $redis = null)
-{
-    $return = 0;
-    // debug
-    runelog('**** wrk_wpa_cli() START ****');
-    runelog('----- wrk_wpa_cli() args:',$args);
-    runelog('----- wrk_wpa_cli() action:',$action);
-    switch ($action) {
-        case 'add':
-            // add wpa entry in the stack
-            $wlanid = sysCmd('wpa_cli add_network');
-            $args->id =  $wlanid[1];
-            // debug
-            runelog('wrk_wpa_cli('.$action.'): assigned wlan ID', $args->id);
-            $wpa_cli_response = wrk_wpa_cli('store', $args);
-            if ($wpa_cli_response) {
-                if (isset($args->connect)) {
-                    wrk_wpa_cli('connect');
-                }
-                $return = $args->id;
-            } else {
-                // rollback
-                sysCmd('wpa_cli remove_network '.$args->id);
-                $return = false;
-            }
-            break;
-        case 'edit':
-            $args->edit = 1;
-            if (isset($args->connect)) {
-                unset($args->connect);
-                $connect = 1;
-            }
-            if (wrk_wpa_cli('store', $args, $redis)) {
-                if ($connect) wrk_wpa_cli('connect');
-                $return = 1;
-            }
-            break;
-        case 'store':
-            // set default set password command
-            $cmd_pass = "wpa_cli set_network ".$args->id." psk '\"".$args->key."\"'";
-            if (isset($args->edit)) {
-                $stored_profile = json_decode($redis->hGet('wlan_profiles',$args->ssid));
-                if ($stored_profile->encryption === $args->encryption) {
-                    // select correct change password command
-                    $cmd_pass = "wpa_cli new_password ".$args->id." '\"".$args->key."\"'";
-                } else {
-                    // remove and
-                    if (wrk_wpa_cli('delete', $args)) {
-                    unset($args->edit);
-                    wrk_wpa_cli('add', $args);
-                    } else {
-                        $return = false;
-                        break;
-                    }
-                }
-            }
-            // set the SSID
-            $wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." ssid '\"".$args->ssid."\"'");
-            // set the encryption type
-            if ($wpa_cli_response[1] === 'OK') {
-                if ($args->encryption === 'open') {
-                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
-                }
-                if ($args->encryption === 'wpa') {
-                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt WPA-PSK');
-                    // store the encryption key
-                    $wpa_cli_response = sysCmd($cmd_pass);
-                }
-                if ($args->encryption === 'wep') {
-                    $wpa_cli_response = sysCmd('wpa_cli set_network '.$args->id.' key_mgmt NONE');
-                    // store the encryption key
-                    if (isset($chpass)) {
-                        $wpa_cli_response = sysCmd("wpa_cli new_password ".$args->id." '\"".$args->key."\"'");
-                    } else {
-                        $wpa_cli_response = sysCmd("wpa_cli set_network ".$args->id." wep_key0 '\"".$args->key."\"'");
-                    }
-                }
-            }
-            // enable the new network profile
-            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli enable_network '.$args->id);
-            // save configuration file
-            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
-            if ($wpa_cli_response[1] === 'OK') {
-                $return = true;
-            } else {
-                $return = false;
-            }
-            break;
-        case 'delete':
-            $wpa_cli_response = sysCmd('wpa_cli remove_network '.$args->id);
-            if ($wpa_cli_response[1] === 'OK') $wpa_cli_response = sysCmd('wpa_cli save_config');
-            if ($wpa_cli_response[1] === 'OK') {
-                $return = 1;
-            } else {
-                $return = false;
-            }
-            break;
-        case 'connect':
-            // TODO: enhance, catch the event "CTRL-EVENT-CONNECTED" instead of "OK" response from wpa_cli
-            $wpa_cli_response = sysCmd('wpa_cli reconnect');
-            if ($wpa_cli_response[1] === 'OK') $return = 1;
-            break;
-        case 'disconnect':
-            $wpa_cli_response = sysCmd('wpa_cli disconnect');
-            if ($wpa_cli_response[1] === 'OK') $return = 1;
-            break;
-    }
-    // debug
-    runelog('----- wrk_wpa_cli() exit status',$return);
-    runelog('**** wrk_wpa_cli() STOP ****');
     return $return;
 }
 

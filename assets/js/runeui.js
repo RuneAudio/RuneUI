@@ -1381,7 +1381,7 @@ function libraryHome(text) {
 // list of in range wlans
 function listWLANs(text) {
     var i = 0, content = '', inrange = '', stored = '', wlans = text[0];
-    // console.log(wlans);
+    //console.log(wlans);
     $.each(wlans, function(i) {
         content += '<p><a href="/network/wlan/' + wlans[i].nic + '/' + wlans[i].ESSID + '" class="btn btn-lg btn-default btn-block" title="See network properties">';
         if (wlans[i].connected !== 0) {
@@ -1399,10 +1399,11 @@ function listWLANs(text) {
             }
         }
         content += '<strong>' + wlans[i].ESSID + '</strong></a></p>';
+        if (wlans[i].origin === 'scan') {
+            inrange += content;
+        }
         if (wlans[i].storedprofile === 1) {
             stored += content;
-        } else {
-            inrange += content;
         }
         content = '';
     });
@@ -1422,7 +1423,7 @@ function nicsDetails(text) {
         if (i === $('#nic-details').data('name')) {
             content += '<tr><th>Name:</th><td><strong>' + i + '<strong></td></tr>';
             content += '<tr><th>Type:</th><td>wireless</td></tr>';
-            if (nics[i].currentssid === 'off/any') {
+            if (nics[i].currentssid === null) {
                 content += '<tr><th>Status:</th><td><i class="fa fa-times red sx"></i>no network connected</td></tr>';
             } else {
                 content += '<tr><th>Status:</th><td><i class="fa fa-check green sx"></i>connected</td></tr>';
@@ -1431,10 +1432,12 @@ function nicsDetails(text) {
             
             content += '<tr><th>Assigned IP:</th><td>' + ((nics[i].ip !== null) ? ('<strong>' + nics[i].ip + '</strong>') : 'none') + '</td></tr>';
             content += '<tr><th>Speed:</th><td>' + ((nics[i].speed !== null) ? nics[i].speed : 'unknown') + '</td></tr>';
-            // content += '<tr><th>Netmask:</th><td>' + nics[i].netmask + '</td></tr>';
-            // content += '<tr><th>Gateway:</th><td>' + nics[i].gw + '</td></tr>';
-            // content += '<tr><th>DNS1:</th><td>' + nics[i].dns1 + '</td></tr>';
-            // content += '<tr><th>DNS2:</th><td>' + nics[i].dns2 + '</td></tr>';
+            if (nics[i].currentssid !== null) {
+                content += '<tr><th>Netmask:</th><td>' + nics[i].netmask + '</td></tr>';
+                content += '<tr><th>Gateway:</th><td>' + nics[i].gw + '</td></tr>';
+                content += '<tr><th>DNS1:</th><td>' + nics[i].dns1 + '</td></tr>';
+                content += '<tr><th>DNS2:</th><td>' + nics[i].dns2 + '</td></tr>';
+            }
         }
     });
     $('#nic-details tbody').html(content);
@@ -2576,8 +2579,7 @@ if ($('#section-index').length) {
                 }
             });
 
-        }
-        
+        }     
 
         // MPD
         // ----------------------------------------------------------------------------------------------------
