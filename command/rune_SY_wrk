@@ -403,6 +403,7 @@ $redis->pconnect('/tmp/redis.sock');
                     if (wrk_kernelswitch($redis,$job->args)) {
                         if ($job->args === 'linux-rune-rpi_3.12.13-rt21_wosa') {
                             $redis->set('ao', 'snd_rpi_wsp_1');
+                            $redis->set('i2smodule', 'none');
                             $redis->set('orionprofile', 'OrionV2');
                         }
                         $notification = new stdClass();
