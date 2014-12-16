@@ -292,28 +292,6 @@
             </div>
         </fieldset>
     </form>
-    <form class="form-horizontal" action="" method="post" role="form">
-        <fieldset>
-            <legend>Compatibility fixes</legend>
-            <p>For people suffering problems with some receivers and DACs.</p>
-            <div class="form-group">
-                <label for="cmediafix" class="control-label col-sm-2">CMedia fix</label>
-                <div class="col-sm-10">
-                    <label class="switch-light well" onclick="">
-                        <input name="cmediafix[1]" type="checkbox" value="1"<?php if($this->cmediafix == 1): ?> checked="checked" <?php endif ?>>
-                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
-                    </label>
-                    <span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
-                    A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
-                </div>
-            </div>
-            <div class="form-group form-actions">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button class="btn btn-primary btn-lg" value="1" name="cmediafix[0]" type="submit">Apply fixes</button>
-                </div>
-            </div>
-        </fieldset>
-    </form>
     <form class="form-horizontal" method="post">
         <fieldset>
             <legend>Backup / Restore configuration</legend>

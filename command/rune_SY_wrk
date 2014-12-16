@@ -226,25 +226,7 @@ if ($redis->get('udevil') === '1') {
 // hashCFG('check_net',$redis);
 // check /etc/mpd.conf integrity
 // hashCFG('check_mpd',$redis);
-// Cmediafix startup check
-if ($redis->get('cmediafix') === '1') {
-    // close palyer backend connection
-    if ($activePlayer === 'MPD') {
-        // open MPD connection
-        $mpd = openMpdSocket('/run/mpd.sock');
-        // send cmediafix command
-        sendMpdCommand($mpd, 'cmediafix');
-        // close MPD connection
-        closeMpdSocket($mpd);
-    } elseif ($activePlayer === 'Spotify') {
-        // open SPOP connection
-        $spop = openSpopSocket('localhost', 6602, 1);
-        // send cmediafix command
-        sendSpopCommand($mpd, 'cmediafix');
-        // close SPOP connection
-        closeSpopSocket($spop);
-    }
-}
+
 // initialize OrionProfile
 runelog('env: SET KERNEL PROFILE',$redis->get('orionprofile'));
 sysCmd("/var/www/command/orion_optimize.sh ".$redis->get('orionprofile')." ".$redis->get('hwplatformid'));

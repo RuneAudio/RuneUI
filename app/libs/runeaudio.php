@@ -95,14 +95,8 @@ function sendMpdCommand($sock, $cmd)
     if (isset($sock['resource'])) {
       $sock = $sock['resource'];
     }
-    if ($cmd == 'cmediafix') {
-        socket_write($sock, 'pause\n', strlen('pause\n'));
-        usleep(500000);
-        socket_write($sock, 'pause\n', strlen('pause\n'));
-    } else {
-        $cmd = $cmd."\n";
-        socket_write($sock, $cmd, strlen($cmd));
-    }
+    $cmd = $cmd."\n";
+    socket_write($sock, $cmd, strlen($cmd));
     runelog("MPD COMMAND: (socket=".$sock.")", $cmd);
 }
 
@@ -339,14 +333,8 @@ function sendSpopCommand($sock, $cmd)
     if (isset($sock['resource'])) {
       $sock = $sock['resource'];
     }
-    if ($cmd == 'cmediafix') {
-        socket_write($sock, 'toggle\n', strlen('toggle\n'));
-        usleep(500000);
-        socket_write($sock, 'toggle\n', strlen('toggle\n'));
-    } else {
-        $cmd = $cmd."\n";
-        socket_write($sock, $cmd, strlen($cmd));
-    }
+    $cmd = $cmd."\n";
+    socket_write($sock, $cmd, strlen($cmd));
     runelog("SPOP COMMAND: (socket=".$sock.")", $cmd);
     //ui_notify('COMMAND GIVEN','CMD = '.$cmd,'','.9');
 }
@@ -1219,7 +1207,7 @@ function waitSyWrk($redis, $jobID)
         }
     } elseif (!empty($jobID)) {
         do {
-        usleep(650000);
+            usleep(650000);
         } while ($redis->sIsMember('w_lock', $jobID));
     }
 }
