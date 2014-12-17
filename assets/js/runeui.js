@@ -2713,7 +2713,7 @@ window.resize = function () {
 };
 window.onscroll = function (e) {
     pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
-    var diff = Math.abs(pageOldY - (pageY - pageHeight * 0.5));
+    var diff = Math.abs(pageOldY - pageY); // Math.abs(pageOldY - (pageY - pageHeight * 0.5));
     console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
     if (diff > pageHeight) {
         pageOldY = pageY;
@@ -2734,13 +2734,13 @@ m.module(document.getElementById('playlist'), {
         var previous = visibleEntries * 2; // amount of preceeding blocks
         var start = Math.max(begin - previous, 0); // max index of the future block
         var finish = Math.min(end + next, Math.max(queueTracks.length - 1, 0)); // min index of the prior block
+        var offsetUL = pageY - (queueEntryHeight * (begin - start));
         // console.log('visibleEntries=' + visibleEntries + ', next=' + next + ', previous=' + previous);
-        console.log('begin=' + begin + ', end=' + end + ', offset=' + offset + ', start=' + start + ', finish=' + finish + ', total=' + queueTracks.length);
-        console.log('count=' + parseInt(finish - start));
+        console.log('begin=' + begin + ', end=' + end + ', offset=' + offset + ', start=' + start + ', finish=' + finish + ', count=' + parseInt(finish - start) + ', pageY=' + pageY + ', offsetUL=' + offsetUL);
 
         // return m('#queue-entries-container', {style: 'height:' + (queueTracks.length * queueEntryHeight) + 'px;position:relative;top:' + (-offset) + 'px'}, [
         return m('#queue-entries-container', [
-			m('ul#playlist-entries', { style: 'position:relative;top:' + pageY + 'px' }, [
+			m('ul#playlist-entries', { style: 'position:relative;top:' + offsetUL + 'px' }, [
                 (queueTracks) ? queueTracks.slice(start, finish).map(function (song, idx) {
                     var icon = null;
                     var bottom = null;
