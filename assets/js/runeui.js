@@ -2719,10 +2719,11 @@ window.resize = function() {
 window.onscroll = function(e) {
 	if (!isCustomScroll) {
         pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
-        var diff = Math.abs(pageOldY - (pageY - pageHeight));
+        var diff = Math.abs(pageOldY - pageY);
         // console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
         if (diff > pageHeight) {
             pageOldY = pageY;
+            console.log('REDRAW ', pageY);
             m.redraw();
         }
     }
@@ -2735,7 +2736,7 @@ m.module(document.getElementById('playlist'), {
         var begin = Math.floor(pageY / listEntryHeight) || 0; // first visible entry
 		var end = begin + visibleEntries; // last visible entry
 		var offset = pageY % listEntryHeight;
-        var buffer = 4; // amount of preceeding and following blocks to load
+        var buffer = 6; // amount of preceeding and following blocks to load
         var start = Math.max(begin - visibleEntries * buffer, 0); // index of the first block
         var finish = Math.min(end + visibleEntries * buffer, Math.max(queueTracks.length - 1, 0)); // index of the last block
         // var offsetUL = pageY - (listEntryHeight * (begin - start));
