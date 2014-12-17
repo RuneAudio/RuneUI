@@ -53,8 +53,10 @@ $activePlayer = $redis->get('activePlayer');
 $template->activePlayer = $activePlayer;
 // allowed controllers
 $controllers = array(
-    'credits',
+    'api',
+    'config',
     'coverart',
+    'credits',
     'dev',
     'debug',
     'help',
@@ -122,6 +124,8 @@ $template->dev = $devmode;
 // plates: render layout (if you want to output direct, set $tplfile = 0 into controller)
 if ($tplfile !== 0) {
     echo $template->render('default_lo');
+} elseif ($template->uri(1) === 'api') {
+    echo $template->render('api_lo');
 }
 // close palyer backend connection
 if ($activePlayer === 'MPD') {
