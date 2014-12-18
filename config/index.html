@@ -65,7 +65,7 @@
      */
     -->
     <div id="menu-top">
-        <div class="dropdown">
+        <!--<div class="dropdown">
             <a id="menu-settings" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="#">MENU <i class="fa fa-th-list dx"></i></a>
             <ul class="dropdown-menu" role="menu" aria-labelledby="menu-settings">
                 <li class="active"><a href="#/"><i class="fa fa-play"></i> Playback</a></li>
@@ -77,15 +77,18 @@
                 <li class=""><a href="#/credits/"><i class="fa fa-trophy"></i> Credits</a></li>
                 <li><a href="#poweroff-modal" data-toggle="modal"><i class="fa fa-power-off"></i> Turn off</a></li>
             </ul>
+        </div>-->
+        <div id="topMenu" class="dropdown">
+
         </div>
-        <div class="playback-controls">
-            <button id="previous" class="btn btn-default btn-cmd" title="Previous" data-cmd="previous"><i class="fa fa-step-backward"></i></button>
-            <button id="stop" class="btn btn-default btn-cmd" title="Stop" data-cmd="stop"><i class="fa fa-stop"></i></button>
-            <button id="play" class="btn btn-default btn-cmd" title="Play/Pause" data-cmd="play"><i class="fa fa-play"></i></button>
-            <button id="next" class="btn btn-default btn-cmd" title="Next" data-cmd="next"><i class="fa fa-step-forward"></i></button>
+            <div class="playback-controls">
+                <button id="previous" class="btn btn-default btn-cmd" title="Previous" data-cmd="previous"><i class="fa fa-step-backward"></i></button>
+                <button id="stop" class="btn btn-default btn-cmd" title="Stop" data-cmd="stop"><i class="fa fa-stop"></i></button>
+                <button id="play" class="btn btn-default btn-cmd" title="Play/Pause" data-cmd="play"><i class="fa fa-play"></i></button>
+                <button id="next" class="btn btn-default btn-cmd" title="Next" data-cmd="next"><i class="fa fa-step-forward"></i></button>
+            </div>
+            <a class="home" href="http://acx.norad.it/RuneUI-static/#/mpd"><img src="img/logo.png" class="logo" alt="RuneAudio"></a>
         </div>
-        <a class="home" href="http://acx.norad.it/RuneUI-static/#/mpd"><img src="img/logo.png" class="logo" alt="RuneAudio"></a>
-    </div>
     <div id="menu-bottom">
         <ul>
             <li id="open-panel-sx"><a href="/#panel-sx" class="open-panel-sx" data-toggle="tab"><i class="fa fa-music"></i> Library</a></li>
