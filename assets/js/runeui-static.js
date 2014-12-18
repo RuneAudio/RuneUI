@@ -19,6 +19,75 @@ function selectpicker(element, isInitialized) {
 var config = {};
 var playback = {};
 
+// helpers
+
+//      base 2-way binding helper
+var bind2 = function (container, field, config, readonly) {
+    // container: for example 'mpd.vm.data.conf'
+    // field: for example 'port or audio_mixer'
+    // config: jQuery function to run after the item is in the DOM
+    var attributes = {
+        config: config,
+        onchange: m.withAttr('value', function (value) { container[field] = value; }),
+        value: container[field],
+    };
+
+    if (readonly) {
+        attributes.readonly = true;
+    }
+
+    return attributes;
+
+};
+
+var bind2checked = function (container, field, config) {
+    // container: for example 'mpd.vm.data.conf'
+    // field: for example 'port or audio_mixer'
+    // config: jQuery function to run after the item is in the DOM
+    return {
+        config: config,
+        onchange: m.withAttr('checked', function (value) {
+            if (value) {
+                container[field] = "yes";
+            } else {
+                container[field] = "no";
+            }
+        }),
+        checked: (function () {
+            if (container[field] === "yes") {
+                return true;
+            } else {
+                return false;
+            }
+        }())
+    };
+};
+
+// components
+var select = function () {
+    var select = {};
+    select.vm = {
+        id: '',
+        container: '',
+        field: '',
+        url: '',
+        valueField: '',
+        displayField: '',
+        config: {}
+    };
+    select.view = function (ctrl) {
+        var selectTag = 'select[data-style="btn-default btn-lg"][id="' + id + '"]';
+        return m(selectTag, bind2(container, field, selectpicker),
+        [container[list].map(function (item, index) {
+            return m('option', { value: item[valueField] }, (item[displayField]));
+        })
+        ]);
+    };
+};
+
+var createLabel = function (id, text) {
+    return m('label.col-sm-2.control-label', { "for": id, }, text);
+};
 
 // modules - navigation
 
@@ -60,7 +129,6 @@ navigation.vm = (function (data) {
         this.add('Debug', '/debug', 'bug');
         this.add('Credits', '/credits', 'trophy');
         this.add('Turn off', '/power', 'power-off');
-
     };
 
     return vm;
@@ -77,7 +145,7 @@ navigation.view = function (ctrl) {
     return [m("a.dropdown-toggle[data-target='#'][data-toggle='dropdown'][href='#'][id='menu-settings'][role='button']",
             ["MENU ", m("i.fa.fa-th-list.dx")]), "\n", m("ul.dropdown-menu[aria-labelledby='menu-settings'][role='menu']",
                 [navigation.vm.pages.map(function (item, index) {
-                    return m('li', { "class": item.selected() ? "active" : "" }, [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
+                    return m('li', { classname: item.selected() ? "active" : "" }, [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
                 })])];
 };
 
@@ -95,13 +163,13 @@ var getData = function (vm) {
 };
 
 //      base data saving function
-var postData = function (vm) {
+var postData = function (data) {
     console.log(vm.url);
-    console.log(vm.data);
+    console.log(data);
     m.request({
         method: 'POST',
         url: vm.url,
-        data: vm.data
+        data: data
     });
 
 };
@@ -120,7 +188,7 @@ var getViewModel = function (url) {
         this.data = getData(this);
 
         console.log("* in vm init");
-        navigation.vm.navigate(this.url.replace(urlPrefix,''));
+        navigation.vm.navigate(this.url.replace(urlPrefix, ''));
         //return m.request({ method: 'GET', url: vm.url }).then(function (response) {
         //    vm.data = response;
         //    vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
@@ -129,7 +197,7 @@ var getViewModel = function (url) {
 
     // methods of all of view models
     vm.save = function () {
-        postData(vm);
+        postData(vm.data);
     };
 
     // methods of all of view models
@@ -156,40 +224,7 @@ var getController = function (vm) {
 
 
 
-//      base 2-way binding helper
-var bind2 = function (container, field, config) {
-    // container: for example 'mpd.vm.data.conf'
-    // field: for example 'port or audio_mixer'
-    // config: jQuery function to run after the item is in the DOM
-    return {
-        config: config,
-        onchange: m.withAttr('value', function (value) { container[field] = value; }),
-        value: container[field]
-    };
-};
 
-var bind2checked = function (container, field, config) {
-    // container: for example 'mpd.vm.data.conf'
-    // field: for example 'port or audio_mixer'
-    // config: jQuery function to run after the item is in the DOM
-    return {
-        config: config,
-        onchange: m.withAttr('checked', function (value) {
-            if (value) {
-                container[field] = "yes";
-            } else {
-                container[field] = "no";
-            }
-        }),
-        checked: (function () {
-            if (container[field] === "yes") {
-                return true;
-            } else {
-                return false;
-            }
-        }())
-    };
-};
 
 var createYesNo = function (id, container, field, config) {
     return m('label.switch-light.well', [
@@ -228,13 +263,15 @@ var RuneModule = function (url) {
 // modules - config
 
 
-// implementation of the MPD module
+var audio = new RuneModule('/audio');
+
 var mpd = new RuneModule('/mpd');
+mpd.vm.saveAudioOutput = function () {
+    postData(mpd.vm.ao);
+};
 
 // Do we want the Modules in Namespaces?
 //     config.mpd = mpd;
-
-// implementation of the settings module
 var settings = new RuneModule('/settings');
 
 
@@ -252,9 +289,12 @@ var playlist = {};
 var volume = {};
 
 
-
-
 // views
+
+
+audio.view = function (ctrl) {
+    return m('h1', 'Audio Configuration')
+};
 
 //    Settings
 settings.view = function (ctrl) {
@@ -956,26 +996,35 @@ settings.view = function (ctrl) {
              ])
          ]),
          "\n"];
-    
+
 };
 
 mpd.view = function (ctrl) {
-    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[data-toggle="modal"][href="#mpd-config-defaults"]', 'reset to default'), '.\n']), '\n', m('form.form-horizontal[action=""][method="post"]', [
+    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[data-toggle="modal"][href="#mpd-config-defaults"]', 'reset to default'), '.\n']), '\n',
+        m('form.form-horizontal[action=""][method="post"]', [
 		m('fieldset', [
 			m('legend', 'Audio Output'),
 			m('.boxed-group', [
 				m('.form-group', [
-					m('label.col-sm-2.control-label[for="audio-output-interface"]', 'Audio output interface'),
+                    createLabel('audio-output-interface', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
-						createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
-						m('span.help-block', ['This switches output between audio interfaces (', m('strong', 'works on the fly'), ').'])
+                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', bind2(mpd.vm.data, 'ao', null, true)),
+						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
+                        m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'])
+					//]),
+                    //m('.form-group.form-actions', [
+                    //    m('.col-sm-offset-2.col-sm-10', [
+                    //    //m('a.btn.btn-default.btn-lg[href="/mpd/"]', { config: m.route }, 'Cancel'), //TODO: Do we navigate, or re-init the data?
+                    //    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: mpd.vm.cancel }, 'Cancel'),
+                    //    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: mpd.vm.save }, 'Save and apply')
+                    //    ])
+                    //])
 					])
 				])
 			])
-		]),
-		'\n'
-    ]), '\n', m('form.form-horizontal[action=""][data-parsley-validate=""][method=""][id="my-form"]', [
+		])
+    ]), m('form.form-horizontal[action=""][data-parsley-validate=""][method=""][id="my-form"]', [
 		m('fieldset', [
 			m('legend', 'Volume control'),
 			m('.form-group', [
@@ -983,7 +1032,7 @@ mpd.view = function (ctrl) {
 				m('.col-sm-10', [
 					m('select[data-style="btn-default btn-lg"][id="mixer-type"][name="conf__mixer_type_"]',
                         //{ config: selectpicker, onchange: m.withAttr('value', function (value) { mpd.data.conf.mixer_type = value }), value: mpd.data.conf.mixer_type }
-                        bind2(mpd.vm.data.conf, 'mixer_type', selectpicker),[
+                        bind2(mpd.vm.data.conf, 'mixer_type', selectpicker), [
 						m('option[value="disabled"]', 'disabled'),
 						m('option[value="software"]', 'enabled - software'),
 						m('option[value="hardware"]', 'enabled - hardware')
@@ -1118,8 +1167,7 @@ mpd.view = function (ctrl) {
                 m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: mpd.vm.cancel }, 'Cancel'),
 				m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: mpd.vm.save }, 'Save and apply')
 			])
-		]),
-		'\n'
+		])
     ])];
 };
 
@@ -1204,9 +1252,12 @@ sources.view = function (ctrl) {
     ])];
 };
 
+                
+
 // Mithril routing configuration
 m.route.mode = 'hash';
 m.route(document.getElementById('app'), '/', {
+    '/audio': audio,
     '/settings': settings,
     '/mpd': mpd,
     '/credits': credits,
