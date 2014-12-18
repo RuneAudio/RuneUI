@@ -119,7 +119,8 @@ function redisDatastore($redis,$action) {
             $redis->set('debug', 0);
             $redis->set('debugdata', '');
             $redis->set('opcache', 1);
-            $redis->set('buildversion', 'beta-20141027');
+            $redis->set('buildversion', 'beta-20141216');
+            $redis->set('release', '0.4');
             // HW platform data
             // $redis->set('playerid', '');
             // $redis->set('hwplatform', '');
