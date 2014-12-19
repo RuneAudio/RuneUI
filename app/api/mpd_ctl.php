@@ -32,22 +32,38 @@
  *
  */
  if (isset($_POST)) {
-    // switch audio output
-    if (isset($_POST['ao'])) {
-        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $_POST['ao']));
-    }
-    // reset MPD configuration
-    if (isset($_POST['reset'])) {
-        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
-    }
-    // update MPD configuration
-    if (isset($_POST['conf'])) {
-        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $_POST['conf']));
-    }
-    // manual MPD configuration
-    if (isset($_POST['mpdconf'])) {
-        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
-    }
+     // Let's make sure we've called this with an actual POST 
+     $template->AAAAAAAAA = $_SERVER['REQUEST_METHOD'];
+     //if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+         
+        // get the data that was POSTed
+        $postData = file_get_contents("php://input");
+        // convert to an associative array
+        $json = json_decode($postData, true); 
+        $template->BBBBBBBB = $json['ao'];
+        $template->CCCCCCCC = isset($json['ao']);
+        
+        //$json = json_decode($postData);
+        //$template->BBBBBBBB = $json->ao;
+
+        // switch audio output
+        if (isset($json['ao'])) {
+            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $json['ao']));
+        }
+        // reset MPD configuration
+        if (isset($json['reset'])) {
+            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
+        }
+        // update MPD configuration
+        if (isset($json['conf'])) {
+            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $json['conf']));
+        }
+        // manual MPD configuration
+        if (isset($_POST['mpdconf'])) {
+            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $json['mpdconf']));
+        }
+    // }
+
  }
 waitSyWrk($redis, $jobID);
 // check integrity of /etc/network/interfaces

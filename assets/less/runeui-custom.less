@@ -1232,6 +1232,68 @@ select.selectpicker {
 // Social share and Renderer display/switch overlays
 // --------------------------------------------------------------
 
+// <KEW>
+// Overlay as a class... check this. I just added it to the minified CSS
+
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: darken(@brand-alt, 20%);
+    nav {
+        text-align: center;
+        position: relative;
+        top: 50%;
+        height: 60%;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto;
+        display: inline-block;
+        height: 340px;
+        position: relative;
+        li {
+            display: block;
+            height: 60px;
+            line-height: 60px;
+            margin: 0;
+            padding: 0;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            span {
+                font-size: 30px;
+                font-weight: 300;
+            }
+            &:last-child {
+                height: 20px;
+                line-height: 20px;
+            }
+            a {
+                font-size: 16px;
+                text-align: right;
+                border: 0;
+            }
+        }
+    }
+}
+
+
+#overlay-alphabet.overlay ul li {
+    display: inline-block;
+    width: 15%;
+}
+
+
+// </KEW>
+
+
+
+
 #overlay-social,
 #overlay-playsource {
     position: fixed;

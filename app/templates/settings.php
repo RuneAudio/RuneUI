@@ -21,6 +21,9 @@
                 <label class="control-label col-sm-2" for="ntpserver">NTP server</label>
                 <div class="col-sm-10">
                     <input class="form-control input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
+                    <!-- 
+                        <input class="form-control input-lg" type="text" id="ntpserver" name="ntpserver" data-bind="value: ntpserver" placeholder="pool.ntp.org" autocomplete="off">
+                     -->
                     <span class="help-block">Set your reference time sync server <i>(NTP server)</i>.</span>
                 </div>
             </div>
@@ -106,6 +109,10 @@
                         <option value="iqaudiopidac" <?php if($this->i2smodule === 'iqaudiopidac'): ?> selected <?php endif ?>>IQaudIO Pi-DAC / Pi-DAC+</option>
                         <option value="raspyplay3" <?php if($this->i2smodule === 'raspyplay3'): ?> selected <?php endif ?>>RaspyPlay3</option>
                         <option value="raspyplay4" <?php if($this->i2smodule === 'raspyplay4'): ?> selected <?php endif ?>>RaspyPlay4</option>
+                        <!--<KEW>-->
+                        <!--Adding Transducer settings-->
+                        <option value="transducer" <?php if($this->i2smodule === 'transducer'): ?> selected <?php endif ?>>Transducer</option>
+                        <!-- </KEW> -->
                         <?php else: ?>
                         <option value="wolfsonaudiocard"  selected >Wolfson Audio Card</option>
                         <?php endif ?>

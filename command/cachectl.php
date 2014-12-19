@@ -47,7 +47,7 @@ if (isset($_GET['action'])) {
             OpCacheCtl('reset', '/srv/http/');
             opcache_reset();
             runelog('cacheCTL RESET');
-            echo "PHP OPCACHE CLEARED";
+            echo "PHP OPCACHE CLEARED " . (new \DateTime())->format('Y-m-d H:i:s');
             break;
         case 'debug':
             // opcache_reset();
