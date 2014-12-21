@@ -121,7 +121,7 @@ navigation.vm = (function (data) {
 
     vm.init = function () {
         this.add('Playback', '/', 'play');
-        this.add('Audio', '/audio', 'music');
+        this.add('Audio', '/audio', 'volume-up');
         this.add('MPD', '/mpd', 'cogs');
         this.add('Settings', '/settings', 'wrench');
         this.add('Sources', '/sources', 'folder-open');
@@ -149,7 +149,7 @@ navigation.view = function (ctrl) {
                 })])];
 };
 
-m.module(document.getElementById('topMenu'), navigation);
+m.module(document.getElementById('main-menu'), navigation);
 
 
 // base classes

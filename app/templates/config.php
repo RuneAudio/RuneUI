@@ -1,1 +1,3 @@
-<div id="app" class="container"></div>
+
+<div id="app" class="container">
+</div>

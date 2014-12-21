@@ -67,19 +67,24 @@
  */
 -->
 <div id="menu-top">
+    <?php if ($this->section !== 'config'): ?>
     <div class="dropdown">
         <a id="menu-settings" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="#">MENU <i class="fa fa-th-list dx"></i></a>
         <ul class="dropdown-menu" role="menu" aria-labelledby="menu-settings">
             <li class="<?=$this->uri(1, '', 'active')?>"><a href="/"><i class="fa fa-play"></i> Playback</a></li>
-            <li class="<?=$this->uri(1, 'sources', 'active')?>"><a href="/sources/"><i class="fa fa-folder-open"></i> Sources</a></li>
-            <li class="<?=$this->uri(1, 'mpd', 'active')?>"><a href="/mpd/"><i class="fa fa-cogs"></i> MPD</a></li>
-            <li class="<?=$this->uri(1, 'settings', 'active')?>"><a href="/settings/"><i class="fa fa-wrench"></i> Settings</a></li>
-            <li class="<?=$this->uri(1, 'network', 'active')?>"><a href="/network/"><i class="fa fa-sitemap"></i> Network</a></li>
-            <li class="<?=$this->uri(1, 'debug', 'active')?>"><a href="/debug/"><i class="fa fa-bug"></i> Debug</a></li>
-            <li class="<?=$this->uri(1, 'credits', 'active')?>"><a href="/credits/"><i class="fa fa-trophy"></i> Credits</a></li>
+            <li><a href="/config/#/audio"><i class="fa fa-volume-up"></i> Audio</a></li>
+            <li><a href="/config/#/mpd"><i class="fa fa-cogs"></i> MPD</a></li>
+            <li><a href="/config/#/settings"><i class="fa fa-wrench"></i> Settings</a></li>
+            <li><a href="/config/#/sources"><i class="fa fa-folder-open"></i> Sources</a></li>
+            <li><a href="/config/#/network"><i class="fa fa-sitemap"></i> Network</a></li>
+            <li><a href="/config/#/debug"><i class="fa fa-bug"></i> Debug</a></li>
+            <li><a href="/config/#/credits"><i class="fa fa-trophy"></i> Credits</a></li>
             <li><a href="#poweroff-modal" data-toggle="modal"><i class="fa fa-power-off"></i> Turn off</a></li>
         </ul>
     </div>
+    <?php else: ?>
+    <div id="main-menu" class="dropdown"></div>
+    <?php endif; ?>
     <div class="playback-controls">    
         <button id="previous" class="btn btn-default btn-cmd" title="Previous" data-cmd="previous"><i class="fa fa-step-backward"></i></button>
         <button id="stop" class="btn btn-default btn-cmd" title="Stop" data-cmd="stop"><i class="fa fa-stop"></i></button>

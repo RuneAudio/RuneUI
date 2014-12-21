@@ -16,12 +16,14 @@
         </div>
     </div>
 </div>
+<?php if ($this->section !== 'config'): ?>
 <!-- loader -->
 <div id="loader"<?php if ($this->section == 'dev') { ?> class="hide"<?php } ?>><div id="loaderbg"></div><div id="loadercontent"><i class="fa fa-refresh fa-spin"></i>connecting...</div></div>
+<?php endif; ?>
 <script src="<?=$this->asset('/js/vendor/jquery-2.1.0.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/pushstream.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/bootstrap.min.js')?>"></script>
-<script src="<?=$this->asset('/js/vendor/mithril.min.js')?>"></script>
+<script src="<?=$this->asset('/js/vendor/mithril.js')?>"></script>
 <?php if ($this->section == 'debug'): ?>
 <script src="<?=$this->asset('/js/vendor/ZeroClipboard.min.js')?>"></script>
 <?php endif ?>
@@ -37,11 +39,15 @@
 <script src="<?=$this->asset('/js/vendor/bootstrap-select.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/parsley.min.js')?>"></script>
 <?php endif ?>
+<?php if ($this->section !== 'config'): ?>
 <?php if ($this->dev === '0'):?>
 <script src="<?=$this->asset('/js/runeui.min.js')?>"></script>
 <?php else: ?>
 <!-- DEV mode ACTIVE -->
 <script src="<?=$this->asset('/js/runeui.js')?>"></script>
+<?php endif; ?>
+<?php else: ?>
+<script src="<?=$this->asset('/js/runeui-static.js')?>"></script>
 <?php endif; ?>
 <script src="<?=$this->asset('/js/vendor/pnotify.custom.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js')?>"></script>
