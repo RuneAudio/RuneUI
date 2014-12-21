@@ -12,6 +12,14 @@ function selectpicker(element, isInitialized) {
     }
 }
 
+// encode(decode) html text into html entity
+function decodeHtmlEntity(str) {
+    return str.replace(/&#(\d+);/g, function(match, dec) {
+        return String.fromCharCode(dec);
+    });
+}; 
+
+
 // MITHRIL
 // ----------------------------------------------------------------------------------------------------
 
@@ -21,7 +29,7 @@ var playback = {};
 
 // helpers
 
-//      base 2-way binding helper
+// base 2-way binding helper
 var bind2 = function (container, field, config, readonly) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
@@ -29,7 +37,7 @@ var bind2 = function (container, field, config, readonly) {
     var attributes = {
         config: config,
         onchange: m.withAttr('value', function (value) { container[field] = value; }),
-        value: decodeURI(container[field])
+        value: decodeHtmlEntity(container[field])
     };
 
     if (readonly) {
