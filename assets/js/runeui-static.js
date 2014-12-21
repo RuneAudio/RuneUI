@@ -29,7 +29,7 @@ var bind2 = function (container, field, config, readonly) {
     var attributes = {
         config: config,
         onchange: m.withAttr('value', function (value) { container[field] = value; }),
-        value: container[field],
+        value: decodeURI(container[field])
     };
 
     if (readonly) {
@@ -293,7 +293,7 @@ var volume = {};
 
 
 audio.view = function (ctrl) {
-    return m('h1', 'Audio Configuration')
+    return m('h1', 'Audio Configuration');
 };
 
 //    Settings

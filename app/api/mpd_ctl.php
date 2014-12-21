@@ -66,6 +66,11 @@
 
  }
 waitSyWrk($redis, $jobID);
+
+$ao = '';
+$aoValue = $redis->get('ao');
+
+
 // check integrity of /etc/network/interfaces
 if(!hashCFG('check_mpd', $redis)) {
     $template->mpdconf = file_get_contents('/etc/mpd.conf');
@@ -103,8 +108,13 @@ if(!hashCFG('check_mpd', $redis)) {
                         $audio_cards[] = $sub_int_details;
                     }
                 }
-                if ($details->extlabel !== 'none') $acard_data->extlabel = $details->extlabel;
+                if ($details->extlabel !== 'none') {
+                    $acard_data->extlabel = $details->extlabel;
+                }
             }
+        }
+        if ($acard_data->name == $aoValue) {
+            $ao = $acard_data->extlabel;
         }
         $audio_cards[] = $acard_data;
     }
@@ -112,5 +122,5 @@ if(!hashCFG('check_mpd', $redis)) {
     // debug
     // print_r($audio_cards);
     $template->acards = $audio_cards;
-    $template->ao = $redis->get('ao');
+    $template->ao = $ao;
 }
