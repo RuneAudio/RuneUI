@@ -1020,23 +1020,14 @@ mpd.view = function (ctrl) {
         m('form.form-horizontal[action=""][method="post"]', [
 		m('fieldset', [
 			m('legend', 'Audio Output'),
-			m('.boxed-group', [
 				m('.form-group', [
                     createLabel('audio-output-interface', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
                         m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', bind2(mpd.vm.data, 'ao', null, true)),
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
-                        m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'])
-					//]),
-                    //m('.form-group.form-actions', [
-                    //    m('.col-sm-offset-2.col-sm-10', [
-                    //    //m('a.btn.btn-default.btn-lg[href="/mpd/"]', { config: m.route }, 'Cancel'), //TODO: Do we navigate, or re-init the data?
-                    //    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: mpd.vm.cancel }, 'Cancel'),
-                    //    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: mpd.vm.save }, 'Save and apply')
-                    //    ])
-                    //])
-					])
+                        m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
+                    ])
 				])
 			])
 		])
