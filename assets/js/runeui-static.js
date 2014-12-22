@@ -159,7 +159,7 @@ navigation.controller = function () {
 
 navigation.view = function (ctrl) {
     return [m("a.dropdown-toggle[data-target='#'][data-toggle='dropdown'][href='#'][id='menu-settings'][role='button']",
-            ["MENU ", m("i.fa.fa-th-list.dx")]), "\n", m("ul.dropdown-menu[aria-labelledby='menu-settings'][role='menu']",
+            ["MENU ", m("i.fa.fa-bars.dx")]), "\n", m("ul.dropdown-menu[aria-labelledby='menu-settings'][role='menu']",
                 [navigation.vm.pages.map(function (item, index) {
                     return m('li', { classname: item.selected() ? "active" : "" }, [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
                 })])];

@@ -69,7 +69,7 @@
 <div id="menu-top">
     <?php if ($this->section !== 'config'): ?>
     <div class="dropdown">
-        <a id="menu-settings" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="#">MENU <i class="fa fa-th-list dx"></i></a>
+        <a id="menu-settings" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#" href="#">MENU <i class="fa fa-bars dx"></i></a>
         <ul class="dropdown-menu" role="menu" aria-labelledby="menu-settings">
             <li class="<?=$this->uri(1, '', 'active')?>"><a href="/"><i class="fa fa-play"></i> Playback</a></li>
             <li><a href="/config/#/audio"><i class="fa fa-volume-up"></i> Audio</a></li>
