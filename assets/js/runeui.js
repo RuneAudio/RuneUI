@@ -778,6 +778,7 @@ function parseQueue(data){
 
 // refresh the queue (TODO: improve in PushStream mode)
 function getPlaylistCmd(){
+
     loadingSpinner('pl');
     $.ajax({
         url: '/db/?cmd=playlist',
@@ -804,23 +805,26 @@ function getPlaylistCmd(){
             loadingSpinner('pl', 'hide');
         }
     });
+
 }
 
 // launch the playing queue refresh (PushStream mode, not implemented yet)
-function getPlaylist(text) {
+function renderQueue(text) {
     data = text[0];
     // console.log(data);
-    if ( data.length > 4) {
+    if (data.length > 4) {
         $('.playlist').addClass('hide');
         $('#playlist-entries').removeClass('hide');
         // console.time('getPlaylistPlain timer');
-        getPlaylistPlain(data);
+        queueTracks = parseQueue(data);
         // console.timeEnd('getPlaylistPlain timer');
-        
-        var current = parseInt(GUI.json.song);
-        if ($('#panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
-            customScroll('pl', current, 200); // center the scroll and highlight current song in playlist
+        $('#playlist').height(queueTracks.length * listEntryHeight);
+        setQueuePos();
+        // console.log('793 currentqueuepos = ', GUI.currentqueuepos);
+        if ($('#open-panel-dx').hasClass('active') && GUI.currentsong !== GUI.json.currentsong) {
+            customScroll('pl', GUI.currentqueuepos, 500); // [TODO] remove this when we find a way to highlight the current track at first draw
         }
+        m.redraw();
     } else {
         $('.playlist').addClass('hide');
         $('#playlist-warning').removeClass('hide');
@@ -1552,7 +1556,7 @@ function queueChannel(){
         port: window.location.port,
         modes: GUI.mode
     });
-    pushstream.onmessage = getPlaylist;
+    pushstream.onmessage = renderQueue;
     // pushstream.onstatuschange = function(status) {
     // force queue rendering (backend-call)
         // if (status === 2) sendCmd('renderpl');
@@ -1719,10 +1723,10 @@ if ($('#section-index').length) {
         // first connection with MPD daemon
         // open UI rendering channel;
         playbackChannel();
-        
+        // open queue channel
+        queueChannel();
         // open library channel
         libraryChannel();
-        // startChannel(queueChannel());
         
         // PNotify init options
         PNotify.prototype.options.styling = 'fontawesome';
@@ -2711,18 +2715,19 @@ if ($('#section-index').length) {
 var pageY = 0,
     pageHeight = window.innerHeight - 160,
     visibleEntries = (Math.floor(pageHeight / listEntryHeight || 0 + 2)), // max number of visible entries on screen
-    pageOldY = 0;
+    pageYold = 0,
+    pageYdiff = 0;
 window.resize = function() {
 	pageHeight = window.innerHeight - 160;
     visibleEntries = (Math.floor(pageHeight / listEntryHeight || 0 + 2));
 };
 window.onscroll = function(e) {
 	if (!isCustomScroll) {
-        pageY = Math.max(window.pageYOffset, 0); // the pixels the current document has been scrolled from the upper left corner of the window
-        var diff = Math.abs(pageOldY - pageY);
-        // console.log('pageY=' + pageY + ', pageOldY=' + pageOldY + ', diff=' + diff + ', pageHeight=' + pageHeight);
-        if (diff > pageHeight) {
-            pageOldY = pageY;
+        pageY = window.pageYOffset; // the pixels the current document has been scrolled from the upper left corner of the window
+        pageYdiff = Math.abs(pageYold - pageY);
+        // console.log('pageY=' + pageY + ', pageYold=' + pageYold + ', pageYdiff=' + pageYdiff + ', pageHeight=' + pageHeight);
+        if (pageYdiff > pageHeight*6) {
+            pageYold = pageY;
             console.log('REDRAW ', pageY);
             m.redraw();
         }
@@ -2736,7 +2741,7 @@ m.module(document.getElementById('playlist'), {
         var begin = Math.floor(pageY / listEntryHeight) || 0; // first visible entry
 		var end = begin + visibleEntries; // last visible entry
 		var offset = pageY % listEntryHeight;
-        var buffer = 6; // amount of preceeding and following blocks to load
+        var buffer = 8; // amount of preceeding and following blocks to load
         var start = Math.max(begin - visibleEntries * buffer, 0); // index of the first block
         var finish = Math.min(end + visibleEntries * buffer, Math.max(queueTracks.length - 1, 0)); // index of the last block
         // var offsetUL = pageY - (listEntryHeight * (begin - start));

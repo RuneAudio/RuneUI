@@ -12,6 +12,22 @@ function selectpicker(element, isInitialized) {
     }
 }
 
+// decode html text into html entity
+var decodeHtmlEntity = function(str) {
+    return str.replace(/&#(\d+);/g, function(match, dec) {
+        return String.fromCharCode(dec);
+    });
+};
+// encode html text into html entity
+var encodeHtmlEntity = function(str) {
+    var buf = [];
+    for (var i=str.length-1;i>=0;i--) {
+        buf.unshift(['&#', str[i].charCodeAt(), ';'].join(''));
+    }
+    return buf.join('');
+}; 
+
+
 // MITHRIL
 // ----------------------------------------------------------------------------------------------------
 
@@ -21,7 +37,7 @@ var playback = {};
 
 // helpers
 
-//      base 2-way binding helper
+// base 2-way binding helper
 var bind2 = function (container, field, config, readonly) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
@@ -29,7 +45,7 @@ var bind2 = function (container, field, config, readonly) {
     var attributes = {
         config: config,
         onchange: m.withAttr('value', function (value) { container[field] = value; }),
-        value: container[field]
+        value: decodeHtmlEntity(container[field])
     };
 
     if (readonly) {
@@ -121,7 +137,7 @@ navigation.vm = (function (data) {
 
     vm.init = function () {
         this.add('Playback', '/', 'play');
-        this.add('Audio', '/audio', 'music');
+        this.add('Audio', '/audio', 'volume-up');
         this.add('MPD', '/mpd', 'cogs');
         this.add('Settings', '/settings', 'wrench');
         this.add('Sources', '/sources', 'folder-open');
@@ -143,13 +159,13 @@ navigation.controller = function () {
 
 navigation.view = function (ctrl) {
     return [m("a.dropdown-toggle[data-target='#'][data-toggle='dropdown'][href='#'][id='menu-settings'][role='button']",
-            ["MENU ", m("i.fa.fa-th-list.dx")]), "\n", m("ul.dropdown-menu[aria-labelledby='menu-settings'][role='menu']",
+            ["MENU ", m("i.fa.fa-bars.dx")]), "\n", m("ul.dropdown-menu[aria-labelledby='menu-settings'][role='menu']",
                 [navigation.vm.pages.map(function (item, index) {
                     return m('li', { classname: item.selected() ? "active" : "" }, [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
                 })])];
 };
 
-m.module(document.getElementById('topMenu'), navigation);
+m.module(document.getElementById('main-menu'), navigation);
 
 
 // base classes
@@ -1004,23 +1020,14 @@ mpd.view = function (ctrl) {
         m('form.form-horizontal[action=""][method="post"]', [
 		m('fieldset', [
 			m('legend', 'Audio Output'),
-			m('.boxed-group', [
 				m('.form-group', [
                     createLabel('audio-output-interface', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
                         m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', bind2(mpd.vm.data, 'ao', null, true)),
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
-                        m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'])
-					//]),
-                    //m('.form-group.form-actions', [
-                    //    m('.col-sm-offset-2.col-sm-10', [
-                    //    //m('a.btn.btn-default.btn-lg[href="/mpd/"]', { config: m.route }, 'Cancel'), //TODO: Do we navigate, or re-init the data?
-                    //    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: mpd.vm.cancel }, 'Cancel'),
-                    //    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: mpd.vm.save }, 'Save and apply')
-                    //    ])
-                    //])
-					])
+                        m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
+                    ])
 				])
 			])
 		])
