@@ -29,7 +29,7 @@ var bind2 = function (container, field, config, readonly) {
     var attributes = {
         config: config,
         onchange: m.withAttr('value', function (value) { container[field] = value; }),
-        value: decodeURI(container[field])
+        value: container[field]
     };
 
     if (readonly) {
