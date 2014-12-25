@@ -62,6 +62,10 @@ $redis->hSet('acards_details', 'USB Audio CODEC', '{"sysname":"USB Audio CODEC",
 $redis->hSet('acards_details', 'NuForce USB Audio', '{"sysname":"NuForce USB Audio","extlabel":"NuForce DDA-100","mixer_numid":"4","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'Rotel PC-USB', '{"sysname":"Rotel PC-USB","extlabel":"Rotel USB","type":"usb"}');
 $redis->hSet('acards_details', 'snd_rpi_wsp', '{"sysname":"snd_rpi_wsp","extlabel":"none","mixer_numid":"1","mixer_control":"HPOUT2 Digital","hwplatformid":"01","type":"integrated_sub"}');
+// KEW: not sure about thiese:
+$redis->hSet('acards_details', 'sunxi-sndi2s', '{"sysname":"sunxi-sndi2s","extlabel":"MP Transducer (I&#178;S)","hwplatformid":"06","type":"i2s"}');
+$redis->hSet('acards_details', 'sunxi-CODEC', '{"sysname":"sunxi-CODEC","extlabel":"MP PCM Output","hwplatformid":"06","type":"integrated"}');
+// END
 $redis->sAdd('bcm2835 ALSA', '{"id":"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
 $redis->sAdd('bcm2835 ALSA', '{"id":"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}');
 $redis->sAdd('snd_rpi_wsp', '{"id":"1","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Line Out","hwplatformid":"01","route_cmd":"/srv/http/command/wolfson.sh *CARDID* line_out > /dev/null"}');

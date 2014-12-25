@@ -31,11 +31,31 @@
  *  coder: Simone De Gregori
  *
  */
-// inspect POST
-if (isset($_POST)) {
-    if ($_POST['updatempd'] == 1) sendMpdCommand($mpd, 'update');
-    if ($_POST['mountall'] == 1) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
-    if (isset($_POST['usb-umount'])) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $_POST['usb-umount']));
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    
+    // get the data that was POSTed
+    $postData = file_get_contents("php://input");
+    // convert to an associative array
+    $json = json_decode($postData, true); 
+    
+    if ($json['updatempd'] == true) {
+        sendMpdCommand($mpd, 'update');
+        return;
+    }
+   
+    if ($json['mountall'] == true) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
+        waitSyWrk($redis, $jobID);
+        return ;
+    }
+    
+
+    
+    if (isset($_POST['usb-umount'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $_POST['usb-umount']));
+    }
+    
     if (!empty($_POST['mount'])) {
         $_POST['mount']['remotedir'] = str_replace('\\', '/', $_POST['mount']['remotedir']);
         if ($_POST['mount']['rsize'] == '') $_POST['mount']['rsize'] = 16384;

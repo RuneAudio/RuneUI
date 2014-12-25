@@ -31,96 +31,96 @@
  *  coder: Simone De Gregori
  *
  */
- if (isset($_POST)) {
-     // Let's make sure we've called this with an actual POST 
-     $template->AAAAAAAAA = $_SERVER['REQUEST_METHOD'];
-     //if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-         
-        // get the data that was POSTed
-        $postData = file_get_contents("php://input");
-        // convert to an associative array
-        $json = json_decode($postData, true); 
-        $template->BBBBBBBB = $json['ao'];
-        $template->CCCCCCCC = isset($json['ao']);
-        
-        //$json = json_decode($postData);
-        //$template->BBBBBBBB = $json->ao;
-
-        // switch audio output
-        if (isset($json['ao'])) {
-            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $json['ao']));
-        }
-        // reset MPD configuration
-        if (isset($json['reset'])) {
-            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
-        }
-        // update MPD configuration
-        if (isset($json['conf'])) {
-            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $json['conf']));
-        }
-        // manual MPD configuration
-        if (isset($_POST['mpdconf'])) {
-            $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $json['mpdconf']));
-        }
-    // }
-
- }
-waitSyWrk($redis, $jobID);
-
-$ao = '';
-$aoValue = $redis->get('ao');
-
-
-// check integrity of /etc/network/interfaces
-if(!hashCFG('check_mpd', $redis)) {
-    $template->mpdconf = file_get_contents('/etc/mpd.conf');
-    // set manual config template
-    $template->content = "mpd_manual";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    
+    // get the data that was POSTed
+    $postData = file_get_contents("php://input");
+    // convert to an associative array
+    $json = json_decode($postData, true); 
+    
+    // switch audio output
+    //if (isset($json['ao'])) {
+    //    $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'switchao', 'args' => $json['ao']));
+    //    $template->AAA = "ao";
+    //}
+    // reset MPD configuration
+    if (isset($json['reset'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'reset'));
+        $template->BBB = "reset";
+    }
+    // update MPD configuration
+    if (isset($json['conf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $json['conf']));
+        $template->CCC = "conf";
+    }
+    // manual MPD configuration
+    if (isset($json['mpdconf'])) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $json['mpdconf']));
+        $template->DDD = "mpd conf";
+    }
+    waitSyWrk($redis, $jobID);
 } else {
-    $template->conf = $redis->hGetAll('mpdconf');
-    $i2smodule = $redis->get('i2smodule');
-    // debug
-    // echo $i2smodule."\n";
-    $acards = $redis->hGetAll('acards');
-    // debug
-    // print_r($acards);
-    foreach ($acards as $card => $data) {
-        $acard_data = json_decode($data);
+    $ao = '';
+    $aoValue = $redis->get('ao');
+
+
+    // check integrity of /etc/network/interfaces
+    if(!hashCFG('check_mpd', $redis)) {
+        $template->mpdconf = file_get_contents('/etc/mpd.conf');
+        // set manual config template
+        $template->content = "mpd_manual";
+    } else {
+        $template->conf = $redis->hGetAll('mpdconf');
+        $i2smodule = $redis->get('i2smodule');
         // debug
-        // echo $card."\n";
-        // print_r($acard_data);
-        if ($i2smodule !== 'none') {
-            $acards_details = $redis->hGet('acards_details', $i2smodule);
-        } else {
-            $acards_details = $redis->hGet('acards_details', $card);
-        }
-        if (!empty($acards_details)) {
-            $details = json_decode($acards_details);
+        // echo $i2smodule."\n";
+        $acards = $redis->hGetAll('acards');
+        // debug
+        // print_r($acards);
+        foreach ($acards as $card => $data) {
+            $acard_data = json_decode($data);
             // debug
-            // echo "acards_details\n";
-            // print_r($details);
-            if ($details->sysname === $card) {
-                if ($details->type === 'integrated_sub') {
-                    $sub_interfaces = $redis->sMembers($card);
-                    foreach ($sub_interfaces as $int) {
-                        $sub_int_details = json_decode($int);
-                        // TODO !!! check
-                        $audio_cards[] = $sub_int_details;
+            // echo $card."\n";
+            // print_r($acard_data);
+            if ($i2smodule !== 'none') {
+                $acards_details = $redis->hGet('acards_details', $i2smodule);
+            } else {
+                $acards_details = $redis->hGet('acards_details', $card);
+            }
+            if (!empty($acards_details)) {
+                $details = json_decode($acards_details);
+                // debug
+                // echo "acards_details\n";
+                // print_r($details);
+                if ($details->sysname === $card) {
+                    if ($details->type === 'integrated_sub') {
+                        $sub_interfaces = $redis->sMembers($card);
+                        foreach ($sub_interfaces as $int) {
+                            $sub_int_details = json_decode($int);
+                            // TODO !!! check
+                            $audio_cards[] = $sub_int_details;
+                        }
+                    }
+                    if ($details->extlabel !== 'none') {
+                        $acard_data->extlabel = $details->extlabel;
                     }
                 }
-                if ($details->extlabel !== 'none') {
-                    $acard_data->extlabel = $details->extlabel;
-                }
             }
+            
+            // look to see if the selected card matches this one in the loop
+            if ($acard_data->name == $aoValue) {
+                $ao = $acard_data->extlabel;
+            }
+            $audio_cards[] = $acard_data;
         }
-        if ($acard_data->name == $aoValue) {
-            $ao = $acard_data->extlabel;
-        }
-        $audio_cards[] = $acard_data;
+        osort($audio_cards, 'extlabel');
+        // debug
+        // print_r($audio_cards);
+        $template->acards = $audio_cards;
+        $template->ao = $ao;
     }
-	osort($audio_cards, 'extlabel');
-    // debug
-    // print_r($audio_cards);
-    $template->acards = $audio_cards;
-    $template->ao = $ao;
 }
+
+
+

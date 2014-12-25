@@ -5,6 +5,10 @@
 document.addEventListener("DOMContentLoaded", function() {
     //mozApps used for the open web app and with the user agent check
     //Check with cookie if the alert was showed for not annoying the user
+    if (typeof locationbar === 'undefined') {
+        return;
+    }
+
     if (locationbar.visible) {
         if (navigator.mozApps && document.cookie.replace(/(?:(?:^|.*;\s*)owa\s*\=\s*([^;]*).*$)|^.*$/, "$1") !== "false") {
             var customModal = $('<div id="owa-modal" class="modal fade" aria-labelledby="modal-owa" tabindex="-1" role="dialog" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><p>Do you want install Rune Audio as Web Apps in your device/PC?</p></div><div class="modal-footer"><button class="btn btn-default btn-lg" data-dismiss="modal" id="owa-yes">Yes</button><button class="btn btn-default btn-lg" data-dismiss="modal" id="owa-no">No</button></div></div></div></div>');
