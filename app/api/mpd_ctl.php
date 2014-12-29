@@ -72,6 +72,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $template->content = "mpd_manual";
     } else {
         $template->conf = $redis->hGetAll('mpdconf');
+        // At the moment, the UI needs to convert the 
+        //  file name being present to a 'yes'
+        $mpdconf = $redis->hGetAll('mpdconf');
+        if (isset($mpdconf['state_file'])) {
+            $mpdconf['state_file'] = 'yes';
+        } else {
+            $mpdconf['state_file'] = 'no';
+        }
+        $template->conf = $mpdconf;
         $i2smodule = $redis->get('i2smodule');
         // debug
         // echo $i2smodule."\n";
@@ -120,7 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $template->acards = $audio_cards;
         $template->ao = $ao;
     }
+    
 }
 
 
-
+//add errors to the JSON
+$template->error2 = error_get_last();

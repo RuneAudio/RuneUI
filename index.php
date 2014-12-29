@@ -43,6 +43,7 @@ $engine = new \League\Plates\Engine('/srv/http/app/templates');
 $engine->loadExtension(new \League\Plates\Extension\Asset('/srv/http/assets', true));
 // plates: load URI extension
 $engine->loadExtension(new \League\Plates\Extension\URI($_SERVER['REQUEST_URI']));
+//$engine->loadExtension(new \League\Plates\Extension\URI($request->getPathInfo()));
 // plates: create a new template
 $template = new \League\Plates\Template($engine);
 // set devmode
@@ -71,21 +72,24 @@ $controllers = array(
 );
 // check page
 if (in_array($template->uri(1), $controllers) OR empty($template->uri(1))) {
-    // decode REQUEST_URL and assing section
+    // decode REQUEST_URL and assign section
     if (!empty($template->uri(1)) && ($template->uri(1) !== 'playback')) {
         // decode ACTION
         if (!empty($template->uri(2))) {
-        $template->action = $template->uri(2);
-                // assign SUB-TEMPLATE
-                if ($template->action === 'add') {
-                    $subtpl = 'edit';
-                } else {
-                    $subtpl = $template->action;
-                }
-            // decode ARG
-            if(!empty($template->uri(3))) {
-                $template->arg = $template->uri(3);
+            $template->action = $template->uri(2);
+            // assign SUB-TEMPLATE
+            if ($template->action === 'add') {
+                $subtpl = 'edit';
+            } else {
+                $subtpl = $template->action;
             }
+            // decode ARG
+            //if(!empty($template->uri(3))) {
+                //$temp = $template->uri(3);
+            $template->arg = $template->uri(3); //, '0', ':)', $temp); // pass a '0' if we have a 0 in the URL
+            //} else {
+            //    $template->arg = 'empty as empty can be';
+            //}
             // assign TEMPLATE
             $template->content = $template->uri(1).'_'.$subtpl;
         } else {
@@ -101,7 +105,7 @@ if (in_array($template->uri(1), $controllers) OR empty($template->uri(1))) {
         include(APP.$template->uri(1).'_ctl.php');
         // register current controller in SESSION
         if ($template->uri(1) !== 'coverart' && $template->uri(1) !== 'coverart2') {
-        $_SESSION['controller'] = $template->uri(1);
+            $_SESSION['controller'] = $template->uri(1);
         }
     } else {
         // debug

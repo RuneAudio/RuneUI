@@ -38,6 +38,8 @@ var decodeHtmlEntity = function (str) {
         return str.replace(/&#(\d+);/g, function (match, dec) {
             return String.fromCharCode(dec);
         });
+    } else {
+        return str;
     }
 };
 // encode html text into html entity
@@ -128,7 +130,12 @@ var createLabel = function (id, text) {
 
 //      base data loading function
 var getData = function (vm) {
-    return m.request({ method: 'GET', url: vm.url }).then(function (response) {
+    var url = vm.url;
+    if (vm.id) {
+        url += '/' + vm.id;
+    } 
+     
+    return m.request({ method: 'GET', url: url }).then(function (response) {
         vm.data = response;
         vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
     });
@@ -235,9 +242,53 @@ var resetmpd = {
                         m('.modal-footer', [' ', m('input[name="reset"][type="hidden"][value="1"]'),
                         m('button.btn.btn-default.btn-lg[aria-hidden="true"][data-dismiss="modal"]', 'Cancel'),
                         m('button.btn.btn-primary.btn-lg[type="submit"]', { onclick: resetmpd.vm.reset }, 'Continue')
+                        ])
+            ])
+            ])
+        ];
+    }
+};
+
+var deleteSource = {
+    vm: (function (data) {
+
+        var vm = {};
+
+        vm.remove = function () {
+            console.log('reset');
+            //postData('/sources', { ???: ??? });
+        };
+
+        vm.init = function () {
+            $('#dialog').modal('show');
+        };
+
+        return vm;
+
+    }()),
+    controller: function () {
+        deleteSource.vm.init();
+    },
+    view: function () {
+        return [
+        m(".modal.fade[aria-hidden='true'[id='source-delete-modal'][role='dialog'][tabindex='-1']", [
+            m(".modal-dialog", [
+                m(".modal-content", [
+                    m(".modal-header", [
+                        m("button.close[aria-hidden='true'][data-dismiss='modal'][type='button']", "×"),
+                        m("h3.modal-title[id='source-delete-modal-label']", "Remove the mount")
+                    ]),
+                    m(".modal-body", [
+                        m("p", "Are you sure you want to delete this mount?")
+                    ]),
+                    m(".modal-footer", [
+                        m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal']", "Cancel"),
+                        m("button.btn.btn-primary.btn-lg[name='action'][type='submit'][value='delete']", { onclick: resetmpd.vm.remove }, "Remove"),
+                        m("input[name='mount[id]'][type='hidden'][value='']")
                     ])
                 ])
             ])
+        ])
         ];
     }
 };
@@ -318,7 +369,8 @@ var getViewModel = function (url) {
     };
 
     // initialize the view model
-    vm.init = function () {
+    vm.init = function (id) {
+        this.id = id;
         // property 'data' is defined here asnd the loading is set up
         this.data = getData(this);
 
@@ -350,8 +402,12 @@ var getViewModel = function (url) {
     };
 
     // methods of all of view models
-    vm.cancel = function () {
-        vm.data = JSON.parse(JSON.stringify(vm.originalData)); // we need a clone of this object
+    vm.cancel = function (field) {
+        if (field) {
+            vm.data[field] = JSON.parse(JSON.stringify(vm.originalData[field]));
+        } else {
+            vm.data = JSON.parse(JSON.stringify(vm.originalData)); // we need a clone of this object
+        }
     };
 
     return vm;
@@ -360,7 +416,8 @@ var getViewModel = function (url) {
 //      base controller
 var getController = function (vm) {
     var controller = function () {
-        vm.init();
+        this.id = m.route.param("id");
+        vm.init(this.id);
         toggleLoader('close');
         console.log("* in controller");
 
@@ -433,7 +490,27 @@ sources.vm.updateMDP = function () {
 sources.vm.updateMDP = function () {
     postData(sources.vm.url, { mountall: true });
 };
+sources.vm.add = function () {
+    console.log('source add');
+    m.route('/sources/0');
+};
+sources.vm.edit = function (id) {
+    console.log('source edit');
+    m.route('/sources/' + id);
+};
 
+var source = new RuneModule('/sources');
+source.Source = function (data) {
+    this.nas_name = m.prop(data.nas_name || '');
+};
+source.vm.validate = function () {
+    var d = new source.Source(source.vm.data);
+    if (d.nas_name() === '') {
+        alert('Nas Name is Required');
+        return false;
+    }
+    return true;
+};
 
 var network = new RuneModule('/network');
 network.vm.updateMDP = function () {
@@ -679,7 +756,6 @@ mpd.view = function (ctrl) {
 settings.view = function (ctrl) {
     return [
          m('h1', 'Settings'),
-         m('form.form-horizontal[action=""][method="post"][role="form"]', [
              m('fieldset', [
                  m('legend', 'Environment'),
                  m('.form-group[id="systemstatus"]', [
@@ -692,450 +768,36 @@ settings.view = function (ctrl) {
                  m('.form-group[id="environment"]', [
                      m('label.control-label.col-sm-2[for="hostname"]', 'Player hostname'),
                      m('.col-sm-10', [
-                         m('input.form-control.input-lg[autocomplete="off"][id="hostname"][name="hostname"][placeholder="runeaudio"][type="text"][value="a-cappella"]'),
+                         m('input.form-control.input-lg[autocomplete="off"][id="hostname"][placeholder="runeaudio"][type="text"]', bind2(settings.vm.data.environment, 'hostname')),
                          m('span.help-block', 'Set the player hostname. This will change the address used to reach the RuneUI.')
                      ])
                  ]),
                  m('.form-group', [
                      m('label.control-label.col-sm-2[for="ntpserver"]', 'NTP server'),
                      m('.col-sm-10', [
-                         m('input.form-control.input-lg[autocomplete="off"][id="ntpserver"][name="ntpserver"][placeholder="pool.ntp.org"][type="text"][value="pool.ntp.org"]'),
+                         m('input.form-control.input-lg[autocomplete="off"][id="ntpserver"][placeholder="pool.ntp.org"][type="text"]', bind2(settings.vm.data.environment, 'ntpserver')),
                          m('span.help-block', ['Set your reference time sync server ', m('i', '(NTP server)'), '.'])
                      ])
                  ]),
                  m('.form-group', [
                      m('label.control-label.col-sm-2[for="timezone"]', 'Timezone'),
                      m('.col-sm-10', [
-                         m('select.selectpicker[data-style="btn-default btn-lg"][name="timezone"]', bind2(settings.vm.data, "timezone", selectpicker, false), [
-                             m('option[value="Africa/Abidjan"]', '\n                        Africa/Abidjan - GMT +00:00                      '),
-                             m('option[value="Africa/Accra"]', '\n                        Africa/Accra - GMT +00:00                      '),
-                             m('option[value="Africa/Addis_Ababa"]', '\n                        Africa/Addis_Ababa - GMT +03:00                      '),
-                             m('option[value="Africa/Algiers"]', '\n                        Africa/Algiers - GMT +01:00                      '),
-                             m('option[value="Africa/Asmara"]', '\n                        Africa/Asmara - GMT +03:00                      '),
-                             m('option[value="Africa/Bamako"]', '\n                        Africa/Bamako - GMT +00:00                      '),
-                             m('option[value="Africa/Bangui"]', '\n                        Africa/Bangui - GMT +01:00                      '),
-                             m('option[value="Africa/Banjul"]', '\n                        Africa/Banjul - GMT +00:00                      '),
-                             m('option[value="Africa/Bissau"]', '\n                        Africa/Bissau - GMT +00:00                      '),
-                             m('option[value="Africa/Blantyre"]', '\n                        Africa/Blantyre - GMT +02:00                      '),
-                             m('option[value="Africa/Brazzaville"]', '\n                        Africa/Brazzaville - GMT +01:00                      '),
-                             m('option[value="Africa/Bujumbura"]', '\n                        Africa/Bujumbura - GMT +02:00                      '),
-                             m('option[value="Africa/Cairo"]', '\n                        Africa/Cairo - GMT +02:00                      '),
-                             m('option[value="Africa/Casablanca"]', '\n                        Africa/Casablanca - GMT +00:00                      '),
-                             m('option[value="Africa/Ceuta"]', '\n                        Africa/Ceuta - GMT +01:00                      '),
-                             m('option[value="Africa/Conakry"]', '\n                        Africa/Conakry - GMT +00:00                      '),
-                             m('option[value="Africa/Dakar"]', '\n                        Africa/Dakar - GMT +00:00                      '),
-                             m('option[value="Africa/Dar_es_Salaam"]', '\n                        Africa/Dar_es_Salaam - GMT +03:00                      '),
-                             m('option[value="Africa/Djibouti"]', '\n                        Africa/Djibouti - GMT +03:00                      '),
-                             m('option[value="Africa/Douala"]', '\n                        Africa/Douala - GMT +01:00                      '),
-                             m('option[value="Africa/El_Aaiun"]', '\n                        Africa/El_Aaiun - GMT +00:00                      '),
-                             m('option[value="Africa/Freetown"]', '\n                        Africa/Freetown - GMT +00:00                      '),
-                             m('option[value="Africa/Gaborone"]', '\n                        Africa/Gaborone - GMT +02:00                      '),
-                             m('option[value="Africa/Harare"]', '\n                        Africa/Harare - GMT +02:00                      '),
-                             m('option[value="Africa/Johannesburg"]', '\n                        Africa/Johannesburg - GMT +02:00                      '),
-                             m('option[value="Africa/Juba"]', '\n                        Africa/Juba - GMT +03:00                      '),
-                             m('option[value="Africa/Kampala"]', '\n                        Africa/Kampala - GMT +03:00                      '),
-                             m('option[value="Africa/Khartoum"]', '\n                        Africa/Khartoum - GMT +03:00                      '),
-                             m('option[value="Africa/Kigali"]', '\n                        Africa/Kigali - GMT +02:00                      '),
-                             m('option[value="Africa/Kinshasa"]', '\n                        Africa/Kinshasa - GMT +01:00                      '),
-                             m('option[value="Africa/Lagos"]', '\n                        Africa/Lagos - GMT +01:00                      '),
-                             m('option[value="Africa/Libreville"]', '\n                        Africa/Libreville - GMT +01:00                      '),
-                             m('option[value="Africa/Lome"]', '\n                        Africa/Lome - GMT +00:00                      '),
-                             m('option[value="Africa/Luanda"]', '\n                        Africa/Luanda - GMT +01:00                      '),
-                             m('option[value="Africa/Lubumbashi"]', '\n                        Africa/Lubumbashi - GMT +02:00                      '),
-                             m('option[value="Africa/Lusaka"]', '\n                        Africa/Lusaka - GMT +02:00                      '),
-                             m('option[value="Africa/Malabo"]', '\n                        Africa/Malabo - GMT +01:00                      '),
-                             m('option[value="Africa/Maputo"]', '\n                        Africa/Maputo - GMT +02:00                      '),
-                             m('option[value="Africa/Maseru"]', '\n                        Africa/Maseru - GMT +02:00                      '),
-                             m('option[value="Africa/Mbabane"]', '\n                        Africa/Mbabane - GMT +02:00                      '),
-                             m('option[value="Africa/Mogadishu"]', '\n                        Africa/Mogadishu - GMT +03:00                      '),
-                             m('option[value="Africa/Monrovia"]', '\n                        Africa/Monrovia - GMT +00:00                      '),
-                             m('option[value="Africa/Nairobi"]', '\n                        Africa/Nairobi - GMT +03:00                      '),
-                             m('option[value="Africa/Ndjamena"]', '\n                        Africa/Ndjamena - GMT +01:00                      '),
-                             m('option[value="Africa/Niamey"]', '\n                        Africa/Niamey - GMT +01:00                      '),
-                             m('option[value="Africa/Nouakchott"]', '\n                        Africa/Nouakchott - GMT +00:00                      '),
-                             m('option[value="Africa/Ouagadougou"]', '\n                        Africa/Ouagadougou - GMT +00:00                      '),
-                             m('option[value="Africa/Porto-Novo"]', '\n                        Africa/Porto-Novo - GMT +01:00                      '),
-                             m('option[value="Africa/Sao_Tome"]', '\n                        Africa/Sao_Tome - GMT +00:00                      '),
-                             m('option[value="Africa/Tripoli"]', '\n                        Africa/Tripoli - GMT +02:00                      '),
-                             m('option[value="Africa/Tunis"]', '\n                        Africa/Tunis - GMT +01:00                      '),
-                             m('option[value="Africa/Windhoek"]', '\n                        Africa/Windhoek - GMT +02:00                      '),
-                             m('option[value="America/Adak"]', '\n                        America/Adak - GMT -10:00                      '),
-                             m('option[value="America/Anchorage"]', '\n                        America/Anchorage - GMT -09:00                      '),
-                             m('option[value="America/Anguilla"]', '\n                        America/Anguilla - GMT -04:00                      '),
-                             m('option[value="America/Antigua"]', '\n                        America/Antigua - GMT -04:00                      '),
-                             m('option[value="America/Araguaina"]', '\n                        America/Araguaina - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Buenos_Aires"]', '\n                        America/Argentina/Buenos_Aires - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Catamarca"]', '\n                        America/Argentina/Catamarca - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Cordoba"]', '\n                        America/Argentina/Cordoba - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Jujuy"]', '\n                        America/Argentina/Jujuy - GMT -03:00                      '),
-                             m('option[value="America/Argentina/La_Rioja"]', '\n                        America/Argentina/La_Rioja - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Mendoza"]', '\n                        America/Argentina/Mendoza - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Rio_Gallegos"]', '\n                        America/Argentina/Rio_Gallegos - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Salta"]', '\n                        America/Argentina/Salta - GMT -03:00                      '),
-                             m('option[value="America/Argentina/San_Juan"]', '\n                        America/Argentina/San_Juan - GMT -03:00                      '),
-                             m('option[value="America/Argentina/San_Luis"]', '\n                        America/Argentina/San_Luis - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Tucuman"]', '\n                        America/Argentina/Tucuman - GMT -03:00                      '),
-                             m('option[value="America/Argentina/Ushuaia"]', '\n                        America/Argentina/Ushuaia - GMT -03:00                      '),
-                             m('option[value="America/Aruba"]', '\n                        America/Aruba - GMT -04:00                      '),
-                             m('option[value="America/Asuncion"]', '\n                        America/Asuncion - GMT -03:00                      '),
-                             m('option[value="America/Atikokan"]', '\n                        America/Atikokan - GMT -05:00                      '),
-                             m('option[value="America/Bahia"]', '\n                        America/Bahia - GMT -03:00                      '),
-                             m('option[value="America/Bahia_Banderas"]', '\n                        America/Bahia_Banderas - GMT -06:00                      '),
-                             m('option[value="America/Barbados"]', '\n                        America/Barbados - GMT -04:00                      '),
-                             m('option[value="America/Belem"]', '\n                        America/Belem - GMT -03:00                      '),
-                             m('option[value="America/Belize"]', '\n                        America/Belize - GMT -06:00                      '),
-                             m('option[value="America/Blanc-Sablon"]', '\n                        America/Blanc-Sablon - GMT -04:00                      '),
-                             m('option[value="America/Boa_Vista"]', '\n                        America/Boa_Vista - GMT -04:00                      '),
-                             m('option[value="America/Bogota"]', '\n                        America/Bogota - GMT -05:00                      '),
-                             m('option[value="America/Boise"]', '\n                        America/Boise - GMT -07:00                      '),
-                             m('option[value="America/Cambridge_Bay"]', '\n                        America/Cambridge_Bay - GMT -07:00                      '),
-                             m('option[value="America/Campo_Grande"]', '\n                        America/Campo_Grande - GMT -03:00                      '),
-                             m('option[value="America/Cancun"]', '\n                        America/Cancun - GMT -06:00                      '),
-                             m('option[value="America/Caracas"]', '\n                        America/Caracas - GMT -04:30                      '),
-                             m('option[value="America/Cayenne"]', '\n                        America/Cayenne - GMT -03:00                      '),
-                             m('option[value="America/Cayman"]', '\n                        America/Cayman - GMT -05:00                      '),
-                             m('option[value="America/Chicago"]', '\n                        America/Chicago - GMT -06:00                      '),
-                             m('option[value="America/Chihuahua"]', '\n                        America/Chihuahua - GMT -07:00                      '),
-                             m('option[value="America/Costa_Rica"]', '\n                        America/Costa_Rica - GMT -06:00                      '),
-                             m('option[value="America/Creston"]', '\n                        America/Creston - GMT -07:00                      '),
-                             m('option[value="America/Cuiaba"]', '\n                        America/Cuiaba - GMT -03:00                      '),
-                             m('option[value="America/Curacao"]', '\n                        America/Curacao - GMT -04:00                      '),
-                             m('option[value="America/Danmarkshavn"]', '\n                        America/Danmarkshavn - GMT +00:00                      '),
-                             m('option[value="America/Dawson"]', '\n                        America/Dawson - GMT -08:00                      '),
-                             m('option[value="America/Dawson_Creek"]', '\n                        America/Dawson_Creek - GMT -07:00                      '),
-                             m('option[value="America/Denver"]', '\n                        America/Denver - GMT -07:00                      '),
-                             m('option[value="America/Detroit"]', '\n                        America/Detroit - GMT -05:00                      '),
-                             m('option[value="America/Dominica"]', '\n                        America/Dominica - GMT -04:00                      '),
-                             m('option[value="America/Edmonton"]', '\n                        America/Edmonton - GMT -07:00                      '),
-                             m('option[value="America/Eirunepe"]', '\n                        America/Eirunepe - GMT -05:00                      '),
-                             m('option[value="America/El_Salvador"]', '\n                        America/El_Salvador - GMT -06:00                      '),
-                             m('option[value="America/Fortaleza"]', '\n                        America/Fortaleza - GMT -03:00                      '),
-                             m('option[value="America/Glace_Bay"]', '\n                        America/Glace_Bay - GMT -04:00                      '),
-                             m('option[value="America/Godthab"]', '\n                        America/Godthab - GMT -03:00                      '),
-                             m('option[value="America/Goose_Bay"]', '\n                        America/Goose_Bay - GMT -04:00                      '),
-                             m('option[value="America/Grand_Turk"]', '\n                        America/Grand_Turk - GMT -04:00                      '),
-                             m('option[value="America/Grenada"]', '\n                        America/Grenada - GMT -04:00                      '),
-                             m('option[value="America/Guadeloupe"]', '\n                        America/Guadeloupe - GMT -04:00                      '),
-                             m('option[value="America/Guatemala"]', '\n                        America/Guatemala - GMT -06:00                      '),
-                             m('option[value="America/Guayaquil"]', '\n                        America/Guayaquil - GMT -05:00                      '),
-                             m('option[value="America/Guyana"]', '\n                        America/Guyana - GMT -04:00                      '),
-                             m('option[value="America/Halifax"]', '\n                        America/Halifax - GMT -04:00                      '),
-                             m('option[value="America/Havana"]', '\n                        America/Havana - GMT -05:00                      '),
-                             m('option[value="America/Hermosillo"]', '\n                        America/Hermosillo - GMT -07:00                      '),
-                             m('option[value="America/Indiana/Indianapolis"]', '\n                        America/Indiana/Indianapolis - GMT -05:00                      '),
-                             m('option[value="America/Indiana/Knox"]', '\n                        America/Indiana/Knox - GMT -06:00                      '),
-                             m('option[value="America/Indiana/Marengo"]', '\n                        America/Indiana/Marengo - GMT -05:00                      '),
-                             m('option[value="America/Indiana/Petersburg"]', '\n                        America/Indiana/Petersburg - GMT -05:00                      '),
-                             m('option[value="America/Indiana/Tell_City"]', '\n                        America/Indiana/Tell_City - GMT -06:00                      '),
-                             m('option[value="America/Indiana/Vevay"]', '\n                        America/Indiana/Vevay - GMT -05:00                      '),
-                             m('option[value="America/Indiana/Vincennes"]', '\n                        America/Indiana/Vincennes - GMT -05:00                      '),
-                             m('option[value="America/Indiana/Winamac"]', '\n                        America/Indiana/Winamac - GMT -05:00                      '),
-                             m('option[value="America/Inuvik"]', '\n                        America/Inuvik - GMT -07:00                      '),
-                             m('option[value="America/Iqaluit"]', '\n                        America/Iqaluit - GMT -05:00                      '),
-                             m('option[value="America/Jamaica"]', '\n                        America/Jamaica - GMT -05:00                      '),
-                             m('option[value="America/Juneau"]', '\n                        America/Juneau - GMT -09:00                      '),
-                             m('option[value="America/Kentucky/Louisville"]', '\n                        America/Kentucky/Louisville - GMT -05:00                      '),
-                             m('option[value="America/Kentucky/Monticello"]', '\n                        America/Kentucky/Monticello - GMT -05:00                      '),
-                             m('option[value="America/Kralendijk"]', '\n                        America/Kralendijk - GMT -04:00                      '),
-                             m('option[value="America/La_Paz"]', '\n                        America/La_Paz - GMT -04:00                      '),
-                             m('option[value="America/Lima"]', '\n                        America/Lima - GMT -05:00                      '),
-                             m('option[value="America/Los_Angeles"]', '\n                        America/Los_Angeles - GMT -08:00                      '),
-                             m('option[value="America/Lower_Princes"]', '\n                        America/Lower_Princes - GMT -04:00                      '),
-                             m('option[value="America/Maceio"]', '\n                        America/Maceio - GMT -03:00                      '),
-                             m('option[value="America/Managua"]', '\n                        America/Managua - GMT -06:00                      '),
-                             m('option[value="America/Manaus"]', '\n                        America/Manaus - GMT -04:00                      '),
-                             m('option[value="America/Marigot"]', '\n                        America/Marigot - GMT -04:00                      '),
-                             m('option[value="America/Martinique"]', '\n                        America/Martinique - GMT -04:00                      '),
-                             m('option[value="America/Matamoros"]', '\n                        America/Matamoros - GMT -06:00                      '),
-                             m('option[value="America/Mazatlan"]', '\n                        America/Mazatlan - GMT -07:00                      '),
-                             m('option[value="America/Menominee"]', '\n                        America/Menominee - GMT -06:00                      '),
-                             m('option[value="America/Merida"]', '\n                        America/Merida - GMT -06:00                      '),
-                             m('option[value="America/Metlakatla"]', '\n                        America/Metlakatla - GMT -08:00                      '),
-                             m('option[value="America/Mexico_City"]', '\n                        America/Mexico_City - GMT -06:00                      '),
-                             m('option[value="America/Miquelon"]', '\n                        America/Miquelon - GMT -03:00                      '),
-                             m('option[value="America/Moncton"]', '\n                        America/Moncton - GMT -04:00                      '),
-                             m('option[value="America/Monterrey"]', '\n                        America/Monterrey - GMT -06:00                      '),
-                             m('option[value="America/Montevideo"]', '\n                        America/Montevideo - GMT -02:00                      '),
-                             m('option[value="America/Montserrat"]', '\n                        America/Montserrat - GMT -04:00                      '),
-                             m('option[value="America/Nassau"]', '\n                        America/Nassau - GMT -05:00                      '),
-                             m('option[selected=""][value="America/New_York"]', '\n                        America/New_York - GMT -05:00                      '),
-                             m('option[value="America/Nipigon"]', '\n                        America/Nipigon - GMT -05:00                      '),
-                             m('option[value="America/Nome"]', '\n                        America/Nome - GMT -09:00                      '),
-                             m('option[value="America/Noronha"]', '\n                        America/Noronha - GMT -02:00                      '),
-                             m('option[value="America/North_Dakota/Beulah"]', '\n                        America/North_Dakota/Beulah - GMT -06:00                      '),
-                             m('option[value="America/North_Dakota/Center"]', '\n                        America/North_Dakota/Center - GMT -06:00                      '),
-                             m('option[value="America/North_Dakota/New_Salem"]', '\n                        America/North_Dakota/New_Salem - GMT -06:00                      '),
-                             m('option[value="America/Ojinaga"]', '\n                        America/Ojinaga - GMT -07:00                      '),
-                             m('option[value="America/Panama"]', '\n                        America/Panama - GMT -05:00                      '),
-                             m('option[value="America/Pangnirtung"]', '\n                        America/Pangnirtung - GMT -05:00                      '),
-                             m('option[value="America/Paramaribo"]', '\n                        America/Paramaribo - GMT -03:00                      '),
-                             m('option[value="America/Phoenix"]', '\n                        America/Phoenix - GMT -07:00                      '),
-                             m('option[value="America/Port-au-Prince"]', '\n                        America/Port-au-Prince - GMT -05:00                      '),
-                             m('option[value="America/Port_of_Spain"]', '\n                        America/Port_of_Spain - GMT -04:00                      '),
-                             m('option[value="America/Porto_Velho"]', '\n                        America/Porto_Velho - GMT -04:00                      '),
-                             m('option[value="America/Puerto_Rico"]', '\n                        America/Puerto_Rico - GMT -04:00                      '),
-                             m('option[value="America/Rainy_River"]', '\n                        America/Rainy_River - GMT -06:00                      '),
-                             m('option[value="America/Rankin_Inlet"]', '\n                        America/Rankin_Inlet - GMT -06:00                      '),
-                             m('option[value="America/Recife"]', '\n                        America/Recife - GMT -03:00                      '),
-                             m('option[value="America/Regina"]', '\n                        America/Regina - GMT -06:00                      '),
-                             m('option[value="America/Resolute"]', '\n                        America/Resolute - GMT -06:00                      '),
-                             m('option[value="America/Rio_Branco"]', '\n                        America/Rio_Branco - GMT -05:00                      '),
-                             m('option[value="America/Santa_Isabel"]', '\n                        America/Santa_Isabel - GMT -08:00                      '),
-                             m('option[value="America/Santarem"]', '\n                        America/Santarem - GMT -03:00                      '),
-                             m('option[value="America/Santiago"]', '\n                        America/Santiago - GMT -03:00                      '),
-                             m('option[value="America/Santo_Domingo"]', '\n                        America/Santo_Domingo - GMT -04:00                      '),
-                             m('option[value="America/Sao_Paulo"]', '\n                        America/Sao_Paulo - GMT -02:00                      '),
-                             m('option[value="America/Scoresbysund"]', '\n                        America/Scoresbysund - GMT -01:00                      '),
-                             m('option[value="America/Sitka"]', '\n                        America/Sitka - GMT -09:00                      '),
-                             m('option[value="America/St_Barthelemy"]', '\n                        America/St_Barthelemy - GMT -04:00                      '),
-                             m('option[value="America/St_Johns"]', '\n                        America/St_Johns - GMT -03:30                      '),
-                             m('option[value="America/St_Kitts"]', '\n                        America/St_Kitts - GMT -04:00                      '),
-                             m('option[value="America/St_Lucia"]', '\n                        America/St_Lucia - GMT -04:00                      '),
-                             m('option[value="America/St_Thomas"]', '\n                        America/St_Thomas - GMT -04:00                      '),
-                             m('option[value="America/St_Vincent"]', '\n                        America/St_Vincent - GMT -04:00                      '),
-                             m('option[value="America/Swift_Current"]', '\n                        America/Swift_Current - GMT -06:00                      '),
-                             m('option[value="America/Tegucigalpa"]', '\n                        America/Tegucigalpa - GMT -06:00                      '),
-                             m('option[value="America/Thule"]', '\n                        America/Thule - GMT -04:00                      '),
-                             m('option[value="America/Thunder_Bay"]', '\n                        America/Thunder_Bay - GMT -05:00                      '),
-                             m('option[value="America/Tijuana"]', '\n                        America/Tijuana - GMT -08:00                      '),
-                             m('option[value="America/Toronto"]', '\n                        America/Toronto - GMT -05:00                      '),
-                             m('option[value="America/Tortola"]', '\n                        America/Tortola - GMT -04:00                      '),
-                             m('option[value="America/Vancouver"]', '\n                        America/Vancouver - GMT -08:00                      '),
-                             m('option[value="America/Whitehorse"]', '\n                        America/Whitehorse - GMT -08:00                      '),
-                             m('option[value="America/Winnipeg"]', '\n                        America/Winnipeg - GMT -06:00                      '),
-                             m('option[value="America/Yakutat"]', '\n                        America/Yakutat - GMT -09:00                      '),
-                             m('option[value="America/Yellowknife"]', '\n                        America/Yellowknife - GMT -07:00                      '),
-                             m('option[value="Antarctica/Casey"]', '\n                        Antarctica/Casey - GMT +08:00                      '),
-                             m('option[value="Antarctica/Davis"]', '\n                        Antarctica/Davis - GMT +07:00                      '),
-                             m('option[value="Antarctica/DumontDUrville"]', '\n                        Antarctica/DumontDUrville - GMT +10:00                      '),
-                             m('option[value="Antarctica/Macquarie"]', '\n                        Antarctica/Macquarie - GMT +11:00                      '),
-                             m('option[value="Antarctica/Mawson"]', '\n                        Antarctica/Mawson - GMT +05:00                      '),
-                             m('option[value="Antarctica/McMurdo"]', '\n                        Antarctica/McMurdo - GMT +13:00                      '),
-                             m('option[value="Antarctica/Palmer"]', '\n                        Antarctica/Palmer - GMT -03:00                      '),
-                             m('option[value="Antarctica/Rothera"]', '\n                        Antarctica/Rothera - GMT -03:00                      '),
-                             m('option[value="Antarctica/Syowa"]', '\n                        Antarctica/Syowa - GMT +03:00                      '),
-                             m('option[value="Antarctica/Troll"]', '\n                        Antarctica/Troll - GMT +00:00                      '),
-                             m('option[value="Antarctica/Vostok"]', '\n                        Antarctica/Vostok - GMT +06:00                      '),
-                             m('option[value="Arctic/Longyearbyen"]', '\n                        Arctic/Longyearbyen - GMT +01:00                      '),
-                             m('option[value="Asia/Aden"]', '\n                        Asia/Aden - GMT +03:00                      '),
-                             m('option[value="Asia/Almaty"]', '\n                        Asia/Almaty - GMT +06:00                      '),
-                             m('option[value="Asia/Amman"]', '\n                        Asia/Amman - GMT +02:00                      '),
-                             m('option[value="Asia/Anadyr"]', '\n                        Asia/Anadyr - GMT +12:00                      '),
-                             m('option[value="Asia/Aqtau"]', '\n                        Asia/Aqtau - GMT +05:00                      '),
-                             m('option[value="Asia/Aqtobe"]', '\n                        Asia/Aqtobe - GMT +05:00                      '),
-                             m('option[value="Asia/Ashgabat"]', '\n                        Asia/Ashgabat - GMT +05:00                      '),
-                             m('option[value="Asia/Baghdad"]', '\n                        Asia/Baghdad - GMT +03:00                      '),
-                             m('option[value="Asia/Bahrain"]', '\n                        Asia/Bahrain - GMT +03:00                      '),
-                             m('option[value="Asia/Baku"]', '\n                        Asia/Baku - GMT +04:00                      '),
-                             m('option[value="Asia/Bangkok"]', '\n                        Asia/Bangkok - GMT +07:00                      '),
-                             m('option[value="Asia/Beirut"]', '\n                        Asia/Beirut - GMT +02:00                      '),
-                             m('option[value="Asia/Bishkek"]', '\n                        Asia/Bishkek - GMT +06:00                      '),
-                             m('option[value="Asia/Brunei"]', '\n                        Asia/Brunei - GMT +08:00                      '),
-                             m('option[value="Asia/Chita"]', '\n                        Asia/Chita - GMT +08:00                      '),
-                             m('option[value="Asia/Choibalsan"]', '\n                        Asia/Choibalsan - GMT +08:00                      '),
-                             m('option[value="Asia/Colombo"]', '\n                        Asia/Colombo - GMT +05:30                      '),
-                             m('option[value="Asia/Damascus"]', '\n                        Asia/Damascus - GMT +02:00                      '),
-                             m('option[value="Asia/Dhaka"]', '\n                        Asia/Dhaka - GMT +06:00                      '),
-                             m('option[value="Asia/Dili"]', '\n                        Asia/Dili - GMT +09:00                      '),
-                             m('option[value="Asia/Dubai"]', '\n                        Asia/Dubai - GMT +04:00                      '),
-                             m('option[value="Asia/Dushanbe"]', '\n                        Asia/Dushanbe - GMT +05:00                      '),
-                             m('option[value="Asia/Gaza"]', '\n                        Asia/Gaza - GMT +02:00                      '),
-                             m('option[value="Asia/Hebron"]', '\n                        Asia/Hebron - GMT +02:00                      '),
-                             m('option[value="Asia/Ho_Chi_Minh"]', '\n                        Asia/Ho_Chi_Minh - GMT +07:00                      '),
-                             m('option[value="Asia/Hong_Kong"]', '\n                        Asia/Hong_Kong - GMT +08:00                      '),
-                             m('option[value="Asia/Hovd"]', '\n                        Asia/Hovd - GMT +07:00                      '),
-                             m('option[value="Asia/Irkutsk"]', '\n                        Asia/Irkutsk - GMT +08:00                      '),
-                             m('option[value="Asia/Jakarta"]', '\n                        Asia/Jakarta - GMT +07:00                      '),
-                             m('option[value="Asia/Jayapura"]', '\n                        Asia/Jayapura - GMT +09:00                      '),
-                             m('option[value="Asia/Jerusalem"]', '\n                        Asia/Jerusalem - GMT +02:00                      '),
-                             m('option[value="Asia/Kabul"]', '\n                        Asia/Kabul - GMT +04:30                      '),
-                             m('option[value="Asia/Kamchatka"]', '\n                        Asia/Kamchatka - GMT +12:00                      '),
-                             m('option[value="Asia/Karachi"]', '\n                        Asia/Karachi - GMT +05:00                      '),
-                             m('option[value="Asia/Kathmandu"]', '\n                        Asia/Kathmandu - GMT +05:45                      '),
-                             m('option[value="Asia/Khandyga"]', '\n                        Asia/Khandyga - GMT +09:00                      '),
-                             m('option[value="Asia/Kolkata"]', '\n                        Asia/Kolkata - GMT +05:30                      '),
-                             m('option[value="Asia/Krasnoyarsk"]', '\n                        Asia/Krasnoyarsk - GMT +07:00                      '),
-                             m('option[value="Asia/Kuala_Lumpur"]', '\n                        Asia/Kuala_Lumpur - GMT +08:00                      '),
-                             m('option[value="Asia/Kuching"]', '\n                        Asia/Kuching - GMT +08:00                      '),
-                             m('option[value="Asia/Kuwait"]', '\n                        Asia/Kuwait - GMT +03:00                      '),
-                             m('option[value="Asia/Macau"]', '\n                        Asia/Macau - GMT +08:00                      '),
-                             m('option[value="Asia/Magadan"]', '\n                        Asia/Magadan - GMT +10:00                      '),
-                             m('option[value="Asia/Makassar"]', '\n                        Asia/Makassar - GMT +08:00                      '),
-                             m('option[value="Asia/Manila"]', '\n                        Asia/Manila - GMT +08:00                      '),
-                             m('option[value="Asia/Muscat"]', '\n                        Asia/Muscat - GMT +04:00                      '),
-                             m('option[value="Asia/Nicosia"]', '\n                        Asia/Nicosia - GMT +02:00                      '),
-                             m('option[value="Asia/Novokuznetsk"]', '\n                        Asia/Novokuznetsk - GMT +07:00                      '),
-                             m('option[value="Asia/Novosibirsk"]', '\n                        Asia/Novosibirsk - GMT +06:00                      '),
-                             m('option[value="Asia/Omsk"]', '\n                        Asia/Omsk - GMT +06:00                      '),
-                             m('option[value="Asia/Oral"]', '\n                        Asia/Oral - GMT +05:00                      '),
-                             m('option[value="Asia/Phnom_Penh"]', '\n                        Asia/Phnom_Penh - GMT +07:00                      '),
-                             m('option[value="Asia/Pontianak"]', '\n                        Asia/Pontianak - GMT +07:00                      '),
-                             m('option[value="Asia/Pyongyang"]', '\n                        Asia/Pyongyang - GMT +09:00                      '),
-                             m('option[value="Asia/Qatar"]', '\n                        Asia/Qatar - GMT +03:00                      '),
-                             m('option[value="Asia/Qyzylorda"]', '\n                        Asia/Qyzylorda - GMT +06:00                      '),
-                             m('option[value="Asia/Rangoon"]', '\n                        Asia/Rangoon - GMT +06:30                      '),
-                             m('option[value="Asia/Riyadh"]', '\n                        Asia/Riyadh - GMT +03:00                      '),
-                             m('option[value="Asia/Sakhalin"]', '\n                        Asia/Sakhalin - GMT +10:00                      '),
-                             m('option[value="Asia/Samarkand"]', '\n                        Asia/Samarkand - GMT +05:00                      '),
-                             m('option[value="Asia/Seoul"]', '\n                        Asia/Seoul - GMT +09:00                      '),
-                             m('option[value="Asia/Shanghai"]', '\n                        Asia/Shanghai - GMT +08:00                      '),
-                             m('option[value="Asia/Singapore"]', '\n                        Asia/Singapore - GMT +08:00                      '),
-                             m('option[value="Asia/Srednekolymsk"]', '\n                        Asia/Srednekolymsk - GMT +11:00                      '),
-                             m('option[value="Asia/Taipei"]', '\n                        Asia/Taipei - GMT +08:00                      '),
-                             m('option[value="Asia/Tashkent"]', '\n                        Asia/Tashkent - GMT +05:00                      '),
-                             m('option[value="Asia/Tbilisi"]', '\n                        Asia/Tbilisi - GMT +04:00                      '),
-                             m('option[value="Asia/Tehran"]', '\n                        Asia/Tehran - GMT +03:30                      '),
-                             m('option[value="Asia/Thimphu"]', '\n                        Asia/Thimphu - GMT +06:00                      '),
-                             m('option[value="Asia/Tokyo"]', '\n                        Asia/Tokyo - GMT +09:00                      '),
-                             m('option[value="Asia/Ulaanbaatar"]', '\n                        Asia/Ulaanbaatar - GMT +08:00                      '),
-                             m('option[value="Asia/Urumqi"]', '\n                        Asia/Urumqi - GMT +06:00                      '),
-                             m('option[value="Asia/Ust-Nera"]', '\n                        Asia/Ust-Nera - GMT +10:00                      '),
-                             m('option[value="Asia/Vientiane"]', '\n                        Asia/Vientiane - GMT +07:00                      '),
-                             m('option[value="Asia/Vladivostok"]', '\n                        Asia/Vladivostok - GMT +10:00                      '),
-                             m('option[value="Asia/Yakutsk"]', '\n                        Asia/Yakutsk - GMT +09:00                      '),
-                             m('option[value="Asia/Yekaterinburg"]', '\n                        Asia/Yekaterinburg - GMT +05:00                      '),
-                             m('option[value="Asia/Yerevan"]', '\n                        Asia/Yerevan - GMT +04:00                      '),
-                             m('option[value="Atlantic/Azores"]', '\n                        Atlantic/Azores - GMT -01:00                      '),
-                             m('option[value="Atlantic/Bermuda"]', '\n                        Atlantic/Bermuda - GMT -04:00                      '),
-                             m('option[value="Atlantic/Canary"]', '\n                        Atlantic/Canary - GMT +00:00                      '),
-                             m('option[value="Atlantic/Cape_Verde"]', '\n                        Atlantic/Cape_Verde - GMT -01:00                      '),
-                             m('option[value="Atlantic/Faroe"]', '\n                        Atlantic/Faroe - GMT +00:00                      '),
-                             m('option[value="Atlantic/Madeira"]', '\n                        Atlantic/Madeira - GMT +00:00                      '),
-                             m('option[value="Atlantic/Reykjavik"]', '\n                        Atlantic/Reykjavik - GMT +00:00                      '),
-                             m('option[value="Atlantic/South_Georgia"]', '\n                        Atlantic/South_Georgia - GMT -02:00                      '),
-                             m('option[value="Atlantic/St_Helena"]', '\n                        Atlantic/St_Helena - GMT +00:00                      '),
-                             m('option[value="Atlantic/Stanley"]', '\n                        Atlantic/Stanley - GMT -03:00                      '),
-                             m('option[value="Australia/Adelaide"]', '\n                        Australia/Adelaide - GMT +10:30                      '),
-                             m('option[value="Australia/Brisbane"]', '\n                        Australia/Brisbane - GMT +10:00                      '),
-                             m('option[value="Australia/Broken_Hill"]', '\n                        Australia/Broken_Hill - GMT +10:30                      '),
-                             m('option[value="Australia/Currie"]', '\n                        Australia/Currie - GMT +11:00                      '),
-                             m('option[value="Australia/Darwin"]', '\n                        Australia/Darwin - GMT +09:30                      '),
-                             m('option[value="Australia/Eucla"]', '\n                        Australia/Eucla - GMT +08:45                      '),
-                             m('option[value="Australia/Hobart"]', '\n                        Australia/Hobart - GMT +11:00                      '),
-                             m('option[value="Australia/Lindeman"]', '\n                        Australia/Lindeman - GMT +10:00                      '),
-                             m('option[value="Australia/Lord_Howe"]', '\n                        Australia/Lord_Howe - GMT +11:00                      '),
-                             m('option[value="Australia/Melbourne"]', '\n                        Australia/Melbourne - GMT +11:00                      '),
-                             m('option[value="Australia/Perth"]', '\n                        Australia/Perth - GMT +08:00                      '),
-                             m('option[value="Australia/Sydney"]', '\n                        Australia/Sydney - GMT +11:00                      '),
-                             m('option[value="Europe/Amsterdam"]', '\n                        Europe/Amsterdam - GMT +01:00                      '),
-                             m('option[value="Europe/Andorra"]', '\n                        Europe/Andorra - GMT +01:00                      '),
-                             m('option[value="Europe/Athens"]', '\n                        Europe/Athens - GMT +02:00                      '),
-                             m('option[value="Europe/Belgrade"]', '\n                        Europe/Belgrade - GMT +01:00                      '),
-                             m('option[value="Europe/Berlin"]', '\n                        Europe/Berlin - GMT +01:00                      '),
-                             m('option[value="Europe/Bratislava"]', '\n                        Europe/Bratislava - GMT +01:00                      '),
-                             m('option[value="Europe/Brussels"]', '\n                        Europe/Brussels - GMT +01:00                      '),
-                             m('option[value="Europe/Bucharest"]', '\n                        Europe/Bucharest - GMT +02:00                      '),
-                             m('option[value="Europe/Budapest"]', '\n                        Europe/Budapest - GMT +01:00                      '),
-                             m('option[value="Europe/Busingen"]', '\n                        Europe/Busingen - GMT +01:00                      '),
-                             m('option[value="Europe/Chisinau"]', '\n                        Europe/Chisinau - GMT +02:00                      '),
-                             m('option[value="Europe/Copenhagen"]', '\n                        Europe/Copenhagen - GMT +01:00                      '),
-                             m('option[value="Europe/Dublin"]', '\n                        Europe/Dublin - GMT +00:00                      '),
-                             m('option[value="Europe/Gibraltar"]', '\n                        Europe/Gibraltar - GMT +01:00                      '),
-                             m('option[value="Europe/Guernsey"]', '\n                        Europe/Guernsey - GMT +00:00                      '),
-                             m('option[value="Europe/Helsinki"]', '\n                        Europe/Helsinki - GMT +02:00                      '),
-                             m('option[value="Europe/Isle_of_Man"]', '\n                        Europe/Isle_of_Man - GMT +00:00                      '),
-                             m('option[value="Europe/Istanbul"]', '\n                        Europe/Istanbul - GMT +02:00                      '),
-                             m('option[value="Europe/Jersey"]', '\n                        Europe/Jersey - GMT +00:00                      '),
-                             m('option[value="Europe/Kaliningrad"]', '\n                        Europe/Kaliningrad - GMT +02:00                      '),
-                             m('option[value="Europe/Kiev"]', '\n                        Europe/Kiev - GMT +02:00                      '),
-                             m('option[value="Europe/Lisbon"]', '\n                        Europe/Lisbon - GMT +00:00                      '),
-                             m('option[value="Europe/Ljubljana"]', '\n                        Europe/Ljubljana - GMT +01:00                      '),
-                             m('option[value="Europe/London"]', '\n                        Europe/London - GMT +00:00                      '),
-                             m('option[value="Europe/Luxembourg"]', '\n                        Europe/Luxembourg - GMT +01:00                      '),
-                             m('option[value="Europe/Madrid"]', '\n                        Europe/Madrid - GMT +01:00                      '),
-                             m('option[value="Europe/Malta"]', '\n                        Europe/Malta - GMT +01:00                      '),
-                             m('option[value="Europe/Mariehamn"]', '\n                        Europe/Mariehamn - GMT +02:00                      '),
-                             m('option[value="Europe/Minsk"]', '\n                        Europe/Minsk - GMT +03:00                      '),
-                             m('option[value="Europe/Monaco"]', '\n                        Europe/Monaco - GMT +01:00                      '),
-                             m('option[value="Europe/Moscow"]', '\n                        Europe/Moscow - GMT +03:00                      '),
-                             m('option[value="Europe/Oslo"]', '\n                        Europe/Oslo - GMT +01:00                      '),
-                             m('option[value="Europe/Paris"]', '\n                        Europe/Paris - GMT +01:00                      '),
-                             m('option[value="Europe/Podgorica"]', '\n                        Europe/Podgorica - GMT +01:00                      '),
-                             m('option[value="Europe/Prague"]', '\n                        Europe/Prague - GMT +01:00                      '),
-                             m('option[value="Europe/Riga"]', '\n                        Europe/Riga - GMT +02:00                      '),
-                             m('option[value="Europe/Rome"]', '\n                        Europe/Rome - GMT +01:00                      '),
-                             m('option[value="Europe/Samara"]', '\n                        Europe/Samara - GMT +04:00                      '),
-                             m('option[value="Europe/San_Marino"]', '\n                        Europe/San_Marino - GMT +01:00                      '),
-                             m('option[value="Europe/Sarajevo"]', '\n                        Europe/Sarajevo - GMT +01:00                      '),
-                             m('option[value="Europe/Simferopol"]', '\n                        Europe/Simferopol - GMT +03:00                      '),
-                             m('option[value="Europe/Skopje"]', '\n                        Europe/Skopje - GMT +01:00                      '),
-                             m('option[value="Europe/Sofia"]', '\n                        Europe/Sofia - GMT +02:00                      '),
-                             m('option[value="Europe/Stockholm"]', '\n                        Europe/Stockholm - GMT +01:00                      '),
-                             m('option[value="Europe/Tallinn"]', '\n                        Europe/Tallinn - GMT +02:00                      '),
-                             m('option[value="Europe/Tirane"]', '\n                        Europe/Tirane - GMT +01:00                      '),
-                             m('option[value="Europe/Uzhgorod"]', '\n                        Europe/Uzhgorod - GMT +02:00                      '),
-                             m('option[value="Europe/Vaduz"]', '\n                        Europe/Vaduz - GMT +01:00                      '),
-                             m('option[value="Europe/Vatican"]', '\n                        Europe/Vatican - GMT +01:00                      '),
-                             m('option[value="Europe/Vienna"]', '\n                        Europe/Vienna - GMT +01:00                      '),
-                             m('option[value="Europe/Vilnius"]', '\n                        Europe/Vilnius - GMT +02:00                      '),
-                             m('option[value="Europe/Volgograd"]', '\n                        Europe/Volgograd - GMT +03:00                      '),
-                             m('option[value="Europe/Warsaw"]', '\n                        Europe/Warsaw - GMT +01:00                      '),
-                             m('option[value="Europe/Zagreb"]', '\n                        Europe/Zagreb - GMT +01:00                      '),
-                             m('option[value="Europe/Zaporozhye"]', '\n                        Europe/Zaporozhye - GMT +02:00                      '),
-                             m('option[value="Europe/Zurich"]', '\n                        Europe/Zurich - GMT +01:00                      '),
-                             m('option[value="Indian/Antananarivo"]', '\n                        Indian/Antananarivo - GMT +03:00                      '),
-                             m('option[value="Indian/Chagos"]', '\n                        Indian/Chagos - GMT +06:00                      '),
-                             m('option[value="Indian/Christmas"]', '\n                        Indian/Christmas - GMT +07:00                      '),
-                             m('option[value="Indian/Cocos"]', '\n                        Indian/Cocos - GMT +06:30                      '),
-                             m('option[value="Indian/Comoro"]', '\n                        Indian/Comoro - GMT +03:00                      '),
-                             m('option[value="Indian/Kerguelen"]', '\n                        Indian/Kerguelen - GMT +05:00                      '),
-                             m('option[value="Indian/Mahe"]', '\n                        Indian/Mahe - GMT +04:00                      '),
-                             m('option[value="Indian/Maldives"]', '\n                        Indian/Maldives - GMT +05:00                      '),
-                             m('option[value="Indian/Mauritius"]', '\n                        Indian/Mauritius - GMT +04:00                      '),
-                             m('option[value="Indian/Mayotte"]', '\n                        Indian/Mayotte - GMT +03:00                      '),
-                             m('option[value="Indian/Reunion"]', '\n                        Indian/Reunion - GMT +04:00                      '),
-                             m('option[value="Pacific/Apia"]', '\n                        Pacific/Apia - GMT +14:00                      '),
-                             m('option[value="Pacific/Auckland"]', '\n                        Pacific/Auckland - GMT +13:00                      '),
-                             m('option[value="Pacific/Chatham"]', '\n                        Pacific/Chatham - GMT +13:45                      '),
-                             m('option[value="Pacific/Chuuk"]', '\n                        Pacific/Chuuk - GMT +10:00                      '),
-                             m('option[value="Pacific/Easter"]', '\n                        Pacific/Easter - GMT -05:00                      '),
-                             m('option[value="Pacific/Efate"]', '\n                        Pacific/Efate - GMT +11:00                      '),
-                             m('option[value="Pacific/Enderbury"]', '\n                        Pacific/Enderbury - GMT +13:00                      '),
-                             m('option[value="Pacific/Fakaofo"]', '\n                        Pacific/Fakaofo - GMT +13:00                      '),
-                             m('option[value="Pacific/Fiji"]', '\n                        Pacific/Fiji - GMT +13:00                      '),
-                             m('option[value="Pacific/Funafuti"]', '\n                        Pacific/Funafuti - GMT +12:00                      '),
-                             m('option[value="Pacific/Galapagos"]', '\n                        Pacific/Galapagos - GMT -06:00                      '),
-                             m('option[value="Pacific/Gambier"]', '\n                        Pacific/Gambier - GMT -09:00                      '),
-                             m('option[value="Pacific/Guadalcanal"]', '\n                        Pacific/Guadalcanal - GMT +11:00                      '),
-                             m('option[value="Pacific/Guam"]', '\n                        Pacific/Guam - GMT +10:00                      '),
-                             m('option[value="Pacific/Honolulu"]', '\n                        Pacific/Honolulu - GMT -10:00                      '),
-                             m('option[value="Pacific/Johnston"]', '\n                        Pacific/Johnston - GMT -10:00                      '),
-                             m('option[value="Pacific/Kiritimati"]', '\n                        Pacific/Kiritimati - GMT +14:00                      '),
-                             m('option[value="Pacific/Kosrae"]', '\n                        Pacific/Kosrae - GMT +11:00                      '),
-                             m('option[value="Pacific/Kwajalein"]', '\n                        Pacific/Kwajalein - GMT +12:00                      '),
-                             m('option[value="Pacific/Majuro"]', '\n                        Pacific/Majuro - GMT +12:00                      '),
-                             m('option[value="Pacific/Marquesas"]', '\n                        Pacific/Marquesas - GMT -09:30                      '),
-                             m('option[value="Pacific/Midway"]', '\n                        Pacific/Midway - GMT -11:00                      '),
-                             m('option[value="Pacific/Nauru"]', '\n                        Pacific/Nauru - GMT +12:00                      '),
-                             m('option[value="Pacific/Niue"]', '\n                        Pacific/Niue - GMT -11:00                      '),
-                             m('option[value="Pacific/Norfolk"]', '\n                        Pacific/Norfolk - GMT +11:30                      '),
-                             m('option[value="Pacific/Noumea"]', '\n                        Pacific/Noumea - GMT +11:00                      '),
-                             m('option[value="Pacific/Pago_Pago"]', '\n                        Pacific/Pago_Pago - GMT -11:00                      '),
-                             m('option[value="Pacific/Palau"]', '\n                        Pacific/Palau - GMT +09:00                      '),
-                             m('option[value="Pacific/Pitcairn"]', '\n                        Pacific/Pitcairn - GMT -08:00                      '),
-                             m('option[value="Pacific/Pohnpei"]', '\n                        Pacific/Pohnpei - GMT +11:00                      '),
-                             m('option[value="Pacific/Port_Moresby"]', '\n                        Pacific/Port_Moresby - GMT +10:00                      '),
-                             m('option[value="Pacific/Rarotonga"]', '\n                        Pacific/Rarotonga - GMT -10:00                      '),
-                             m('option[value="Pacific/Saipan"]', '\n                        Pacific/Saipan - GMT +10:00                      '),
-                             m('option[value="Pacific/Tahiti"]', '\n                        Pacific/Tahiti - GMT -10:00                      '),
-                             m('option[value="Pacific/Tarawa"]', '\n                        Pacific/Tarawa - GMT +12:00                      '),
-                             m('option[value="Pacific/Tongatapu"]', '\n                        Pacific/Tongatapu - GMT +13:00                      '),
-                             m('option[value="Pacific/Wake"]', '\n                        Pacific/Wake - GMT +12:00                      '),
-                             m('option[value="Pacific/Wallis"]', '\n                        Pacific/Wallis - GMT +12:00                      '),
-                             m('option[value="UTC"]', '\n                        UTC - GMT +00:00                      ')
-                         ]),
-                         m('.btn-group.bootstrap-select', [m('button.btn.dropdown-toggle.selectpicker.btn-default.btn-lg[data-toggle="dropdown"][title="America/New_York - GMT -05:00"][type="button"]', [m('span.filter-option.pull-left', '\n                        America/New_York - GMT -05:00                      '), ' ', m('span.caret')]), m('.dropdown-menu.open', [m('ul.dropdown-menu.inner.selectpicker[role="menu"]', [m('li[rel="0"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Abidjan - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="1"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Accra - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="2"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Addis_Ababa - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="3"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Algiers - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="4"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Asmara - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="5"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Bamako - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="6"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Bangui - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="7"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Banjul - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="8"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Bissau - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="9"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Blantyre - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="10"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Brazzaville - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="11"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Bujumbura - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="12"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Cairo - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="13"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Casablanca - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="14"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Ceuta - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="15"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Conakry - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="16"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Dakar - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="17"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Dar_es_Salaam - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="18"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Djibouti - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="19"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Douala - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="20"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/El_Aaiun - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="21"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Freetown - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="22"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Gaborone - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="23"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Harare - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="24"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Johannesburg - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="25"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Juba - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="26"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Kampala - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="27"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Khartoum - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="28"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Kigali - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="29"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Kinshasa - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="30"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Lagos - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="31"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Libreville - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="32"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Lome - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="33"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Luanda - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="34"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Lubumbashi - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="35"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Lusaka - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="36"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Malabo - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="37"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Maputo - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="38"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Maseru - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="39"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Mbabane - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="40"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Mogadishu - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="41"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Monrovia - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="42"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Nairobi - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="43"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Ndjamena - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="44"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Niamey - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="45"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Nouakchott - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="46"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Ouagadougou - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="47"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Porto-Novo - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="48"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Sao_Tome - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="49"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Tripoli - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="50"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Tunis - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="51"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Africa/Windhoek - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="52"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Adak - GMT -10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="53"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Anchorage - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="54"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Anguilla - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="55"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Antigua - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="56"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Araguaina - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="57"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Buenos_Aires - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="58"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Catamarca - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="59"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Cordoba - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="60"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Jujuy - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="61"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/La_Rioja - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="62"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Mendoza - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="63"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Rio_Gallegos - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="64"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Salta - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="65"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/San_Juan - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="66"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/San_Luis - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="67"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Tucuman - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="68"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Argentina/Ushuaia - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="69"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Aruba - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="70"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Asuncion - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="71"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Atikokan - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="72"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Bahia - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="73"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Bahia_Banderas - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="74"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Barbados - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="75"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Belem - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="76"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Belize - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="77"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Blanc-Sablon - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="78"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Boa_Vista - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="79"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Bogota - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="80"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Boise - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="81"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Cambridge_Bay - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="82"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Campo_Grande - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="83"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Cancun - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="84"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Caracas - GMT -04:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="85"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Cayenne - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="86"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Cayman - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="87"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Chicago - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="88"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Chihuahua - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="89"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Costa_Rica - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="90"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Creston - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="91"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Cuiaba - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="92"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Curacao - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="93"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Danmarkshavn - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="94"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Dawson - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="95"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Dawson_Creek - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="96"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Denver - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="97"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Detroit - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="98"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Dominica - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="99"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Edmonton - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="100"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Eirunepe - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="101"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/El_Salvador - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="102"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Fortaleza - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="103"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Glace_Bay - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="104"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Godthab - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="105"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Goose_Bay - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="106"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Grand_Turk - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="107"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Grenada - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="108"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Guadeloupe - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="109"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Guatemala - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="110"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Guayaquil - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="111"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Guyana - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="112"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Halifax - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="113"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Havana - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="114"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Hermosillo - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="115"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Indianapolis - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="116"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Knox - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="117"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Marengo - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="118"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Petersburg - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="119"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Tell_City - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="120"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Vevay - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="121"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Vincennes - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="122"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Indiana/Winamac - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="123"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Inuvik - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="124"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Iqaluit - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="125"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Jamaica - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="126"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Juneau - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="127"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Kentucky/Louisville - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="128"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Kentucky/Monticello - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="129"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Kralendijk - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="130"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/La_Paz - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="131"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Lima - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="132"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Los_Angeles - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="133"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Lower_Princes - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="134"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Maceio - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="135"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Managua - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="136"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Manaus - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="137"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Marigot - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="138"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Martinique - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="139"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Matamoros - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="140"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Mazatlan - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="141"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Menominee - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="142"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Merida - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="143"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Metlakatla - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="144"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Mexico_City - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="145"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Miquelon - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="146"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Moncton - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="147"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Monterrey - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="148"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Montevideo - GMT -02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="149"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Montserrat - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="150"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Nassau - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li.selected[rel="151"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/New_York - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="152"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Nipigon - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="153"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Nome - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="154"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Noronha - GMT -02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="155"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/North_Dakota/Beulah - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="156"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/North_Dakota/Center - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="157"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/North_Dakota/New_Salem - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="158"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Ojinaga - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="159"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Panama - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="160"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Pangnirtung - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="161"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Paramaribo - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="162"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Phoenix - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="163"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Port-au-Prince - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="164"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Port_of_Spain - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="165"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Porto_Velho - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="166"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Puerto_Rico - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="167"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Rainy_River - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="168"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Rankin_Inlet - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="169"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Recife - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="170"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Regina - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="171"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Resolute - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="172"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Rio_Branco - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="173"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Santa_Isabel - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="174"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Santarem - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="175"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Santiago - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="176"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Santo_Domingo - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="177"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Sao_Paulo - GMT -02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="178"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Scoresbysund - GMT -01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="179"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Sitka - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="180"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Barthelemy - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="181"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Johns - GMT -03:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="182"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Kitts - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="183"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Lucia - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="184"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Thomas - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="185"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/St_Vincent - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="186"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Swift_Current - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="187"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Tegucigalpa - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="188"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Thule - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="189"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Thunder_Bay - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="190"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Tijuana - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="191"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Toronto - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="192"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Tortola - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="193"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Vancouver - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="194"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Whitehorse - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="195"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Winnipeg - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="196"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Yakutat - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="197"]', [m('a[tabindex="0"]', [m('span.text', '\n                        America/Yellowknife - GMT -07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="198"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Casey - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="199"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Davis - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="200"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/DumontDUrville - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="201"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Macquarie - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="202"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Mawson - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="203"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/McMurdo - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="204"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Palmer - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="205"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Rothera - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="206"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Syowa - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="207"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Troll - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="208"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Antarctica/Vostok - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="209"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Arctic/Longyearbyen - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="210"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Aden - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="211"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Almaty - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="212"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Amman - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="213"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Anadyr - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="214"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Aqtau - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="215"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Aqtobe - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="216"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Ashgabat - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="217"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Baghdad - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="218"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Bahrain - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="219"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Baku - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="220"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Bangkok - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="221"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Beirut - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="222"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Bishkek - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="223"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Brunei - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="224"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Chita - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="225"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Choibalsan - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="226"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Colombo - GMT +05:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="227"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Damascus - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="228"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Dhaka - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="229"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Dili - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="230"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Dubai - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="231"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Dushanbe - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="232"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Gaza - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="233"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Hebron - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="234"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Ho_Chi_Minh - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="235"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Hong_Kong - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="236"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Hovd - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="237"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Irkutsk - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="238"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Jakarta - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="239"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Jayapura - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="240"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Jerusalem - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="241"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kabul - GMT +04:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="242"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kamchatka - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="243"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Karachi - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="244"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kathmandu - GMT +05:45                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="245"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Khandyga - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="246"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kolkata - GMT +05:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="247"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Krasnoyarsk - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="248"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kuala_Lumpur - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="249"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kuching - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="250"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Kuwait - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="251"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Macau - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="252"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Magadan - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="253"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Makassar - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="254"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Manila - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="255"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Muscat - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="256"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Nicosia - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="257"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Novokuznetsk - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="258"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Novosibirsk - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="259"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Omsk - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="260"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Oral - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="261"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Phnom_Penh - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="262"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Pontianak - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="263"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Pyongyang - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="264"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Qatar - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="265"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Qyzylorda - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="266"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Rangoon - GMT +06:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="267"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Riyadh - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="268"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Sakhalin - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="269"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Samarkand - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="270"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Seoul - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="271"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Shanghai - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="272"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Singapore - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="273"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Srednekolymsk - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="274"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Taipei - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="275"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Tashkent - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="276"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Tbilisi - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="277"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Tehran - GMT +03:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="278"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Thimphu - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="279"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Tokyo - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="280"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Ulaanbaatar - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="281"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Urumqi - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="282"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Ust-Nera - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="283"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Vientiane - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="284"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Vladivostok - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="285"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Yakutsk - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="286"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Yekaterinburg - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="287"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Asia/Yerevan - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="288"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Azores - GMT -01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="289"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Bermuda - GMT -04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="290"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Canary - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="291"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Cape_Verde - GMT -01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="292"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Faroe - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="293"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Madeira - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="294"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Reykjavik - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="295"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/South_Georgia - GMT -02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="296"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/St_Helena - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="297"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Atlantic/Stanley - GMT -03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="298"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Adelaide - GMT +10:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="299"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Brisbane - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="300"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Broken_Hill - GMT +10:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="301"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Currie - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="302"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Darwin - GMT +09:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="303"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Eucla - GMT +08:45                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="304"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Hobart - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="305"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Lindeman - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="306"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Lord_Howe - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="307"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Melbourne - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="308"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Perth - GMT +08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="309"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Australia/Sydney - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="310"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Amsterdam - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="311"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Andorra - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="312"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Athens - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="313"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Belgrade - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="314"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Berlin - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="315"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Bratislava - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="316"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Brussels - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="317"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Bucharest - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="318"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Budapest - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="319"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Busingen - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="320"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Chisinau - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="321"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Copenhagen - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="322"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Dublin - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="323"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Gibraltar - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="324"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Guernsey - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="325"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Helsinki - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="326"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Isle_of_Man - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="327"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Istanbul - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="328"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Jersey - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="329"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Kaliningrad - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="330"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Kiev - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="331"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Lisbon - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="332"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Ljubljana - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="333"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/London - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="334"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Luxembourg - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="335"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Madrid - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="336"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Malta - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="337"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Mariehamn - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="338"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Minsk - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="339"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Monaco - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="340"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Moscow - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="341"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Oslo - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="342"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Paris - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="343"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Podgorica - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="344"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Prague - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="345"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Riga - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="346"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Rome - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="347"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Samara - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="348"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/San_Marino - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="349"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Sarajevo - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="350"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Simferopol - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="351"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Skopje - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="352"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Sofia - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="353"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Stockholm - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="354"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Tallinn - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="355"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Tirane - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="356"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Uzhgorod - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="357"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Vaduz - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="358"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Vatican - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="359"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Vienna - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="360"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Vilnius - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="361"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Volgograd - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="362"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Warsaw - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="363"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Zagreb - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="364"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Zaporozhye - GMT +02:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="365"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Europe/Zurich - GMT +01:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="366"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Antananarivo - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="367"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Chagos - GMT +06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="368"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Christmas - GMT +07:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="369"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Cocos - GMT +06:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="370"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Comoro - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="371"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Kerguelen - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="372"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Mahe - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="373"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Maldives - GMT +05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="374"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Mauritius - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="375"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Mayotte - GMT +03:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="376"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Indian/Reunion - GMT +04:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="377"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Apia - GMT +14:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="378"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Auckland - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="379"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Chatham - GMT +13:45                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="380"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Chuuk - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="381"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Easter - GMT -05:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="382"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Efate - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="383"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Enderbury - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="384"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Fakaofo - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="385"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Fiji - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="386"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Funafuti - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="387"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Galapagos - GMT -06:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="388"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Gambier - GMT -09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="389"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Guadalcanal - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="390"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Guam - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="391"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Honolulu - GMT -10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="392"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Johnston - GMT -10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="393"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Kiritimati - GMT +14:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="394"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Kosrae - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="395"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Kwajalein - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="396"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Majuro - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="397"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Marquesas - GMT -09:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="398"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Midway - GMT -11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="399"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Nauru - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="400"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Niue - GMT -11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="401"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Norfolk - GMT +11:30                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="402"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Noumea - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="403"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Pago_Pago - GMT -11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="404"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Palau - GMT +09:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="405"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Pitcairn - GMT -08:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="406"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Pohnpei - GMT +11:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="407"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Port_Moresby - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="408"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Rarotonga - GMT -10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="409"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Saipan - GMT +10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="410"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Tahiti - GMT -10:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="411"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Tarawa - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="412"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Tongatapu - GMT +13:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="413"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Wake - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="414"]', [m('a[tabindex="0"]', [m('span.text', '\n                        Pacific/Wallis - GMT +12:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])]), m('li[rel="415"]', [m('a[tabindex="0"]', [m('span.text', '\n                        UTC - GMT +00:00                      '), m('i.glyphicon.glyphicon-ok.icon-ok.check-mark')])])])])]),
+                         createSelect('timezone', settings.vm.data.environment, 'timezone', 'timezones', 'value', 'name', selectpicker),
                          m('span.help-block', 'Set the system timezone.')
                      ])
                  ]),
+                 //m('.form-group.form-actions', [
+                 //    m('.col-sm-offset-2.col-sm-10', [
+                 //        m('button.btn.btn-primary.btn-lg[name="save"][type="submit"][value="save"]', 'Apply settings')
+                 //    ])
+                 //]),
                  m('.form-group.form-actions', [
-                     m('.col-sm-offset-2.col-sm-10', [
-                         m('button.btn.btn-primary.btn-lg[name="save"][type="submit"][value="save"]', 'Apply settings')
-                     ])
+                   m('.col-sm-offset-2.col-sm-10', [
+                       m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { settings.vm.cancel('environment'); } }, 'Cancel'),
+                       m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { settings.vm.save('environment'); } }, 'Save and apply')
+                   ])
                  ])
-             ])
-         ]),
-         m('form.form-horizontal[method="post"][role="form"]', [
+             ]),
              m('fieldset', [
                  m('legend', 'RuneOS kernel settings'),
                  m('.form-group', [
@@ -1186,12 +848,9 @@ settings.view = function (ctrl) {
                  ]),
                  m('.form-group.form-actions', [
                      m('.col-sm-offset-2.col-sm-10', [
-                         m('button.btn.btn-primary.btn-lg[name="save"][type="submit"][value="save"]', 'Apply settings')
+                         m('button.btn.btn-primary.btn-lg[type="submit"]', 'Apply settings')
                      ])
-                 ])
-             ])
-         ]),
-         m('form.form-horizontal[action=""][data-parsley-validate=""][method="post"][novalidate=""][role="form"]', [
+                 ]),
              m('fieldset[id="features-management"]', [
                  m('legend', 'Features management'),
                  m('p', 'Enable/disable optional modules that best suit your needs. Disabling unusued features will free system resources and might improve the overall performance.'),
@@ -1336,9 +995,7 @@ settings.view = function (ctrl) {
                          m('button.btn.btn-primary.btn-lg[name="features[submit]"][type="submit"][value="1"]', 'apply settings')
                      ])
                  ])
-             ])
-         ]),
-         m('form.form-horizontal[action=""][method="post"][role="form"]', [
+             ]),
              m('fieldset', [
                  m('legend', 'Compatibility fixes'),
                  m('p', 'For people suffering problems with some receivers and DACs.'),
@@ -1358,9 +1015,7 @@ settings.view = function (ctrl) {
                          m('button.btn.btn-primary.btn-lg[name="cmediafix[0]"][type="submit"][value="1"]', 'Apply fixes')
                      ])
                  ])
-             ])
-         ]),
-         m('form.form-horizontal[method="post"]', [
+             ]),
              m('fieldset', [
                  m('legend', 'Backup / Restore configuration'),
                  m('p', 'Transfer settings between multiple RuneAudio installations, saving time during new/upgrade installations.'),
@@ -1372,9 +1027,7 @@ settings.view = function (ctrl) {
                      ])
                  ])
              ])
-         ]),
-         '\n'];
-
+             ])];
 };
 
 sources.view = function (ctrl) {
@@ -1382,13 +1035,13 @@ sources.view = function (ctrl) {
              m('h1', 'Local sources'),
              m('.boxed', [
                  m('p', ['Your ', m('a[href="/#panel-sx"]', 'music library'), ' is composed by two main content types: ', m('strong', 'local sources'), ' and streaming sources.', m('br'), '\n        This section lets you configure your local sources, telling ', m('a[href="http://www.musicpd.org/"][rel="nofollow"][target="_blank"][title="Music Player Daemon"]', 'MPD'), ' to scan the contents of ', m('strong', 'network mounts'), ' and ', m('strong', 'USB mounts'), '.']),
-                     m('button.btn.btn-lg.btn-primary[id="updatempddb"][name="updatempd"][type="button"]', { onclick: sources.vm.updateMDP }, [m('i.fa.fa-refresh.sx'), 'Rebuild MPD Library'])
+                     m('button.btn.btn-lg.btn-primary[id="updatempddb"][type="button"]', { onclick: sources.vm.updateMDP }, [m('i.fa.fa-refresh.sx'), 'Rebuild MPD Library'])
              ]),
              m('h2', 'Network mounts'),
              m('p', 'List of configured network mounts. Click an existing entry to edit it, or add a new one.'),
                  m('p', [m('button.btn.btn-lg.btn-primary.btn-block[id="mountall"][type="button"]', { onclick: sources.vm.mountall }, [m('i.fa.fa-refresh.sx'), ' Remount all sources'])]),
-                 m('p', [m('a.btn.btn-lg.btn-default.btn-block[href="/sources/edit/8"]', [' ', m('i.fa..fa-check.green..sx'), ' Music    ', m('span', '//apps/MUSIC')])]),
-                 m('p', [m('a.btn.btn-lg.btn-primary.btn-block[data-ajax="false"][href="/sources/add"]', [m('i.fa.fa-plus.sx'), ' Add new mount'])]),
+                 // loop through existing mounts
+                 m('p', [m('a.btn.btn-lg.btn-primary.btn-block', { onclick: sources.vm.add }, [m('i.fa.fa-plus.sx'), ' Add new mount'])]),
              m('h2', 'USB mounts'),
              m('p', ['List of mounted USB drives. To safe unmount a drive, click on it and confirm at the dialog prompt.', m('br'), '\n    If a drive is connected but not shown in the list, please check if ', m('a[href="/settings/#features-management"]', 'USB automount'), ' is enabled.']),
              m('.button-list[id="usb-mount-list"]', [
@@ -1396,6 +1049,153 @@ sources.view = function (ctrl) {
              ])
     ])];
 };
+
+source.view = function (ctrl) {
+    return [m('h1', 'NAS mounts'),
+    m('fieldset', [
+        m('legend', ['Add new network mount ', m('span.hide', ['(', m('a[data-toggle="modal"][href="#source-delete-modal"]', 'remove this mount'), ')'])]),
+        m('.form-group', [
+            m('.alert.alert-info.hide', [
+                m('i.fa.fa-times.red.sx')
+            ]),
+            m('label.col-sm-2.control-label[for="nas-name"]', 'Source name'),
+            m('.col-sm-10', [
+                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', bind2(source.vm.data, 'nas_name')),
+                m('ul.parsley-errors-list[id="parsley-id-0754"]'),
+                m('input[name="mount[id]"][type="hidden"][value=""]'),
+                m('input[name="action"][type="hidden"][value="add"]'),
+                m('span.help-block', 'The name you want to give to this source. It will appear in your database tree structure')
+            ])
+        ]),
+        m('.form-group', [
+            m('label.col-sm-2.control-label[for="nas-type"]', 'Fileshare protocol'),
+            m('.col-sm-10', [
+                m('select.selectpicker[data-style="btn-default btn-lg"][id="mount_type"]', bind2(source.vm.data, 'mount_type', selectpicker) , [
+                    m('option[value="cifs"]', 'Windows (SMB/CIFS)'),
+                    m('option[value="osx"]', 'OS X (SMB/CIFS)'),
+                    m('option[value="nfs"]', 'Linux / Unix (NFS)')
+                ]),
+                m('span.help-block', 'Select SMB/CIFS for connect Windows file shares or NFS for unix file shares')
+            ])]),
+    m('.form-group', [
+    m('label.col-sm-2.control-label[for="nas-ip"]', 'IP address'),
+    m('.col-sm-10', [
+        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', bind2(source.vm.data, 'nas_ip')),
+        m('ul.parsley-errors-list[id="parsley-id-0037"]'),
+        m('span.help-block', 'Specify your NAS address')
+    ])
+    ]),
+m('.form-group', [
+    m('label.col-sm-2.control-label[for="nas-dir"]', 'Remote directory'),
+    m('.col-sm-10', [
+        m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', bind2(source.vm.data, 'nas_dir')),
+        m('span.help-block', 'Specify the directory name on the NAS where to scan music files (case sensitive)')
+    ])
+]),
+m('.optional[id="mount-cifs"]', [
+    m('.form-group', [
+        m('label.col-sm-2.control-label[for="nas-guest"]', 'Guest access'),
+        m('.col-sm-10', [
+            m('label.switch-light.well[onclick=""]', [
+                m('input[checked="checked"][data-parsley-id="6546"][data-parsley-multiple="nas-guest"][id="nas-guest"][name="nas-guest"][type="checkbox"]'),
+                m('span', [m('span', 'OFF'), m('span', 'ON')]),
+                m('a.btn.btn-primary')
+            ]),
+            m('ul.parsley-errors-list[id="parsley-id-multiple-nas-guest"]'),
+            m('span.help-block', 'Log with guest account (no user/password required)')
+        ])
+    ]),
+    m('.optional.disabled[id="mount-auth"]', [
+        m('.form-group', [
+            m('label.col-sm-2.control-label[for="nas-usr"]', 'Username'),
+            m('.col-sm-10', [
+                m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="5061"][data-trigger="change"][id="nas-usr"][name="mount[username]"][placeholder="user"][type="text"][value=""]'),
+                m('ul.parsley-errors-list[id="parsley-id-5061"]'),
+                m('span.help-block', 'If required, specify username to grant access to the NAS (case sensitive)')
+            ])
+        ]),
+        m('.form-group', [
+            m('label.col-sm-2.control-label[for="nas-pasw"]', 'Password'),
+            m('.col-sm-10', [
+                m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="8023"][id="nas-pasw"][name="mount[password]"][placeholder="pass"][type="password"][value=""]'),
+                m('ul.parsley-errors-list[id="parsley-id-8023"]'),
+                m('span.help-block', 'If required, specify password to grant access to the NAS (case sensitive)')
+            ])
+        ]),
+        m('.disabler.')
+    ]),
+    m('.disabler.hide')
+]),
+m('.form-group', [
+    m('label.col-sm-2.control-label[for="nas-advanced"]', 'Advanced options'),
+    m('.col-sm-10', [
+        m('label.switch-light.well[onclick=""]', [
+            m('input[data-parsley-id="8687"][data-parsley-multiple="nas-advanced"][id="nas-advanced"][name="nas-advanced"][type="checkbox"]'),
+            m('span', [m('span', 'OFF'), m('span', 'ON')]),
+            m('a.btn.btn-primary')
+        ]),
+        m('ul.parsley-errors-list[id="parsley-id-multiple-nas-advanced"]'),
+        m('span.help-block', 'Show/hide advanced mount options')
+    ])
+])
+    ]),
+		m('fieldset.hide[id="mount-advanced-config"]', [
+			m('legend', 'Advanced options'),
+			m('.form-group', [
+				m('label.col-sm-2.control-label[for="nas-charset"]', 'Charset'),
+				m('.col-sm-10', [
+					m('select.selectpicker[data-parsley-id="6685"][data-style="btn-default btn-lg"][id="log-level"][name="mount[charset]"]', { style: { 'display': ' none' } }, [
+						m('option[value="utf8"]', 'UTF8 (default)'),
+						'\n\';    \n                    ',
+						m('option[value="iso8859-1"]', 'ISO 8859-1')
+					]),
+					m('.btn-group.bootstrap-select', [m('button.btn.dropdown-toggle.selectpicker.btn-default.btn-lg[data-id="log-level"][data-toggle="dropdown"][title="UTF8 (default)"][type="button"]', [m('span.filter-option.pull-left', 'UTF8 (default)'), ' ', m('span.caret')]), m('.dropdown-menu.open', [m('ul.dropdown-menu.inner.selectpicker[role="menu"]', [m('li.selected[data-original-index="0"]', [m('a[data-normalized-text="<span class=\'text\'>UTF8 (default)</span>"][tabindex="0"]', [m('span.text', 'UTF8 (default)'), m('span.glyphicon.glyphicon-ok.check-mark')])]), m('li[data-original-index="1"]', [m('a[data-normalized-text="<span class=\'text\'>ISO 8859-1</span>"][tabindex="0"]', [m('span.text', 'ISO 8859-1'), m('span.glyphicon.glyphicon-ok.check-mark')])])])])]),
+					m('ul.parsley-errors-list[id="parsley-id-6685"]'),
+					m('span.help-block', 'Change this settings if you experience problems with character encoding')
+				])
+			]),
+			m('.form-group', [
+				m('label.col-sm-2.control-label[for="nas-rsize"]', 'Rsize'),
+				m('.col-sm-10', [
+					m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="9174"][data-trigger="change"][id="nas-rsize"][name="mount[rsize]"][placeholder="8192"][type="text"][value=""]'),
+					m('ul.parsley-errors-list[id="parsley-id-9174"]'),
+					m('span.help-block', 'Change this settings if you experience problems with music playback (es: pops or clips)')
+				])
+			]),
+			m('.form-group', [
+				m('label.col-sm-2.control-label[for="nas-wsize"]', 'Wsize'),
+				m('.col-sm-10', [
+					m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="8169"][data-trigger="change"][id="nas-wsize"][name="mount[wsize]"][placeholder="16384"][type="text"][value=""]'),
+					m('ul.parsley-errors-list[id="parsley-id-8169"]'),
+					m('span.help-block', 'Change this settings if you experience problems with music playback (es: pops or clips)')
+				])
+			]),
+			m('.form-group', [
+				m('label.col-sm-2.control-label[for="options"]', 'Mount flags'),
+				m('.col-sm-10', [
+					m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="9135"][data-trigger="change"][id="options"][name="mount[options]"][placeholder="cache=none,ro"][type="text"][value=""]'),
+					m('ul.parsley-errors-list[id="parsley-id-9135"]'),
+					m('input[name="mount[error]"][type="hidden"][value=""]'),
+					m('span.help-block', 'Advanced mount flags. Don"t use this field if you don"t know what you are doing.')
+				])
+			])
+		]),
+		m('.form-group.form-actions', [
+			m('.col-sm-offset-2.col-sm-10', [
+				m('a.btn.btn-default.btn-lg[data-ajax="false"][href="/sources"]', 'Cancel'),
+				m('button.btn.btn-primary.btn-lg[name="save"][type="submit"][value="save"]', 'Save mount')
+			])
+		]),
+        m('.form-group.form-actions', [
+                   m('.col-sm-offset-2.col-sm-10', [
+                       m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { source.vm.cancel(); } }, 'Cancel'),
+                       m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { source.vm.save(); } }, 'Save and apply')
+                   ])
+        ])
+
+    ];
+};
+
 
 network.view = function (ctrl) {
     return [m('h1', 'Network configuration'),
@@ -1452,9 +1252,6 @@ error.view = function (ctrl) {
 
 
 
-
-
-
 // Mithril routing configuration
 m.route.mode = 'hash';
 m.route(document.getElementById('app'), '/', {
@@ -1466,6 +1263,7 @@ m.route(document.getElementById('app'), '/', {
     '/dev': dev,
     '/error': error,
     '/network': network,
+    '/sources/:id': source,
     '/sources': sources
 });
 
