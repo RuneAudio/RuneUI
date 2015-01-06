@@ -26,9 +26,9 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: mpd_ctl.php
+ *  file: system_ctl.php
  *  version: 1.3
- *  coder: Simone De Gregori
+ *  coder: Kevin Welsh
  *
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($json['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
     // push backup file
     if ($json['syscmd'] === 'backup') {
-        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup');
+        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
         pushFile($redis->hGet('w_msg', $jobID[0]));
         $redis->hDel('w_msg', $jobID[0]);
     }

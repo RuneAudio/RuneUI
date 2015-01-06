@@ -134,11 +134,17 @@ var getData = function (vm) {
     if (vm.id) {
         url += '/' + vm.id;
     } 
-     
+    toggleLoader('open');
+    var loaderClose = function () {
+        toggleLoader('close');
+    };
+    var loaderCloseFail = function () {
+        console.log('FAIL');
+    };
     return m.request({ method: 'GET', url: url }).then(function (response) {
         vm.data = response;
         vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
-    });
+    }).then(loaderClose, loaderCloseFail);;
 };
 
 //      base data saving function
@@ -148,6 +154,9 @@ var postData = function (url, data) {
     toggleLoader('open');
     var loaderClose = function () {
         toggleLoader('close');
+    };
+    var loaderCloseFail = function () {
+        console.log('FAIL');
     };
     m.request({
         method: 'POST',
@@ -161,7 +170,7 @@ var postData = function (url, data) {
         },
         // PHP errors are not wrapped in Proper JSON,. breaking Mitrhil
         deserialize: function (value) { return value; }
-    }).then(loaderClose, loaderClose);
+    }).then(loaderClose, loaderCloseFail);
 
 };
 
