@@ -33,6 +33,11 @@
 // ob_start();
 // echo debug_data($redis);
 // $debugdata = ob_get_clean();
-$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'debug'));
-waitSyWrk($redis, $jobID);
-$template->debug = $redis->get('debugdata');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+} else {
+    $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'debug'));
+    waitSyWrk($redis, $jobID);
+    $template->debug = $redis->get('debugdata');
+}

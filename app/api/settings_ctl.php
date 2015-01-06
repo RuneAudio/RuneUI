@@ -31,30 +31,60 @@
  *  coder: Simone De Gregori
  *
  */
-// inspect POST
-if (isset($_POST)) {    
-    // ----- HOSTNAME -----
-    if (isset($_POST['hostname'])) {
-        if (empty($_POST['hostname'])) {
-        $args = 'runeaudio';
-        } else {
-        $args = $_POST['hostname'];
-        }
-        $redis->get('hostname') == $_POST['hostname'] || $jobID[] = wrk_control($redis, 'newjob', $data = array( 'wrkcmd' => 'hostname', 'args' => $args ));        
+
+// Simple class for managing the items in an HTML Select
+class NameValuePair {
+    public $name = '';
+    public $value = '';
+    
+   public function __construct($n, $v) {
+        $this->name = $n;
+        $this->value = $v;
     }
-    // ----- TIME SETTINGS -----
-    if (isset($_POST['ntpserver'])) {
-        if (empty($_POST['ntpserver'])) {
-        $args = 'pool.ntp.org';
+}
+
+$environment = [];
+$kernel = [];
+$features = [];
+$system = [];
+
+// Check for POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // get the data that was POSTed
+    $postData = file_get_contents("php://input");
+    // convert to an associative array
+    $json = json_decode($postData, true); 
+    
+    // ----- Environment Section -----
+    if (isset($json['environment'])) {
+        $environment = $json['environment'];
+
+        // ----- HOSTNAME -----        
+        if (empty($environment['hostname'])) {
+            $args = 'runeaudio';
         } else {
-        $args = $_POST['ntpserver'];
+            $args = $environment['hostname'];
         }
+        $redis->get('hostname') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array( 'wrkcmd' => 'hostname', 'args' => $args ));        
+        
+        // ----- TIME SETTINGS -----
+        if (empty($environment['ntpserver'])) {
+            $args = 'pool.ntp.org';
+        } else {
+            $args = $environment['ntpserver'];
+        }
+        $template->ZZZZ = $redis->get('ntpserver') == $args;
+        $template->XXXX = $args;
         $redis->get('ntpserver') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'ntpserver', 'args' => $args));        
-    }
-    if (isset($_POST['timezone'])) {      
-        $args = $_POST['timezone'];
+        
+        
+        $args = $environment['timezone'];
         $redis->get('timezone') == $args || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'timezone', 'args' => $args));        
+        
+        $template->XXXX1 = $args;
+        
     }
+    
     // ----- KERNEL -----
     if (isset($_POST['kernel'])) {        
         // submit worker job
@@ -147,38 +177,54 @@ if (isset($_POST)) {
             $redis->hGet('spotify','enable') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'spotify', 'action' => 'stop'));
         }
     }
-    // ----- SYSTEM COMMANDS -----
-    if (isset($_POST['syscmd'])){
-        if ($_POST['syscmd'] === 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
-        if ($_POST['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
-        if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
-        if ($_POST['syscmd'] === 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
-    }
+    //// ----- SYSTEM COMMANDS -----
+    //if (isset($_POST['syscmd'])){
+    //    if ($_POST['syscmd'] === 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
+    //    if ($_POST['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
+    //    if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
+    //    if ($_POST['syscmd'] === 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
+    //}
+    
+    $template->YYYY = $jobID;
+    waitSyWrk($redis,$jobID);
+   
+} else {
+    
+// environment section    
+$timezones = [];
+foreach (ui_timezone() as $t) {
+    $timezones[] = new NameValuePair($t['zone'].' - '.$t['diff_from_GMT'], $t['zone']);
 }
-waitSyWrk($redis,$jobID);
-// push backup file
-if ($_POST['syscmd'] === 'backup') {
-    pushFile($redis->hGet('w_msg', $jobID[0]));
-    $redis->hDel('w_msg', $jobID[0]);
+$environment['timezones'] = $timezones;
+$environment['hostname'] = $redis->get('hostname');
+$environment['ntpserver'] = $redis->get('ntpserver');
+$environment['timezone'] = $redis->get('timezone');
+$template->environment = $environment;
+
+// kernel section
+$kernel['kernel'] = $redis->get('kernel');
+$kernel['i2smodule'] = $redis->get('i2smodule');
+$kernel['orionprofile'] = $redis->get('orionprofile');
+$template->kernel = $kernel;
+
+// features section
+$features['airplay'] = $redis->hGetAll('airplay');
+$features['dlna'] = $redis->hGetAll('dlna');
+$features['udevil'] = $redis->get('udevil');
+$features['coverart'] = $redis->get('coverart');
+$features['globalrandom'] = $redis->get('globalrandom');
+$features['lastfm'] = $redis->hGetAll('lastfm');
+$features['proxy'] = $redis->hGetAll('proxy');
+$features['spotify'] = $redis->hGetAll('spotify');
+$features['hwplatformid'] = $redis->get('hwplatformid');
+$template->features = $features;
+
+// system section
+$system['kernel'] = file_get_contents('/proc/version');
+$system['time'] = implode('\n', sysCmd('date'));
+$system['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
+$system['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
+$system['playerID'] = $redis->get('playerid');
+$template->system = $system;
+
 }
-// collect system status
-$template->sysstate['kernel'] = file_get_contents('/proc/version');
-$template->sysstate['time'] = implode('\n', sysCmd('date'));
-$template->sysstate['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
-$template->sysstate['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
-$template->sysstate['playerID'] = $redis->get('playerid');
-$template->hostname = $redis->get('hostname');
-$template->ntpserver = $redis->get('ntpserver');
-$template->timezone = $redis->get('timezone');
-$template->orionprofile = $redis->get('orionprofile');
-$template->airplay = $redis->hGetAll('airplay');
-$template->dlna = $redis->hGetAll('dlna');
-$template->udevil = $redis->get('udevil');
-$template->coverart = $redis->get('coverart');
-$template->globalrandom = $redis->get('globalrandom');
-$template->lastfm = $redis->hGetAll('lastfm');
-$template->proxy = $redis->hGetAll('proxy');
-$template->spotify = $redis->hGetAll('spotify');
-$template->hwplatformid = $redis->get('hwplatformid');
-$template->i2smodule = $redis->get('i2smodule');
-$template->kernel = $redis->get('kernel');

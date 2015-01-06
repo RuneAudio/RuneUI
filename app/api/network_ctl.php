@@ -33,15 +33,28 @@
  */
 
 // inspect POST
-if (isset($_POST)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    
+    // get the data that was POSTed
+    $postData = file_get_contents("php://input");
+    // convert to an associative array
+    $json = json_decode($postData, true); 
+    
+    if ($json['refresh']==true) {
+        //ui_notify_async("'wrkcmd' => 'netcfg', 'action' => 'refresh'", $_POST['nic']);
+        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netcfg', 'action' => 'refresh'));
+        waitSyWrk($redis,$jobID);
+        return;
+    }
+    
+    
+    
     if (isset($_POST['nic']) && !isset($_POST['wifiprofile'])) {
         //ui_notify_async("'wrkcmd' => 'netcfg', 'action' => 'config'", $_POST['nic']);
         $redis->get($_POST['nic']['name']) === json_encode($nic) || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netcfg', 'action' => 'config', 'args' => $_POST['nic']));        
     }
-    if (isset($_POST['refresh'])) {
-        //ui_notify_async("'wrkcmd' => 'netcfg', 'action' => 'refresh'", $_POST['nic']);
-        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'netcfg', 'action' => 'refresh'));
-    }
+   
     if (isset($_POST['wifiprofile'])) {
         switch ($_POST['wifiprofile']['action']) {
             case 'add':

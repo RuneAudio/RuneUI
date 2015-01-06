@@ -31,54 +31,88 @@
  *  coder: Simone De Gregori
  *
  */
-// inspect POST
-if (isset($_POST)) {
-    if ($_POST['updatempd'] == 1) sendMpdCommand($mpd, 'update');
-    if ($_POST['mountall'] == 1) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
-    if (isset($_POST['usb-umount'])) $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $_POST['usb-umount']));
-    if (!empty($_POST['mount'])) {
-        $_POST['mount']['remotedir'] = str_replace('\\', '/', $_POST['mount']['remotedir']);
-        if ($_POST['mount']['rsize'] == '') $_POST['mount']['rsize'] = 16384;
-        if ($_POST['mount']['wsize'] == '') $_POST['mount']['wsize'] = 17408;
-        if ($_POST['mount']['options'] == '') {
-            if ($_POST['mount']['type'] === 'cifs' OR $_POST['mount']['type'] === 'osx') {
-                $_POST['mount']['options'] = "cache=none,ro";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // get the data that was POSTed
+    $postData = file_get_contents("php://input");
+    // convert to an associative array
+    $json = json_decode($postData, true); 
+    
+    if ($json['updatempd'] == true) {
+        sendMpdCommand($mpd, 'update');
+        return;
+    }
+    
+    if ($json['mountall'] == true) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
+        waitSyWrk($redis, $jobID);
+        return ;
+    }
+    
+    if ($json['usb-umount']) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $json['usb-umount']));
+        waitSyWrk($redis, $jobID);
+        return;
+    }
+    
+    if ($json['mount']) {
+        $json['mount']['remotedir'] = str_replace('\\', '/', $json['mount']['remotedir']);
+        if ($json['mount']['rsize'] == '') $json['mount']['rsize'] = 16384;
+        if ($json['mount']['wsize'] == '') $json['mount']['wsize'] = 17408;
+        if ($json['mount']['options'] == '') {
+            if ($json['mount']['type'] === 'cifs' OR $json['mount']['type'] === 'osx') {
+                $json['mount']['options'] = "cache=none,ro";
             } else {
-                $_POST['mount']['options'] = "nfsvers=3,ro";
+                $json['mount']['options'] = "nfsvers=3,ro";
             }
         }
-        if ($_POST['action'] == 'add') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $_POST['mount']));
-        if ($_POST['action'] == 'edit') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $_POST['mount']));
-        if ($_POST['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $_POST['mount']));
-        if ($_POST['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
+        if ($json['action'] == 'add') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $json['mount']));
+        if ($json['action'] == 'edit') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $json['mount']));
+        if ($json['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $json['mount']));
+        if ($json['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
     }
-}
-waitSyWrk($redis, $jobID);
-$source = netMounts($redis, 'read');
-if($source !== true) { 
-    foreach ($source as $mp) {
-        if (wrk_checkStrSysfile('/proc/mounts', '/mnt/MPD/NAS/'.$mp['name'])) {
-            $mp['status'] = 1;
-        } else {
-            $mp['status'] = 0;
-        }
-        $mounts[]=$mp;
-    }
-}
-$template->mounts = $mounts;
-$usbmounts = $redis->hGetAll('usbmounts');
-foreach ($usbmounts as $usbmount) {
-    $template->usbmounts[] = json_decode($usbmount);
-}
-if (isset($template->action)) {
-    if (isset($template->arg)) {
-        foreach ($source as $mp) {
-            if ($mp['id'] == $template->arg) {
-            $template->mount = $mp;
-            }
-        }
-        $template->title = 'Edit network mount';
+    
+    waitSyWrk($redis, $jobID);
+} else {
+    $id = $template->arg; // null when the id = 0
+    
+    if ($id == '0') {
+        $template->nas_name = '';
+        $template->nas_ip = '';
+        $template->nas_dir = '';
+        
     } else {
-        $template->title = 'Add new network mount';
+        
     }
-} 
+    
+    $source = netMounts($redis, 'read');
+    if($source !== true) { 
+        foreach ($source as $mp) {
+            if (wrk_checkStrSysfile('/proc/mounts', '/mnt/MPD/NAS/'.$mp['name'])) {
+                $mp['status'] = 1;
+            } else {
+                $mp['status'] = 0;
+            }
+            $mounts[]=$mp;
+        }
+    }
+    $template->mounts = $mounts;
+    $usbmounts = $redis->hGetAll('usbmounts');
+    foreach ($usbmounts as $usbmount) {
+        $template->usbmounts[] = json_decode($usbmount);
+    }
+    if (isset($template->action)) {
+        if (isset($template->arg)) {
+            foreach ($source as $mp) {
+                if ($mp['id'] == $template->arg) {
+                    $template->mount = $mp;
+                }
+            }
+            $template->title = 'Edit network mount';
+        } else {
+            $template->title = 'Add new network mount';
+        }
+    } 
+    
+    
+}

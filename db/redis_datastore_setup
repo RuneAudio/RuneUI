@@ -266,7 +266,9 @@ function redisDatastore($redis,$action) {
             $redis->hGet('dirble','apikey') || $redis->hSet('dirble', 'apikey', '134aabbce2878ce0dbfdb23fb3b46265eded085b');
             // internal config hash control
             $redis->get('mpdconfhash') || $redis->set('mpdconfhash', '12eed229f02c52816ed997cbce4b9f32');
-            $redis->hGet('netconfhash') || $redis->hSet('netconfhash', 'eth0', '643f8967af551f683b3cfd493950c550');
+            // KEW: Missing 'eth0'
+            $redis->hGet('netconfhash', 'eth0') || $redis->hSet('netconfhash', 'eth0', '643f8967af551f683b3cfd493950c550');
+            // END
             $redis->get('mpdconf_advanced') || $redis->set('mpdconf_advanced', 0);
             $redis->get('netconf_advanced') || $redis->set('netconf_advanced', 0);
             // MPD parameters
