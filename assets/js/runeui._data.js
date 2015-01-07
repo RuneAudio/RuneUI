@@ -7,7 +7,7 @@ data.getData = function (vm) {
     if (vm.id) {
         url += '/' + vm.id;
     }
-    toggleLoader('open');
+    helpers.toggleLoader('open');
     var loaderClose = function () {
         helpers.toggleLoader('close');
     };
@@ -24,7 +24,7 @@ data.getData = function (vm) {
 data.postData = function (url, data) {
     console.log(url);
     console.log(data);
-    toggleLoader('open');
+    helpers.toggleLoader('open');
     var loaderClose = function () {
         helpers.toggleLoader('close');
     };

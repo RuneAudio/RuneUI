@@ -28,7 +28,7 @@ source.view = function (ctrl) {
             ]),
             m('label.col-sm-2.control-label[for="nas-name"]', 'Source name'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', mithril.bind2(source.vm.data, 'nas_name')),
+                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', mithril.createInput(source.vm.data, 'nas_name')),
                 m('ul.parsley-errors-list[id="parsley-id-0754"]'),
                 m('input[name="mount[id]"][type="hidden"][value=""]'),
                 m('input[name="action"][type="hidden"][value="add"]'),
@@ -38,7 +38,7 @@ source.view = function (ctrl) {
         m('.form-group', [
             m('label.col-sm-2.control-label[for="nas-type"]', 'Fileshare protocol'),
             m('.col-sm-10', [
-                m('select.selectpicker[data-style="btn-default btn-lg"][id="mount_type"]', mithril.bind2(source.vm.data, 'mount_type', helpers.selectpicker), [
+                m('select.selectpicker[data-style="btn-default btn-lg"][id="mount_type"]', mithril.createInput(source.vm.data, 'mount_type', helpers.selectpicker), [
                     m('option[value="cifs"]', 'Windows (SMB/CIFS)'),
                     m('option[value="osx"]', 'OS X (SMB/CIFS)'),
                     m('option[value="nfs"]', 'Linux / Unix (NFS)')
@@ -48,7 +48,7 @@ source.view = function (ctrl) {
     m('.form-group', [
     m('label.col-sm-2.control-label[for="nas-ip"]', 'IP address'),
     m('.col-sm-10', [
-        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', mithril.bind2(source.vm.data, 'nas_ip')),
+        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', mithril.createInput(source.vm.data, 'nas_ip')),
         m('ul.parsley-errors-list[id="parsley-id-0037"]'),
         m('span.help-block', 'Specify your NAS address')
     ])
@@ -56,7 +56,7 @@ source.view = function (ctrl) {
     m('.form-group', [
         m('label.col-sm-2.control-label[for="nas-dir"]', 'Remote directory'),
         m('.col-sm-10', [
-            m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', mithril.bind2(source.vm.data, 'nas_dir')),
+            m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', mithril.createInput(source.vm.data, 'nas_dir')),
             m('span.help-block', 'Specify the directory name on the NAS where to scan music files (case sensitive)')
         ])
     ]),

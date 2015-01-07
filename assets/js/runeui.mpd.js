@@ -11,14 +11,14 @@ mpd.vm.saveAudioOutput = function () {
 
 // 'MPD' view
 mpd.view = function (ctrl) {
-    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function (e) { m.module(document.getElementById('dialog'), resetmpd); } }, 'reset to default'), '.\n']), '\n',
+    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function (e) { m.module(document.getElementById('dialog'), modal.resetmpd); } }, 'reset to default'), '.\n']), '\n',
         m('fieldset', [
 			m('legend', 'Audio Output'),
 				m('.form-group', [
-                    createLabel('ao', 'Audio output interface'),
+                    mithril.createLabel('ao', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
-                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', mithril.bind2(mpd.vm.data, 'ao', null, true)),
+                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', mithril.createInput(mpd.vm.data, 'ao', null, true)),
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
                         m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
                         ])
@@ -28,9 +28,9 @@ mpd.view = function (ctrl) {
 		m('fieldset', [
 			m('legend', 'Volume control'),
 			m('.form-group', [
-				createLabel('mixer-type', 'Volume control'),
+				mithril.createLabel('mixer-type', 'Volume control'),
 				m('.col-sm-10', [
-                    m('input.form-control.input-lg[id="mixer-type"][type="text"]', mithril.bind2(mpd.vm.data.conf, 'mixer_type', null, true)),
+                    m('input.form-control.input-lg[id="mixer-type"][type="text"]', mithril.createInput(mpd.vm.data.conf, 'mixer_type', null, true)),
 					m('span.help-block', ['This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
 					])
 				])
@@ -41,14 +41,14 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Port'),
 				m('.col-sm-10', [
-					m('input.form-control.input-lg[data-trigger="change"][disabled=""][id="port"][name="conf[port]"][type="text"]', mithril.bind2(mpd.vm.data.conf, 'port')),
+					m('input.form-control.input-lg[data-trigger="change"][disabled=""][id="port"][name="conf[port]"][type="text"]', mithril.createInput(mpd.vm.data.conf, 'port')),
 					m('span.help-block', 'This setting is the TCP port that is desired for the daemon to get assigned to.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="daemon-user"]', 'Daemon user : group'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="user"][name="conf[user]"]', mithril.bind2(mpd.vm.data.conf, 'user', helpers.selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="user"][name="conf[user]"]', mithril.createInput(mpd.vm.data.conf, 'user', helpers.selectpicker), [
 						m('option[selected=""][value="mpd"]', 'mpd : audio (default)'),
 						m('option[value="root"]', 'root : root')
 					]),
@@ -58,7 +58,7 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="log-level"]', 'Log level'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="log-level"][name="conf[log_level]"]', mithril.bind2(mpd.vm.data.conf, 'log_level', helpers.selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="log-level"][name="conf[log_level]"]', mithril.createInput(mpd.vm.data.conf, 'log_level', helpers.selectpicker), [
 						m('option[selected=""][value="none"]', 'disabled'),
 						m('option[value="default"]', 'default'),
 						m('option[value="secure"]', 'secure'),
@@ -110,14 +110,14 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Audio buffer size'),
 				m('.col-sm-10', [
-					m('input.form-control.input-lg[data-trigger="change"][id="audio-buffer-size"][min="512"][name="conf[audio_buffer_size]"][type="number"]', mithril.bind2(mpd.vm.data.conf, 'audio_buffer_size')),
+					m('input.form-control.input-lg[data-trigger="change"][id="audio-buffer-size"][min="512"][name="conf[audio_buffer_size]"][type="number"]', mithril.createInput(mpd.vm.data.conf, 'audio_buffer_size')),
 					m('span.help-block', 'This specifies the size of the audio buffer in kibibytes. The default is 2048, large enough for nearly 12 seconds of CD-quality audio.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="dsd-usb"]', 'Buffer before play'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="buffer-before-play"][name="conf[buffer_before_play]"]', mithril.bind2(mpd.vm.data.conf, 'buffer_before_play', helpers.selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="buffer-before-play"][name="conf[buffer_before_play]"]', mithril.createInput(mpd.vm.data.conf, 'buffer_before_play', helpers.selectpicker), [
 						m('option[value="0%"]', 'disabled'),
 						'\n                    \n\';\n                    ',
 						m('option[selected=""][value="10%"]', '10%'),
