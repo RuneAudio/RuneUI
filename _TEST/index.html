@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="../assets/js/vendor/jquery-2.1.0.min.js"></script>
+    <script src="../assets/js/vendor/pushstream.min.js"></script>
+    <script src="../assets/js/vendor/bootstrap.min.js"></script>
+    <script src="../assets/js/vendor/mithril.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+
+        var mod1 = {
+            vm: {},
+            controller: function () {
+
+            },
+            view: function (ctrl) {
+                return m('h1', {
+                    onclick: function (e) {
+                        console.log(m2);
+                        m.module(document.getElementById('app'), mod2);
+                    }
+                }, 'TEST 1');
+            }
+        };
+        //var m1 = m.module(document.getElementById('app'), mod1);
+
+        var mod2 = {
+            vm: {},
+            controller: function () {
+
+            },
+            view: function (ctrl) {
+                return m('h1', {
+                    onclick: function (e) {
+                        console.log(m2);
+                        m.module(document.getElementById('app'), mod1);
+                    }
+                }, 'TEST 2');
+            }
+        };
+        var m2 = m.module(document.getElementById('app'), mod2);
+
+    </script>
+
+</body>
+</html>

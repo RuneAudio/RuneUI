@@ -51,7 +51,7 @@ window.navigation = {
         return [m('a.dropdown-toggle[data-target="#"][data-toggle="dropdown"][href="#"][id="menu-settings"][role="button"]',
                 ['MENU ', m('i.fa.fa-bars.dx')]), '\n', m('ul.dropdown-menu[aria-labelledby="menu-settings"][role="menu"]',
                     [navigation.vm.pages.map(function (item, index) {
-                        return m('li', { classname: item.selected() ? "active" : "" },
+                        return m('li', { className: item.selected() ? "active" : "" },
                             item.url() ? [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])] : [m('a[href="javascript:;"]', { onclick: function (e) { console.log(e); item.action(); } }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
                     })])];
     }
