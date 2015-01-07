@@ -1,55 +1,4 @@
-// COMMON FUNCTIONS
-// ----------------------------------------------------------------------------------------------------
 
-window.helpers = window.helpers || {};
-
-// toggle blocking loading layer (spinning arrows)
-function toggleLoader(action) {
-    if (action === 'close') {
-        $('#loader').addClass('hide');
-    } else {
-        if ($('#section-dev').length) {
-            $('#loader').addClass('hide');
-            new PNotify({
-                title: 'Warning',
-                text: 'The loading layer (spinning arrows) points to a socket error',
-                icon: 'fa fa-exclamation-circle'
-            });
-        } else {
-            $('#loader').removeClass('hide');
-        }
-    }
-}
-
-// Bootstrap Select
-function selectpicker(element, isInitialized) {
-    if (!isInitialized) {
-        // the first time the view is here, set up the picker
-        $(element).selectpicker();
-    } else {
-        // we've already created the picker, need to "refresh" to show changes to value
-        $(element).selectpicker('refresh');
-    }
-}
-
-// decode html text into html entity
-var decodeHtmlEntity = function (str) {
-    if (str) {
-        return str.replace(/&#(\d+);/g, function (match, dec) {
-            return String.fromCharCode(dec);
-        });
-    } else {
-        return str;
-    }
-};
-// encode html text into html entity
-var encodeHtmlEntity = function (str) {
-    var buf = [];
-    for (var i = str.length - 1; i >= 0; i--) {
-        buf.unshift(['&#', str[i].charCodeAt(), ';'].join(''));
-    }
-    return buf.join('');
-};
 
 // MITHRIL
 // ----------------------------------------------------------------------------------------------------
@@ -61,7 +10,7 @@ var playback = {};
 // helpers
 
 // base 2-way binding helper
-var bind2 = function (container, field, config, readonly) {
+var createInput = function (container, field, config, readonly) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
     // config: jQuery function to run after the item is in the DOM
@@ -79,7 +28,7 @@ var bind2 = function (container, field, config, readonly) {
 
 };
 
-var bind2checked = function (container, field, config) {
+var createInputchecked = function (container, field, config) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
     // config: jQuery function to run after the item is in the DOM
@@ -116,7 +65,7 @@ var select = function () {
     };
     select.view = function (ctrl) {
         var selectTag = 'select[data-style="btn-default btn-lg"][id="' + id + '"]';
-        return m(selectTag, bind2(container, field, selectpicker),
+        return m(selectTag, createInput(container, field, selectpicker),
         [container[list].map(function (item, index) {
             return m('option', { value: item[valueField] }, decodeHtmlEntity(item[displayField]));
         })
@@ -133,7 +82,7 @@ var getData = function (vm) {
     var url = vm.url;
     if (vm.id) {
         url += '/' + vm.id;
-    } 
+    }
     toggleLoader('open');
     var loaderClose = function () {
         toggleLoader('close');
@@ -144,7 +93,7 @@ var getData = function (vm) {
     return m.request({ method: 'GET', url: url }).then(function (response) {
         vm.data = response;
         vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
-    }).then(loaderClose, loaderCloseFail);;
+    }).then(loaderClose, loaderCloseFail);
 };
 
 //      base data saving function
@@ -439,7 +388,7 @@ var getController = function (vm) {
 
 var createYesNo = function (id, container, field, config) {
     return m('label.switch-light.well', [
-    m('input[id="' + id + '"][type="checkbox"]', bind2checked(container, field)),
+    m('input[id="' + id + '"][type="checkbox"]', createInputchecked(container, field)),
     m('span', [m('span', 'OFF'), m('span', 'ON')]),
     m('a.btn.btn-primary')
     ]);
@@ -448,7 +397,7 @@ var createYesNo = function (id, container, field, config) {
 // createSelectYesNo('the-field', mpd.vm.data, 'the-field', selectpicker)
 var createSelectYesNo = function (id, container, field, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        bind2(container, field, selectpicker),
+        createInput(container, field, selectpicker),
         [m('option[value="yes"]', 'enabled'),
             m('option[value="no"]', 'disabled')]);
 };
@@ -457,7 +406,7 @@ var createSelectYesNo = function (id, container, field, config) {
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
 var createSelect = function (id, container, field, list, valueField, displayField, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        bind2(container, field, selectpicker),
+        createInput(container, field, selectpicker),
         [container[list].map(function (item, index) {
             return m('option', { value: item[valueField] }, decodeHtmlEntity(item[displayField]));
         })
@@ -472,7 +421,6 @@ var RuneModule = function (url) {
 };
 
 // modules - config
-
 
 var audio = new RuneModule('/audio');
 var audio_validate = function () {
@@ -565,7 +513,7 @@ audio.view = function (ctrl) {
                    m('.col-sm-10', [
                        m('select[data-style="btn-default btn-lg"][id="mixer-type"]',
                            //{ config: selectpicker, onchange: m.withAttr('value', function (value) { mpd.data.conf.mixer_type = value }), value: mpd.data.conf.mixer_type }
-                           bind2(audio.vm.data.conf, 'mixer_type', selectpicker), [
+                           createInput(audio.vm.data.conf, 'mixer_type', selectpicker), [
                            m('option[value="disabled"]', 'disabled'),
                            m('option[value="software"]', 'enabled - software'),
                            m('option[value="hardware"]', 'enabled - hardware')
@@ -603,7 +551,7 @@ audio.view = function (ctrl) {
                m('.form-group', [
                      m("label.control-label.col-sm-2[for='orionprofile']", "Sound Signature (optimization profiles)"),
                      m(".col-sm-10", [
-                         m("select.selectpicker[data-style='btn-default btn-lg']", bind2(audio.vm.data, 'orionprofile', selectpicker), [
+                         m("select.selectpicker[data-style='btn-default btn-lg']", createInput(audio.vm.data, 'orionprofile', selectpicker), [
                              m("option[value='default']", "ArchLinux default"),
                              m("option[value='RuneAudio']", "RuneAudio"),
                              m("option[selected=''][value='ACX']", "ACX"),
@@ -633,7 +581,7 @@ mpd.view = function (ctrl) {
                     createLabel('ao', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
-                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', bind2(mpd.vm.data, 'ao', null, true)),
+                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', createInput(mpd.vm.data, 'ao', null, true)),
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
                         m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
                         ])
@@ -645,7 +593,7 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				createLabel('mixer-type', 'Volume control'),
 				m('.col-sm-10', [
-                    m('input.form-control.input-lg[id="mixer-type"][type="text"]', bind2(mpd.vm.data.conf, 'mixer_type', null, true)),
+                    m('input.form-control.input-lg[id="mixer-type"][type="text"]', createInput(mpd.vm.data.conf, 'mixer_type', null, true)),
 					m('span.help-block', ['This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
 					])
 				])
@@ -656,14 +604,14 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Port'),
 				m('.col-sm-10', [
-					m('input.form-control.input-lg[data-trigger="change"][disabled=""][id="port"][name="conf[port]"][type="text"]', bind2(mpd.vm.data.conf, 'port')),
+					m('input.form-control.input-lg[data-trigger="change"][disabled=""][id="port"][name="conf[port]"][type="text"]', createInput(mpd.vm.data.conf, 'port')),
 					m('span.help-block', 'This setting is the TCP port that is desired for the daemon to get assigned to.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="daemon-user"]', 'Daemon user : group'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="user"][name="conf[user]"]', bind2(mpd.vm.data.conf, 'user', selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="user"][name="conf[user]"]', createInput(mpd.vm.data.conf, 'user', selectpicker), [
 						m('option[selected=""][value="mpd"]', 'mpd : audio (default)'),
 						m('option[value="root"]', 'root : root')
 					]),
@@ -673,7 +621,7 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="log-level"]', 'Log level'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="log-level"][name="conf[log_level]"]', bind2(mpd.vm.data.conf, 'log_level', selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="log-level"][name="conf[log_level]"]', createInput(mpd.vm.data.conf, 'log_level', selectpicker), [
 						m('option[selected=""][value="none"]', 'disabled'),
 						m('option[value="default"]', 'default'),
 						m('option[value="secure"]', 'secure'),
@@ -725,14 +673,14 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Audio buffer size'),
 				m('.col-sm-10', [
-					m('input.form-control.input-lg[data-trigger="change"][id="audio-buffer-size"][min="512"][name="conf[audio_buffer_size]"][type="number"]', bind2(mpd.vm.data.conf, 'audio_buffer_size')),
+					m('input.form-control.input-lg[data-trigger="change"][id="audio-buffer-size"][min="512"][name="conf[audio_buffer_size]"][type="number"]', createInput(mpd.vm.data.conf, 'audio_buffer_size')),
 					m('span.help-block', 'This specifies the size of the audio buffer in kibibytes. The default is 2048, large enough for nearly 12 seconds of CD-quality audio.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="dsd-usb"]', 'Buffer before play'),
 				m('.col-sm-10', [
-					m('select[data-style="btn-default btn-lg"][id="buffer-before-play"][name="conf[buffer_before_play]"]', bind2(mpd.vm.data.conf, 'buffer_before_play', selectpicker), [
+					m('select[data-style="btn-default btn-lg"][id="buffer-before-play"][name="conf[buffer_before_play]"]', createInput(mpd.vm.data.conf, 'buffer_before_play', selectpicker), [
 						m('option[value="0%"]', 'disabled'),
 						'\n                    \n\';\n                    ',
 						m('option[selected=""][value="10%"]', '10%'),
@@ -777,14 +725,14 @@ settings.view = function (ctrl) {
                  m('.form-group[id="environment"]', [
                      m('label.control-label.col-sm-2[for="hostname"]', 'Player hostname'),
                      m('.col-sm-10', [
-                         m('input.form-control.input-lg[autocomplete="off"][id="hostname"][placeholder="runeaudio"][type="text"]', bind2(settings.vm.data.environment, 'hostname')),
+                         m('input.form-control.input-lg[autocomplete="off"][id="hostname"][placeholder="runeaudio"][type="text"]', createInput(settings.vm.data.environment, 'hostname')),
                          m('span.help-block', 'Set the player hostname. This will change the address used to reach the RuneUI.')
                      ])
                  ]),
                  m('.form-group', [
                      m('label.control-label.col-sm-2[for="ntpserver"]', 'NTP server'),
                      m('.col-sm-10', [
-                         m('input.form-control.input-lg[autocomplete="off"][id="ntpserver"][placeholder="pool.ntp.org"][type="text"]', bind2(settings.vm.data.environment, 'ntpserver')),
+                         m('input.form-control.input-lg[autocomplete="off"][id="ntpserver"][placeholder="pool.ntp.org"][type="text"]', createInput(settings.vm.data.environment, 'ntpserver')),
                          m('span.help-block', ['Set your reference time sync server ', m('i', '(NTP server)'), '.'])
                      ])
                  ]),
@@ -842,7 +790,7 @@ settings.view = function (ctrl) {
                  m('.form-group', [
                      m('label.control-label.col-sm-2[for="orionprofile"]', 'Sound Signature (optimization profiles)'),
                      m('.col-sm-10', [
-                         m('select.selectpicker[data-style="btn-default btn-lg"][name="orionprofile"]', bind2(settings.vm.data, "orionprofile", selectpicker), [
+                         m('select.selectpicker[data-style="btn-default btn-lg"][name="orionprofile"]', createInput(settings.vm.data, "orionprofile", selectpicker), [
                              m('option[value="default"]', 'ArchLinux default'),
                              m('option[value="RuneAudio"]', 'RuneAudio'),
                              m('option[selected=""][value="ACX"]', 'ACX'),
@@ -1069,7 +1017,7 @@ source.view = function (ctrl) {
             ]),
             m('label.col-sm-2.control-label[for="nas-name"]', 'Source name'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', bind2(source.vm.data, 'nas_name')),
+                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', createInput(source.vm.data, 'nas_name')),
                 m('ul.parsley-errors-list[id="parsley-id-0754"]'),
                 m('input[name="mount[id]"][type="hidden"][value=""]'),
                 m('input[name="action"][type="hidden"][value="add"]'),
@@ -1079,7 +1027,7 @@ source.view = function (ctrl) {
         m('.form-group', [
             m('label.col-sm-2.control-label[for="nas-type"]', 'Fileshare protocol'),
             m('.col-sm-10', [
-                m('select.selectpicker[data-style="btn-default btn-lg"][id="mount_type"]', bind2(source.vm.data, 'mount_type', selectpicker) , [
+                m('select.selectpicker[data-style="btn-default btn-lg"][id="mount_type"]', createInput(source.vm.data, 'mount_type', selectpicker) , [
                     m('option[value="cifs"]', 'Windows (SMB/CIFS)'),
                     m('option[value="osx"]', 'OS X (SMB/CIFS)'),
                     m('option[value="nfs"]', 'Linux / Unix (NFS)')
@@ -1089,7 +1037,7 @@ source.view = function (ctrl) {
     m('.form-group', [
     m('label.col-sm-2.control-label[for="nas-ip"]', 'IP address'),
     m('.col-sm-10', [
-        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', bind2(source.vm.data, 'nas_ip')),
+        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', createInput(source.vm.data, 'nas_ip')),
         m('ul.parsley-errors-list[id="parsley-id-0037"]'),
         m('span.help-block', 'Specify your NAS address')
     ])
@@ -1097,7 +1045,7 @@ source.view = function (ctrl) {
 m('.form-group', [
     m('label.col-sm-2.control-label[for="nas-dir"]', 'Remote directory'),
     m('.col-sm-10', [
-        m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', bind2(source.vm.data, 'nas_dir')),
+        m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', createInput(source.vm.data, 'nas_dir')),
         m('span.help-block', 'Specify the directory name on the NAS where to scan music files (case sensitive)')
     ])
 ]),
