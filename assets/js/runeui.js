@@ -726,8 +726,8 @@ function parseQueue(data){
     var state = GUI.json.state;
     var i, line, lines = data.split('\n');
     var pos = 1;
-    var songs = []; // array che conterrà tutte le songs
-    var song = {}; // modello base
+    var songs = []; // array containing all the tracks
+    var song = {}; // base model
     for (i = 0; (line = lines[i]); i += 1) {
         var infos = line.split(': ');
         if ( 'file' === infos[0] ) {
@@ -839,6 +839,7 @@ function renderUI(text){
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
+    // console.log(text);
     GUI.state = GUI.json.state;
     // console.log('current song = ', GUI.json.currentsong);
     // console.log( 'GUI.state = ', GUI.state );

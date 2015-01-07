@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $json['mpdconf']));
         $template->DDD = "mpd conf";
     }
-    waitSyWrk($redis, $jobID);
+    // waitSyWrk($redis, $jobID);
 } else {
     $ao = '';
     $aoValue = $redis->get('ao');

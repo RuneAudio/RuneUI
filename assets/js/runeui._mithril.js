@@ -30,29 +30,21 @@ mithril.createInputchecked = function (container, field, config) {
     return {
         config: config,
         onchange: m.withAttr('checked', function (value) {
-            if (value) {
-                container[field] = "yes";
-            } else {
-                container[field] = "no";
-            }
+            container[field] = value;
         }),
         checked: (function () {
-            if (container[field] === "yes") {
-                return true;
-            } else {
-                return false;
-            }
+            return container[field];
         }())
     };
 };
 
 mithril.createLabel = function (id, text) {
-    return m('label.col-sm-2.control-label', { "for": id, }, text);
+    return m('label.col-sm-2.control-label', { 'for': id }, text);
 };
 
 mithril.createYesNo = function (id, container, field, config) {
     return m('label.switch-light.well', [
-    m('input[id="' + id + '"][type="checkbox"]', createInputchecked(container, field)),
+    m('input[id="' + id + '"][type="checkbox"]', mithril.createInputchecked(container, field)),
     m('span', [m('span', 'OFF'), m('span', 'ON')]),
     m('a.btn.btn-primary')
     ]);
@@ -61,7 +53,7 @@ mithril.createYesNo = function (id, container, field, config) {
 // createSelectYesNo('the-field', mpd.vm.data, 'the-field', selectpicker)
 mithril.createSelectYesNo = function (id, container, field, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        createInput(container, field, selectpicker),
+        createInput(container, field, helpers.selectpicker),
         [m('option[value="yes"]', 'enabled'),
             m('option[value="no"]', 'disabled')]);
 };
@@ -70,9 +62,9 @@ mithril.createSelectYesNo = function (id, container, field, config) {
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
 mithril.createSelect = function (id, container, field, list, valueField, displayField, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        createInput(container, field, selectpicker),
+        mithril.createInput(container, field, helpers.selectpicker),
         [container[list].map(function (item, index) {
-            return m('option', { value: item[valueField] }, decodeHtmlEntity(item[displayField]));
+            return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
         })
         ]);
 };
@@ -117,9 +109,9 @@ mithril.getViewModel = function (url) {
     vm.init = function (id) {
         this.id = id;
         // property 'data' is defined here asnd the loading is set up
-        this.data = getData(this);
+        this.data = data.getData(this);
 
-        console.log("* in vm init");
+        console.log('* in vm init');
         navigation.vm.navigate(this.url.replace(urlPrefix, ''));
         // return m.request({ method: 'GET', url: vm.url }).then(function (response) {
         // vm.data = response;
@@ -133,10 +125,10 @@ mithril.getViewModel = function (url) {
             if (field) {
                 var d = {};
                 d[field] = vm.data[field];
-                postData(vm.url, d);
+                data.postData(vm.url, d);
                 console.log(d);
             } else {
-                postData(vm.url, vm.data);
+                data.postData(vm.url, vm.data);
                 console.log(vm.data);
             }
 
@@ -163,8 +155,8 @@ mithril.getController = function (vm) {
     var controller = function () {
         this.id = m.route.param("id");
         vm.init(this.id);
-        toggleLoader('close');
-        console.log("* in controller");
+        helpers.toggleLoader('close');
+        console.log('* in controller');
 
         this.onunload = function () {
 
@@ -175,7 +167,7 @@ mithril.getController = function (vm) {
 
 mithril.RuneModule = function (url) {
     var module = {};
-    module.vm = getViewModel(url);
-    module.controller = getController(module.vm);
+    module.vm = mithril.getViewModel(url);
+    module.controller = mithril.getController(module.vm);
     return module;
 };

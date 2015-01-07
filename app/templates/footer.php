@@ -47,7 +47,22 @@
 <script src="<?=$this->asset('/js/runeui.js')?>"></script>
 <?php endif; ?>
 <?php else: ?>
-<script src="<?=$this->asset('/js/runeui-static.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui._data.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui._helpers.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui._mithril.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui._modal.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.audio.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.credits.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.debug.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.dev.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.error.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.mpd.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.navigation.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.network.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.settings.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.source.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.sources.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui._init.js')?>"></script>
 <?php endif; ?>
 <script src="<?=$this->asset('/js/vendor/pnotify.custom.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js')?>"></script>
