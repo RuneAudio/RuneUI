@@ -26,7 +26,7 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: mpd_ctl.php
+ *  file: audio_ctl.php
  *  version: 1.3
  *  coder: Simone De Gregori
  *
