@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $template->ZZZ = "orion";
     }
     
-    waitSyWrk($redis, $jobID);    
+    // waitSyWrk($redis, $jobID);
 
 } else {
 
