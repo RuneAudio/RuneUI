@@ -224,12 +224,10 @@ function volumeStepSet() {
 // highlight the current track in the queue
 function setQueuePos() {
     if (queueTracks.length !== 0 && GUI.currentqueuepos !== parseInt(GUI.json.song)) {
-        if (GUI.currentqueuepos) {
-            queueTracks[GUI.currentqueuepos].current = false;
-            GUI.currentqueuepos = parseInt(GUI.json.song);
-            queueTracks[GUI.currentqueuepos].current = true;
-            m.redraw();
-        }
+        queueTracks[GUI.currentqueuepos].current = false;
+        GUI.currentqueuepos = parseInt(GUI.json.song);
+        queueTracks[GUI.currentqueuepos].current = true;
+        m.redraw();
     }
 }
 
