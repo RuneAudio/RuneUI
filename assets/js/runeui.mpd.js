@@ -12,7 +12,7 @@ mpd.vm.saveAudioOutput = function () {
 // 'MPD' view
 mpd.view = function (ctrl) {
     return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function (e) { m.module(document.getElementById('dialog'), modal.resetmpd); } }, 'reset to default'), '.\n']), '\n',
-        m('fieldset', [
+        m('fieldset.form-horizontal', [
 			m('legend', 'Audio Output'),
 				m('.form-group', [
                     mithril.createLabel('ao', 'Audio output interface'),
@@ -25,7 +25,7 @@ mpd.view = function (ctrl) {
 					])
 				])
         ]),
-		m('fieldset', [
+		m('fieldset.form-horizontal', [
 			m('legend', 'Volume control'),
 			m('.form-group', [
 				mithril.createLabel('mixer-type', 'Volume control'),
@@ -36,7 +36,7 @@ mpd.view = function (ctrl) {
 				])
 			])
 		]),
-		m('fieldset', [
+		m('fieldset.form-horizontal', [
 			m('legend', 'General music daemon options'),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Port'),
@@ -70,40 +70,36 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="state-file"]', 'State file'),
 				m('.col-sm-10', [
-                    //              (id, container, field, config)
-                    mithril.createYesNo('state_file', mpd.vm.data.conf, 'state_file', helpers.selectpicker),
-					//m('select[data-style="btn-default btn-lg"][id="log-level"][name="conf[state_file]"]', { config: selectpicker }, [
-					//	m('option[selected=""][value="yes"]', 'enabled'),
-					//	m('option[value="no"]', 'disabled')
-					//])
+                    // (id, container, field, config)
+                    mithril.createYesNo('state_file', mpd.vm.data.conf, 'state_file'),
 					m('span.help-block', 'This setting specifies if a state file is used. If the state file is active, the state of mpd will be saved when mpd is terminated by a TERM signal or by the \'kill\' command. When mpd is restarted, it will read the state file and restore the state of mpd (including the playlist).')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="ffmpeg"]', 'FFmpeg decoder plugin'),
 				m('.col-sm-10', [
-					mithril.createYesNo('ffmpeg', mpd.vm.data.conf, 'ffmpeg', helpers.selectpicker),
+					mithril.createYesNo('ffmpeg', mpd.vm.data.conf, 'ffmpeg'),
 					m('span.help-block', 'FFmpeg decoder plugin. Enable this setting if you need AAC / ALAC support. May slow down MPD database refresh.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="gapless-mp3-playback"]', 'Gapless mp3 playback'),
 				m('.col-sm-10', [
-					mithril.createYesNo('gapless-mp3-playback', mpd.vm.data.conf, 'gapless_mp3_playback', helpers.selectpicker),
+					mithril.createYesNo('gapless-mp3-playback', mpd.vm.data.conf, 'gapless_mp3_playback'),
 					m('span.help-block', 'If you have a problem with your MP3s ending abruptly it is recommended that you set this argument to \'no\' to attempt to fix the problem. If this solves the problem, it is highly recommended to fix the MP3 files with vbrfix (available as vbrfix in the debian archive), at which point gapless MP3 playback can be enabled.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="dsd-usb"]', 'DSD support'),
 				m('.col-sm-10', [
-					mithril.createYesNo('dsd-usb', mpd.vm.data.conf, 'dsd_usb', helpers.selectpicker),
+					mithril.createYesNo('dsd-usb', mpd.vm.data.conf, 'dsd_usb'),
 					m('span.help-block', 'Enable DSD audio support.')
 				])
 			]),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="volume-normalization"]', 'Volume normalization'),
 				m('.col-sm-10', [
-					mithril.createYesNo('volume-normalization', mpd.vm.data.conf, 'volume_normalization', helpers.selectpicker),
+					mithril.createYesNo('volume-normalization', mpd.vm.data.conf, 'volume_normalization'),
 					m('span.help-block', 'If yes, mpd will normalize the volume of songs as they play. The default is no')
 				])
 			]),
@@ -133,7 +129,7 @@ mpd.view = function (ctrl) {
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="auto-update"]', 'Auto update'),
 				m('.col-sm-10', [
-					mithril.createYesNo('auto-update', mpd.vm.data.conf, 'auto_update', helpers.selectpicker),
+					mithril.createYesNo('auto-update', mpd.vm.data.conf, 'auto_update'),
 					m('span.help-block', 'This setting enables automatic update of MPD"s database when files in music_directory are changed.')
 				])
 			])

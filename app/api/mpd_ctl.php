@@ -51,6 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // update MPD configuration
     if (isset($json['conf'])) {
+        foreach ($json['conf'] as $mpdfield => $data) {
+            if ($data === TRUE) {
+                $json['conf'][$mpdfield] = 'yes';
+            } else if ($data === FALSE) {
+                $json['conf'][$mpdfield] = 'no';
+            }
+        }
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfg', 'action' => 'update', 'args' => $json['conf']));
         $template->CCC = "conf";
     }
@@ -71,14 +78,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // set manual config template
         $template->content = "mpd_manual";
     } else {
-        $template->conf = $redis->hGetAll('mpdconf');
         // At the moment, the UI needs to convert the 
         //  file name being present to a 'yes'
         $mpdconf = $redis->hGetAll('mpdconf');
         if (isset($mpdconf['state_file'])) {
-            $mpdconf['state_file'] = 'yes';
+            $mpdconf['state_file'] = TRUE;
         } else {
-            $mpdconf['state_file'] = 'no';
+            $mpdconf['state_file'] = FALSE;
+        }
+        foreach ($mpdconf as $mpdfield => $data) {
+            if ($data === 'yes') {
+                $mpdconf[$mpdfield] = TRUE;
+            } else if ($data === 'no') {
+                $mpdconf[$mpdfield] = FALSE;
+            }
         }
         $template->conf = $mpdconf;
         $i2smodule = $redis->get('i2smodule');

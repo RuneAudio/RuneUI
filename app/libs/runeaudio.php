@@ -1258,7 +1258,7 @@ function wrk_control($redis, $action, $data)
             break;
     }
     // debug
-    runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID);
+    runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID); // [TODO] check this
     return $jobID;
 }
 
@@ -2111,6 +2111,11 @@ function wrk_mpdconf($redis, $action, $args = null, $jobID = null)
                     $output .="}\n";
                 continue;
                 }
+                // if ($value === '1') {
+                    // $value = 'yes';
+                // } else if ($value === '0') {
+                    // $value = 'no';
+                // }
                 $output .= $param." \t\"".$value."\"\n";
             }
             $output = $header.$output;
