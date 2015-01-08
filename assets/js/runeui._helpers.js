@@ -51,3 +51,25 @@ helpers.encodeHtmlEntity = function (str) {
     }
     return buf.join('');
 };
+
+// check WebSocket support
+helpers.checkWebSocket = function(){
+    if (window.WebSocket){
+        // console.log('WebSockets supported');
+        return 'websocket';
+    } else {
+        // console.log('WebSockets not supported');
+        return 'longpolling';
+    }
+}
+
+// check HTML5 Workers support
+helpers.checkWorkers = function(){
+    if ((window.Worker && window.Blob) || (Modernizr.webworkers && Modernizr.blobconstructor)) {
+        // console.log('WebWorkers supported');
+        return true;
+    } else {
+        // console.log('WebWorkers not supported');
+        return false;
+    }
+}

@@ -9,6 +9,7 @@
 </head>
 <body>
     <div id="app"></div>
+    <div id="test"></div>
     <script>
 
         var mod1 = {
@@ -43,7 +44,13 @@
         };
         var m2 = m.module(document.getElementById('app'), mod2);
 
+        var test = 'this +  that';
+        var atag = '<a href="' + test + '">test</a>';
+        $('#test').html(atag);
+
     </script>
+
+
 
 </body>
 </html>

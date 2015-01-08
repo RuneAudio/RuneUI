@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //}
     
     $template->YYYY = $jobID;
-    waitSyWrk($redis,$jobID);
+    // waitSyWrk($redis,$jobID);
    
 } else {
     
@@ -195,7 +195,7 @@ $timezones = [];
 foreach (ui_timezone() as $t) {
     $timezones[] = new NameValuePair($t['zone'].' - '.$t['diff_from_GMT'], $t['zone']);
 }
-$environment['timezones'] = $timezones;
+// $environment['timezones'] = $timezones;
 $environment['hostname'] = $redis->get('hostname');
 $environment['ntpserver'] = $redis->get('ntpserver');
 $environment['timezone'] = $redis->get('timezone');
@@ -209,14 +209,21 @@ $template->kernel = $kernel;
 
 // features section
 $features['airplay'] = $redis->hGetAll('airplay');
-$features['airplay']['enable'] = ($features['airplay']['enable'] === '1'); // [TODO] remove this line when boolean values will come from the backend
+$features['airplay']['enable'] = ($features['airplay']['enable'] === '1');
 $features['dlna'] = $redis->hGetAll('dlna');
+$features['dlna']['enable'] = ($features['dlna']['enable'] === '1');
 $features['udevil'] = $redis->get('udevil');
+$features['udevil'] = ($features['udevil'] === '1');
 $features['coverart'] = $redis->get('coverart');
+$features['coverart'] = ($features['coverart'] === '1');
 $features['globalrandom'] = $redis->get('globalrandom');
+$features['globalrandom'] = ($features['globalrandom'] === '1');
 $features['lastfm'] = $redis->hGetAll('lastfm');
+$features['lastfm']['enable'] = ($features['lastfm']['enable'] === '1');
 $features['proxy'] = $redis->hGetAll('proxy');
+$features['proxy']['enable'] = ($features['proxy']['enable'] === '1');
 $features['spotify'] = $redis->hGetAll('spotify');
+$features['spotify']['enable'] = ($features['spotify']['enable'] === '1');
 $features['hwplatformid'] = $redis->get('hwplatformid');
 $template->features = $features;
 
