@@ -1,3 +1,5 @@
+// window.playback_controls = window.playback_controls || {};
+
 var GUI = {
     DBentry: ['','',''],
     DBupdate: 0,
@@ -121,8 +123,8 @@ function renderMSG(text) {
 
 // process the status update data
 function renderUI(text){
-    GUI.json = text[0];
-    console.log(GUI.json);
+    var status = text[0];
+    playback_controls.vm.setState(status.state);
 }
 
 // open the Playback UI refresh channel
@@ -134,21 +136,19 @@ function playbackChannel(){
         reconnectOnChannelUnavailableInterval: 5000
     });
     pushstream.onmessage = renderUI;
-    /*
     pushstream.onstatuschange = function(status) {
         // console.log('[nginx pushtream module] status = ', status);
         if (status === 2) {
-            $('#loader').addClass('hide');
+            // $('#loader').addClass('hide');
             sendCmd('renderui'); // force UI rendering (backend-call)
         } else {
             // console.log('[nginx pushtream module] status change (' + status + ')');
             if (status === 0) {
                 // console.log('[nginx pushtream module] status disconnected (0)');
-                toggleLoader();
+                // toggleLoader();
             }
         }
     };
-    */
     // pushstream.onerror = function() {
         // toggleLoader();
         // console.log('[nginx pushtream module] error');
