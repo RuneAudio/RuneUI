@@ -119,6 +119,12 @@ function renderMSG(text) {
     }
 }
 
+// process the status update data
+function renderUI(text){
+    GUI.json = text[0];
+    console.log(GUI.json);
+}
+
 // open the Playback UI refresh channel
 function playbackChannel(){
     var pushstream = new PushStream({
@@ -128,6 +134,7 @@ function playbackChannel(){
         reconnectOnChannelUnavailableInterval: 5000
     });
     pushstream.onmessage = renderUI;
+    /*
     pushstream.onstatuschange = function(status) {
         // console.log('[nginx pushtream module] status = ', status);
         if (status === 2) {
@@ -141,6 +148,7 @@ function playbackChannel(){
             }
         }
     };
+    */
     // pushstream.onerror = function() {
         // toggleLoader();
         // console.log('[nginx pushtream module] error');
@@ -226,7 +234,7 @@ jQuery(document).ready(function ($) { 'use strict';
     
     // first connection with MPD daemon
     // open UI rendering channel;
-    // playbackChannel();
+    playbackChannel();
     
     // PNotify init options
     PNotify.prototype.options.styling = 'fontawesome';
