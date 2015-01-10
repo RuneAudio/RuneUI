@@ -98,10 +98,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     $template->mounts = $mounts;
+    
     $usbmounts = $redis->hGetAll('usbmounts');
+    //$template->usbmounts = ();
     foreach ($usbmounts as $usbmount) {
         $template->usbmounts[] = json_decode($usbmount);
     }
+    if (isset($template->usbmounts)===false) {
+        $template->usbmounts = NULL; // we still want the property sent to the UI
+    }
+
     if (isset($template->action)) {
         if (isset($template->arg)) {
             foreach ($source as $mp) {
@@ -114,6 +120,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $template->title = 'Add new network mount';
         }
     } 
-    
-    
+        
 }

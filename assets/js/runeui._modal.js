@@ -9,11 +9,11 @@ modal.turnoff = {
         var vm = {};
 
         vm.off = function () {
-            data.postData('/system', { poweroff: true });
+            data.postData('/api/system', { poweroff: true });
         };
 
         vm.reboot = function () {
-            data.postData('/system', { reboot: true });
+            data.postData('/api/system', { reboot: true });
         };
 
         vm.init = function () {
@@ -52,7 +52,7 @@ modal.resetmpd = {
         var vm = {};
 
         vm.reset = function () {
-            data.postData('/mpd', { reset: true });
+            data.postData('/api/mpd', { reset: true });
         };
 
         vm.init = function () {
@@ -80,7 +80,7 @@ modal.resetmpd = {
                 m('.modal-footer',
                     [' ', m('input[name="reset"][type="hidden"][value="1"]'),
                         m('button.btn.btn-default.btn-lg[aria-hidden="true"][data-dismiss="modal"]', 'Cancel'),
-                        m('button.btn.btn-primary.btn-lg[type="submit"]', { onclick: modal.resetmpd.vm.reset }, 'Continue')
+                        m('button.btn.btn-primary.btn-lg[data-dismiss="modal"]', { onclick: modal.resetmpd.vm.reset }, 'Continue')
                     ]
                 )
             ])
@@ -96,7 +96,7 @@ modal.deleteSource = {
 
         vm.remove = function () {
             console.log('reset');
-            //postData('/sources', { ???: ??? });
+            //postData('/api/sources', { ???: ??? });
         };
 
         vm.init = function () {
@@ -122,7 +122,7 @@ modal.deleteSource = {
                     ]),
                     m(".modal-footer", [
                         m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal']", "Cancel"),
-                        m("button.btn.btn-primary.btn-lg", { onclick: modal.resetmpd.vm.remove }, "Remove"),
+                        m("button.btn.btn-primary.btn-lg[data-dismiss='modal']", { onclick: modal.resetmpd.vm.remove }, "Remove"),
                         m("input[name='mount[id]'][type='hidden'][value='']")
                     ])
                 ])
@@ -132,14 +132,14 @@ modal.deleteSource = {
 };
 
 modal.unmountUSB = {
-    vm: (function (data) {
+    vm: (function () {
 
         var vm = {};
 
         vm.current = m.prop('');
 
         vm.unmount = function () {
-            data.postData('/system', { unmount: true });
+            data.postData('/api/sources', { 'usb-umount': vm.current() });
         };
 
         vm.init = function () {
@@ -168,7 +168,7 @@ modal.unmountUSB = {
                     ]),
                     m(".modal-footer", [
                         m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal'][type='button']", "Cancel"),
-                        m("button.btn.btn-primary.btn-lg", { onclick: modal.unmountUSB.vm.unmount }, [m("i.fa.fa-times.sx"), "Unmount"])
+                        m("button.btn.btn-primary.btn-lg[data-dismiss='modal']", { onclick: modal.unmountUSB.vm.unmount }, [m("i.fa.fa-times.sx"), "Unmount"])
                     ])
                 ])
             ])

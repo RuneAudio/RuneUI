@@ -85,10 +85,9 @@ helpers.checkWorkers = function () {
 
 // send playback control commands to the backend
 function sendCmd(cmd) {
-    var request = m.request({
-        method: 'GET',
-        url: '/command/?cmd=' + cmd,
-        deserialize: function(value) {return value;}
-    });
-};
-
+    //var request = m.request({
+    //    method: 'GET',
+    //    url: '/command/?cmd=' + cmd,
+    //    deserialize: function(value) {return value;}
+    //});
+}

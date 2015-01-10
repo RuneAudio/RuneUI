@@ -144,7 +144,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
 }
-
-
-//add errors to the JSON
-$template->error2 = error_get_last();

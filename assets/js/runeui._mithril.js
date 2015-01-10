@@ -157,17 +157,15 @@ mithril.getController = function (vm) {
         vm.init(this.id);
 
         this.onunload = function () {
-            this.onunload = function () {
-                // if (!confirm('Are you sure you want to leave this page?')) { e.preventDefault(); }
-            };
+           // if (!confirm('Are you sure you want to leave this page?')) { e.preventDefault(); }
         };
-        return controller;
     };
+    return controller;
+};
 
-    mithril.RuneModule = function (url) {
-        var module = {};
-        module.vm = mithril.getViewModel(url);
-        module.controller = mithril.getController(module.vm);
-        return module;
-    };
+mithril.RuneModule = function (url) {
+    var module = {};
+    module.vm = mithril.getViewModel(url);
+    module.controller = mithril.getController(module.vm);
+    return module;
 };

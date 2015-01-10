@@ -40,7 +40,7 @@ sources.view = function (ctrl) {
              m('p', 'List of configured network mounts. Click an existing entry to edit it, or add a new one.'),
                  m('p', [m('button.btn.btn-lg.btn-primary.btn-block[id="mountall"][type="button"]', { onclick: sources.vm.mountAll }, [m('i.fa.fa-refresh.sx'), ' Remount all sources'])]),
                  sources.vm.data.mounts.map(function (item, index) {
-                     return m("p", [m("a.btn.btn-lg.btn-default.btn-block[href='/sources/edit/" + item.id + "']", {
+                     return m("p", [m("a.btn.btn-lg.btn-default.btn-block[href='javascript:;']", {
                          onclick: function (e) {
                              sources.vm.edit(item.id);
                          }
@@ -52,15 +52,13 @@ sources.view = function (ctrl) {
              m('h2', 'USB mounts'),
              m('p', ['List of mounted USB drives. To safely unmount a drive, click on it then confirm at the dialog prompt.', m('br'), '\n    If a drive is connected but not shown in the list, please check if ', m('a[href="/settings"]', { config: m.route }, 'USB automount'), ' is enabled.']),
              m('.button-list[id="usb-mount-list"]', [
-                  sources.vm.data.usbmounts.map(function (item, index) {
-                      // handle the No USB Mounts case:
-                      // m('p', [m('button.btn.btn-lg.btn-disabled.btn-block[disabled="disabled"]', 'no USB mounts present')])
+                  (sources.vm.data.usbmounts) ? sources.vm.data.usbmounts.map(function (item, index) {
                       return m("p", [m("a.btn.btn-lg.btn-default.btn-block[href='javascript:;']", {
                           onclick: function (e) {
                               sources.vm.unmountUSB(item.device);
                           }
                       }, [m("i.fa.fa-check.green.sx"), item.device, m("span", "(size: " + item.size + ", " + item.use + " in use)")])]);
-                  }),
+                  }) : m('p', [m('button.btn.btn-lg.btn-disabled.btn-block[disabled="disabled"]', 'no USB mounts present')]),
              ])
     ])];
 };
