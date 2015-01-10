@@ -50,8 +50,8 @@
 <script src="<?=$this->asset('/js/runeui._data.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui._helpers.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui._mithril.js')?>"></script>
-<script src="<?=$this->asset('/js/runeui._playback_controls.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui._modal.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.playback_controls.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.audio.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.credits.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.debug.js')?>"></script>

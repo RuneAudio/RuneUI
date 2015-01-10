@@ -227,6 +227,8 @@ function nicsChannel(){
 // INIT
 // ----------------------------------------------------------------------------------------------------
 
+helpers.toggleLoader('close', 'blocking');
+
 jQuery(document).ready(function ($) { 'use strict';
 
     // check WebSocket support

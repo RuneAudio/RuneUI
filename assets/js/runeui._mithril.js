@@ -111,7 +111,7 @@ mithril.getViewModel = function (url) {
         // property 'data' is defined here asnd the loading is set up
         this.data = data.getData(this);
 
-        console.log('* in vm init');
+        // console.log('* in vm init');
         navigation.vm.navigate(this.url.replace(urlPrefix, ''));
         // return m.request({ method: 'GET', url: vm.url }).then(function (response) {
         // vm.data = response;
@@ -155,11 +155,11 @@ mithril.getController = function (vm) {
     var controller = function () {
         this.id = m.route.param("id");
         vm.init(this.id);
-        helpers.toggleLoader('close');
-        console.log('* in controller');
+        
+        // console.log('* in controller');
 
-        this.onunload = function () {
-
+        this.onunload = function() {
+            // if (!confirm('Are you sure you want to leave this page?')) { e.preventDefault(); }
         };
     };
     return controller;

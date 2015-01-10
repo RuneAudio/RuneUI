@@ -8,10 +8,10 @@ window.audio = new mithril.RuneModule('/audio');
 audio.view = function (ctrl) {
     return [
         m('h1', 'Audio Configuration'),
-        m('fieldset', [
-            m('legend', 'Audio Output'),
+        m('fieldset.form-horizontal', [
+            m('legend', 'Audio Output Interface'),
                 m('.form-group', [
-                    mithril.createLabel('audio-output-interface', 'Audio output interface'),
+                    mithril.createLabel('audio-output-interface', 'Output interface'),
                     m('.col-sm-10', [
                         mithril.createSelect('audio-output-interface', audio.vm.data, 'ao', 'acards', 'name', 'extlabel', helpers.selectpicker),
                         m('span.help-block', ['This is the current output interface.'
@@ -25,7 +25,7 @@ audio.view = function (ctrl) {
                 ])
             ])
         ]),
-        m('fieldset', [
+        m('fieldset.form-horizontal', [
             m('legend', 'Volume control'),
             m('.form-group', [
                 m('label.col-sm-2.control-label[for="mixer-type"]', 'Volume control'),
@@ -65,10 +65,10 @@ audio.view = function (ctrl) {
                 ])
             ])
         ]),
-        m('fieldset', [
-            m('legend', 'Sound Signature'),
+        m('fieldset.form-horizontal', [
+            m('legend', 'Sound Signature (optimization profiles)'),
             m('.form-group', [
-                m('label.control-label.col-sm-2[for="orionprofile"]', 'Sound Signature (optimization profiles)'),
+                m('label.control-label.col-sm-2[for="orionprofile"]', 'Sound Signature'),
                 m('.col-sm-10', [
                     m('select.selectpicker[data-style="btn-default btn-lg"]', mithril.createInput(audio.vm.data, "orionprofile", helpers.selectpicker), [
                          m('option[value="default"]', 'ArchLinux default'),

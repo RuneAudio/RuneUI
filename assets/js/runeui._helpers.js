@@ -3,20 +3,29 @@
 
 window.helpers = window.helpers || {};
 
-// toggle blocking loading layer (spinning arrows)
-helpers.toggleLoader = function (action) {
+// toggle loading layers (spinning arrows and circle)
+helpers.toggleLoader = function(action, type) {
+    console.log(type);
+    var div, style;
+    if (type === 'blocking') {
+        div = '#loader';
+        style = 'hide';
+    } else {
+        div = '#loader-spinner';
+        style = 'hide';
+    }
     if (action === 'close') {
-        $('#loader').addClass('hide');
+        $(div).addClass('hide');
     } else {
         if ($('#section-dev').length) {
-            $('#loader').addClass('hide');
+            $(div).addClass('hide');
             new PNotify({
                 title: 'Warning',
                 text: 'The loading layer (spinning arrows) points to a socket error',
                 icon: 'fa fa-exclamation-circle'
             });
         } else {
-            $('#loader').removeClass('hide');
+            $(div).removeClass('hide');
         }
     }
 };
