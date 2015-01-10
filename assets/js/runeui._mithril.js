@@ -44,29 +44,30 @@ mithril.createLabel = function (id, text) {
 
 mithril.createYesNo = function (id, container, field, config) {
     return m('label.switch-light.well', [
-    m('input[id="' + id + '"][type="checkbox"]', mithril.createInputchecked(container, field)),
-    m('span', [m('span', 'OFF'), m('span', 'ON')]),
-    m('a.btn.btn-primary')
+        m('input[id="' + id + '"][type="checkbox"]', mithril.createInputchecked(container, field)),
+        m('span', [m('span', 'OFF'), m('span', 'ON')]),
+        m('a.btn.btn-primary')
     ]);
 };
 
 // createSelectYesNo('the-field', mpd.vm.data, 'the-field', selectpicker)
 mithril.createSelectYesNo = function (id, container, field, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        createInput(container, field, helpers.selectpicker),
-        [m('option[value="yes"]', 'enabled'),
-            m('option[value="no"]', 'disabled')]);
+        mithril.createInput(container, field), [
+            m('option[value="yes"]', 'enabled'),
+            m('option[value="no"]', 'disabled')
+        ]);
 };
 
 // createSelect('the-field', mpd.vm.data, 'list-field-with-oprions', selectpicker)
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
 mithril.createSelect = function (id, container, field, list, valueField, displayField, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        mithril.createInput(container, field, helpers.selectpicker),
-        [container[list].map(function (item, index) {
-            return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
-        })
-        ]);
+        mithril.createInput(container, field, helpers.selectpicker), [container[list].map(function (item, index) {
+            return m('option', {
+                value: item[valueField]
+            }, helpers.decodeHtmlEntity(item[displayField]));
+        })]);
 };
 
 //var select = function () {

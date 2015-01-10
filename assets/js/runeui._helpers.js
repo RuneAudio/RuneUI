@@ -5,15 +5,8 @@ window.helpers = window.helpers || {};
 
 // toggle loading layers (spinning arrows and circle)
 helpers.toggleLoader = function(action, type) {
-    console.log(type);
     var div, style;
-    if (type === 'blocking') {
-        div = '#loader';
-        style = 'hide';
-    } else {
-        div = '#loader-spinner';
-        style = 'hide';
-    }
+    div = (type === 'blocking') ? '#loader': '#loader-spinner';
     if (action === 'close') {
         $(div).addClass('hide');
     } else {
