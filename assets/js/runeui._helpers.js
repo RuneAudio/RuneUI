@@ -90,4 +90,5 @@ function sendCmd(cmd) {
         url: '/command/?cmd=' + cmd,
         deserialize: function(value) {return value;}
     });
-}
+};
+
