@@ -1,3 +1,5 @@
+// window.playback_controls = window.playback_controls || {};
+
 var GUI = {
     DBentry: ['','',''],
     DBupdate: 0,
@@ -119,6 +121,12 @@ function renderMSG(text) {
     }
 }
 
+// process the status update data
+function renderUI(text){
+    var status = text[0];
+    playback_controls.vm.setState(status.state);
+}
+
 // open the Playback UI refresh channel
 function playbackChannel(){
     var pushstream = new PushStream({
@@ -131,13 +139,13 @@ function playbackChannel(){
     pushstream.onstatuschange = function(status) {
         // console.log('[nginx pushtream module] status = ', status);
         if (status === 2) {
-            $('#loader').addClass('hide');
+            // $('#loader').addClass('hide');
             sendCmd('renderui'); // force UI rendering (backend-call)
         } else {
             // console.log('[nginx pushtream module] status change (' + status + ')');
             if (status === 0) {
                 // console.log('[nginx pushtream module] status disconnected (0)');
-                toggleLoader();
+                // toggleLoader();
             }
         }
     };
@@ -219,6 +227,8 @@ function nicsChannel(){
 // INIT
 // ----------------------------------------------------------------------------------------------------
 
+helpers.toggleLoader('close', 'blocking');
+
 jQuery(document).ready(function ($) { 'use strict';
 
     // check WebSocket support
@@ -226,7 +236,7 @@ jQuery(document).ready(function ($) { 'use strict';
     
     // first connection with MPD daemon
     // open UI rendering channel;
-    // playbackChannel();
+    playbackChannel();
     
     // PNotify init options
     PNotify.prototype.options.styling = 'fontawesome';

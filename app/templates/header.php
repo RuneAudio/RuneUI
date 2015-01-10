@@ -85,12 +85,16 @@
     <?php else: ?>
     <div id="main-menu" class="dropdown"></div>
     <?php endif; ?>
+    <?php if ($this->section !== 'config'): ?>
     <div class="playback-controls">    
         <button id="previous" class="btn btn-default btn-cmd" title="Previous" data-cmd="previous"><i class="fa fa-step-backward"></i></button>
         <button id="stop" class="btn btn-default btn-cmd" title="Stop" data-cmd="stop"><i class="fa fa-stop"></i></button>
         <button id="play" class="btn btn-default btn-cmd" title="Play/Pause" data-cmd="play"><i class="fa fa-play"></i></button>
         <button id="next" class="btn btn-default btn-cmd" title="Next" data-cmd="next"><i class="fa fa-step-forward"></i></button>
     </div>
+    <?php else: ?>
+    <div id="playback-controls" class="playback-controls"></div>
+    <?php endif; ?>
     <a class="home" href="/"><img src="<?=$this->asset('/img/logo.png')?>" class="logo" alt="RuneAudio"></a>
 </div>
 <div id="menu-bottom">

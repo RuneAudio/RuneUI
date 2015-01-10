@@ -136,13 +136,14 @@ mpd.view = function (ctrl) {
 					mithril.createYesNo('auto-update', mpd.vm.data.conf, 'auto_update'),
 					m('span.help-block', 'This setting enables automatic update of MPD"s database when files in music_directory are changed.')
 				])
-			])
-		]),
-		m('.form-group.form-actions', [
-			m('.col-sm-offset-2.col-sm-10', [
-                m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: function (e) { mpd.vm.cancel('conf'); } }, 'Cancel'),
-				m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: function (e) { mpd.vm.save('conf'); } }, 'Save and apply')
-			])
+			]),
+            m('.form-group.form-actions', [
+                m('.col-sm-offset-2.col-sm-10', [
+                    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: function (e) { mpd.vm.cancel('conf'); } }, 'Cancel'), ' ',
+                    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: function (e) { mpd.vm.save('conf'); } }, 'Save and apply')
+                ])
+            ])
 		])
+		
     ];
 };

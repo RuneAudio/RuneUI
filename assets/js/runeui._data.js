@@ -7,10 +7,9 @@ data.getData = function (vm) {
     if (vm.id) {
         url += '/' + vm.id;
     }
-    helpers.toggleLoader('open');
+    helpers.toggleLoader('open', '');
     var loaderClose = function () {
         helpers.toggleLoader('close');
-        console.log('loaderClose');
     };
     var loaderCloseFail = function () {
         console.log('FAIL');
@@ -25,9 +24,9 @@ data.getData = function (vm) {
 data.postData = function (url, data) {
     console.log(url);
     console.log(data);
-    helpers.toggleLoader('open');
+    helpers.toggleLoader('open', 'blocking');
     var loaderClose = function () {
-        helpers.toggleLoader('close');
+        helpers.toggleLoader('close', 'blocking');
     };
     var loaderCloseFail = function () {
         console.log('FAIL');
@@ -40,7 +39,7 @@ data.postData = function (url, data) {
             return;
         },
         unwrapError: function (response) {
-            return "oops";
+            return 'oops';
         },
         // PHP errors are not wrapped in Proper JSON,. breaking Mitrhil
         deserialize: function (value) { return value; }

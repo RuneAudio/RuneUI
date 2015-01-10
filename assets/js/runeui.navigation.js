@@ -20,6 +20,7 @@ window.navigation = {
         };
 
         vm.navigate = function (url) {
+
             for (i = 0; i < vm.pages.length - 1; i++) {
                 if (vm.pages[i].url() === url) {
                     vm.pages[i].selected(true);
@@ -52,8 +53,8 @@ window.navigation = {
                 ['MENU ', m('i.fa.fa-bars.dx')]), '\n', m('ul.dropdown-menu[aria-labelledby="menu-settings"][role="menu"]',
                     [navigation.vm.pages.map(function (item, index) {
                         return m('li', { className: item.selected() ? 'active' : '' },
-                            item.url() ? [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])] : [m('a[href="javascript:;"]', { onclick: function (e) { console.log(e); item.action(); } }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
-                    })])];
+                        item.url() ? [m('a[href="' + item.url() + '"]', { config: m.route }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])] : [m('a[href="javascript:;"]', { onclick: function (e) { item.action(); } }, [m('i.fa.fa-' + item.icon()), ' ' + item.name()])]);
+        })])];
     }
 };
 m.module(document.getElementById('main-menu'), navigation);
