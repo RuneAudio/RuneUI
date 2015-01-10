@@ -77,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $template->arg; // null when the id = 0
     
     if ($id == '0') {
+		// THe user is doing a GET to setup the UI for a new source
         $template->nas_name = '';
         $template->nas_ip = '';
         $template->nas_dir = '';
@@ -89,9 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if($source !== true) { 
         foreach ($source as $mp) {
             if (wrk_checkStrSysfile('/proc/mounts', '/mnt/MPD/NAS/'.$mp['name'])) {
-                $mp['status'] = 1;
+                $mp['status'] = true;
             } else {
-                $mp['status'] = 0;
+                $mp['status'] = false;
             }
             $mounts[]=$mp;
         }

@@ -10,6 +10,7 @@ data.getData = function (vm) {
     helpers.toggleLoader('open');
     var loaderClose = function () {
         helpers.toggleLoader('close');
+        console.log('loaderClose');
     };
     var loaderCloseFail = function () {
         console.log('FAIL');

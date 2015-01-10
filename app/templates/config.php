@@ -1,4 +1,4 @@
-<div id="app" class="container">
+<div id="app" class="container form-horizontal">
 </div>
 <div id="loader">
     <div id="loaderbg"></div>

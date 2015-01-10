@@ -41,7 +41,7 @@ modal.turnoff = {
                         m('button.btn.btn-default.btn-lg[aria-hidden="true"][data-dismiss="modal"]', 'Cancel')
                     ])
                 ])
-            ])
+        ])
         ];
     }
 };
@@ -70,13 +70,19 @@ modal.resetmpd = {
         return [m('.modal-dialog',
             [m('.modal-content', [
                 m('.modal-header', [
-                    m('button.close[aria-hidden="true"][data-dismiss="modal"][type="button"]', '×'), m('h3.modal-title[id="mpd-config-defaults-label"]', 'Reset the configuration')]
-                    ), m('.modal-body',
-                        [m('p', ['You are going to reset the configuration to the default original values.', m('br'), ' You will lose any modification.'])]),
-                        m('.modal-footer', [' ', m('input[name="reset"][type="hidden"][value="1"]'),
+                    m('button.close[aria-hidden="true"][data-dismiss="modal"][type="button"]', '×'), m('h3.modal-title[id="mpd-config-defaults-label"]', 'Reset the configuration')
+                ]),
+                m('.modal-body',
+                    [
+                        m('p', ['You are going to reset the configuration to the default original values.', m('br'), ' You will lose any modification.'])
+                    ]
+                ),
+                m('.modal-footer',
+                    [' ', m('input[name="reset"][type="hidden"][value="1"]'),
                         m('button.btn.btn-default.btn-lg[aria-hidden="true"][data-dismiss="modal"]', 'Cancel'),
                         m('button.btn.btn-primary.btn-lg[type="submit"]', { onclick: modal.resetmpd.vm.reset }, 'Continue')
-                        ])
+                    ]
+                )
             ])
             ])
         ];
@@ -105,7 +111,6 @@ modal.deleteSource = {
     },
     view: function () {
         return [
-        m(".modal.fade[aria-hidden='true'[id='source-delete-modal'][role='dialog'][tabindex='-1']", [
             m(".modal-dialog", [
                 m(".modal-content", [
                     m(".modal-header", [
@@ -117,12 +122,56 @@ modal.deleteSource = {
                     ]),
                     m(".modal-footer", [
                         m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal']", "Cancel"),
-                        m("button.btn.btn-primary.btn-lg[name='action'][type='submit'][value='delete']", { onclick: modal.resetmpd.vm.remove }, "Remove"),
+                        m("button.btn.btn-primary.btn-lg", { onclick: modal.resetmpd.vm.remove }, "Remove"),
                         m("input[name='mount[id]'][type='hidden'][value='']")
                     ])
                 ])
             ])
-        ])
+        ];
+    }
+};
+
+modal.unmountUSB = {
+    vm: (function (data) {
+
+        var vm = {};
+
+        vm.current = m.prop('');
+
+        vm.unmount = function () {
+            data.postData('/system', { unmount: true });
+        };
+
+        vm.init = function () {
+            $('#dialog').modal('show');
+        };
+
+        return vm;
+
+    }()),
+    controller: function () {
+        modal.unmountUSB.vm.init();
+    },
+    view: function (ctrl) {
+        return [
+            m(".modal-dialog", [
+                m(".modal-content", [
+                    m(".modal-header", [
+                        m("button.close[aria-hidden='true'][data-dismiss='modal'][type='button']", "×"),
+                        m("h4.modal-title[id='umount-modal-label']", "Safe USB unmount")
+                    ]),
+                    m(".modal-body", [
+                        m("p", "Mount point:"),
+                        m("pre", [m("span[id='usb-umount-name']", modal.unmountUSB.vm.current())]),
+                        m("p", "Do you really want to safe unmount it?"),
+                        m("input.form-control[id='usb-umount'][name='usb-umount'][type='hidden']", { value: modal.unmountUSB.vm.current() })
+                    ]),
+                    m(".modal-footer", [
+                        m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal'][type='button']", "Cancel"),
+                        m("button.btn.btn-primary.btn-lg", { onclick: modal.unmountUSB.vm.unmount }, [m("i.fa.fa-times.sx"), "Unmount"])
+                    ])
+                ])
+            ])
         ];
     }
 };

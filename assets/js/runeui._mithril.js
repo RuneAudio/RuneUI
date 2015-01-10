@@ -155,11 +155,11 @@ mithril.getController = function (vm) {
     var controller = function () {
         this.id = m.route.param("id");
         vm.init(this.id);
-        helpers.toggleLoader('close');
+        //helpers.toggleLoader('close');
         console.log('* in controller');
 
         this.onunload = function () {
-
+            console.log('* controller unload: ' + this.id);
         };
     };
     return controller;

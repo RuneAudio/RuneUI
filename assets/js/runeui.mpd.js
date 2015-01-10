@@ -4,15 +4,19 @@ window.data = window.data || {};
 
 window.mpd = new mithril.RuneModule('/mpd');
 
-mpd.vm.saveAudioOutput = function () {
+mpd.vm.saveAudioOutput = function (e) {
     data.postData(mpd.vm.url, mpd.vm.ao);
+};
+
+mpd.vm.reset = function (e) {
+    m.module(document.getElementById('dialog'), modal.resetmpd);
 };
 
 
 // 'MPD' view
 mpd.view = function (ctrl) {
-    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function (e) { m.module(document.getElementById('dialog'), modal.resetmpd); } }, 'reset to default'), '.\n']), '\n',
-        m('fieldset.form-horizontal', [
+    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: mpd.vm.reset }, 'reset to default'), '.\n']), '\n',
+        m('fieldset', [
 			m('legend', 'Audio Output'),
 				m('.form-group', [
                     mithril.createLabel('ao', 'Audio output interface'),
@@ -25,7 +29,7 @@ mpd.view = function (ctrl) {
 					])
 				])
         ]),
-		m('fieldset.form-horizontal', [
+		m('fieldset', [
 			m('legend', 'Volume control'),
 			m('.form-group', [
 				mithril.createLabel('mixer-type', 'Volume control'),
@@ -36,7 +40,7 @@ mpd.view = function (ctrl) {
 				])
 			])
 		]),
-		m('fieldset.form-horizontal', [
+		m('fieldset', [
 			m('legend', 'General music daemon options'),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Port'),
