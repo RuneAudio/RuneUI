@@ -29,7 +29,7 @@ mpd.view = function (ctrl) {
 					])
 				])
         ]),
-		m('fieldset', [
+		m('fieldset.form-horizontal', [
 			m('legend', 'Volume control'),
 			m('.form-group', [
 				mithril.createLabel('mixer-type', 'Volume control'),
@@ -40,7 +40,7 @@ mpd.view = function (ctrl) {
 				])
 			])
 		]),
-		m('fieldset', [
+		m('fieldset.form-horizontal', [
 			m('legend', 'General music daemon options'),
 			m('.form-group', [
 				m('label.col-sm-2.control-label[for="port"]', 'Port'),
