@@ -189,50 +189,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // waitSyWrk($redis,$jobID);
    
 } else {
-    
-// environment section    
-$timezones = [];
-foreach (ui_timezone() as $t) {
-    $timezones[] = new NameValuePair($t['zone'].' - '.$t['diff_from_GMT'], $t['zone']);
-}
-// $environment['timezones'] = $timezones;
-$environment['hostname'] = $redis->get('hostname');
-$environment['ntpserver'] = $redis->get('ntpserver');
-$environment['timezone'] = $redis->get('timezone');
-$template->environment = $environment;
+    if (!$template->uri(3)) {
+    // MAIN SECTION - /api/settings/
+        // kernel section
+        $kernel['kernel'] = $redis->get('kernel');
+        $kernel['i2smodule'] = $redis->get('i2smodule');
+        $kernel['orionprofile'] = $redis->get('orionprofile');
+        $template->kernel = $kernel;
 
-// kernel section
-$kernel['kernel'] = $redis->get('kernel');
-$kernel['i2smodule'] = $redis->get('i2smodule');
-$kernel['orionprofile'] = $redis->get('orionprofile');
-$template->kernel = $kernel;
+        // features section
+        $features['airplay'] = $redis->hGetAll('airplay');
+        $features['airplay']['enable'] = ($features['airplay']['enable'] === '1');
+        $features['dlna'] = $redis->hGetAll('dlna');
+        $features['dlna']['enable'] = ($features['dlna']['enable'] === '1');
+        $features['udevil'] = $redis->get('udevil');
+        $features['udevil'] = ($features['udevil'] === '1');
+        $features['coverart'] = $redis->get('coverart');
+        $features['coverart'] = ($features['coverart'] === '1');
+        $features['globalrandom'] = $redis->get('globalrandom');
+        $features['globalrandom'] = ($features['globalrandom'] === '1');
+        $features['lastfm'] = $redis->hGetAll('lastfm');
+        $features['lastfm']['enable'] = ($features['lastfm']['enable'] === '1');
+        $features['proxy'] = $redis->hGetAll('proxy');
+        $features['proxy']['enable'] = ($features['proxy']['enable'] === '1');
+        $features['spotify'] = $redis->hGetAll('spotify');
+        $features['spotify']['enable'] = ($features['spotify']['enable'] === '1');
+        $features['hwplatformid'] = $redis->get('hwplatformid');
+        $template->features = $features;
 
-// features section
-$features['airplay'] = $redis->hGetAll('airplay');
-$features['airplay']['enable'] = ($features['airplay']['enable'] === '1');
-$features['dlna'] = $redis->hGetAll('dlna');
-$features['dlna']['enable'] = ($features['dlna']['enable'] === '1');
-$features['udevil'] = $redis->get('udevil');
-$features['udevil'] = ($features['udevil'] === '1');
-$features['coverart'] = $redis->get('coverart');
-$features['coverart'] = ($features['coverart'] === '1');
-$features['globalrandom'] = $redis->get('globalrandom');
-$features['globalrandom'] = ($features['globalrandom'] === '1');
-$features['lastfm'] = $redis->hGetAll('lastfm');
-$features['lastfm']['enable'] = ($features['lastfm']['enable'] === '1');
-$features['proxy'] = $redis->hGetAll('proxy');
-$features['proxy']['enable'] = ($features['proxy']['enable'] === '1');
-$features['spotify'] = $redis->hGetAll('spotify');
-$features['spotify']['enable'] = ($features['spotify']['enable'] === '1');
-$features['hwplatformid'] = $redis->get('hwplatformid');
-$template->features = $features;
+        // system section
+        $system['kernel'] = file_get_contents('/proc/version');
+        $system['time'] = implode('\n', sysCmd('date'));
+        $system['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
+        $system['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
+        $system['playerID'] = $redis->get('playerid');
+        $template->system = $system;
 
-// system section
-$system['kernel'] = file_get_contents('/proc/version');
-$system['time'] = implode('\n', sysCmd('date'));
-$system['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
-$system['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
-$system['playerID'] = $redis->get('playerid');
-$template->system = $system;
+        // environment section    
 
+
+        $environment['hostname'] = $redis->get('hostname');
+        $environment['ntpserver'] = $redis->get('ntpserver');
+        $environment['timezone'] = $redis->get('timezone');
+        $template->environment = $environment;
+    } else {
+    // SUBSECTIONS
+        // TIMEZONES - /api/settings/timezones/
+        if ($template->uri(3, 'timezones')) {
+            $timezones = [];
+            foreach (ui_timezone() as $t) {
+                $timezones[] = new NameValuePair($t['zone'].' - '.$t['diff_from_GMT'], $t['zone']);
+            }
+            $template->timezones = $timezones;
+        }
+    }
 }

@@ -839,7 +839,8 @@ function renderUI(text){
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
-    // console.log(text);
+    // console.log(text[0]);
+    // console.log(JSON.stringify(text[0]));
     GUI.state = GUI.json.state;
     // console.log('current song = ', GUI.json.currentsong);
     // console.log( 'GUI.state = ', GUI.state );
