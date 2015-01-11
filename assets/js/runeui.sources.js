@@ -4,23 +4,23 @@ window.data = window.data || {};
 
 window.sources = new mithril.RuneModule('/sources');
 
-sources.vm.updateMDP = function () {
+sources.vm.updateMDP = function() {
     data.postData(sources.vm.url, { updatempd: true });
 };
-sources.vm.updateMDP = function () {
+sources.vm.updateMDP = function() {
     data.postData(sources.vm.url, { mountall: true });
 };
-sources.vm.add = function () {
+sources.vm.add = function() {
     console.log('source add');
     m.route('/sources/0');
 };
-sources.vm.edit = function (id) {
+sources.vm.edit = function(id) {
     console.log('source edit');
     m.route('/sources/' + id);
 };
 
 // 'Sources' view
-sources.view = function (ctrl) {
+sources.view = function(ctrl) {
     return [m('.container', [
              m('h1', 'Local sources'),
              m('.boxed', [

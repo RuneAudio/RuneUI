@@ -1758,19 +1758,19 @@ if ($('#section-index').length) {
         });
         
         $('#volume-step-dn').on({
-            mousedown : function () {
+            mousedown : function() {
                 volumeStepCalc('dn');
             },
-            mouseup : function () {
+            mouseup : function() {
                 volumeStepSet();
             }
         });
         
         $('#volume-step-up').on({
-            mousedown : function () {
+            mousedown : function() {
                 volumeStepCalc('up');
             },
-            mouseup : function () {
+            mouseup : function() {
                 volumeStepSet();
             }
         });
@@ -1782,14 +1782,14 @@ if ($('#section-index').length) {
         // playback knob
         $('#time').knob({
             inline: false,
-            change: function (value) {
+            change: function(value) {
                 if (GUI.state !== 'stop') {
                     window.clearInterval(GUI.currentKnob);
                 } else {
                     $('#time').val(0).trigger('change');
                 }
             },
-            release: function (value) {
+            release: function(value) {
                 onreleaseKnob(value);
             }
         });
@@ -1797,10 +1797,10 @@ if ($('#section-index').length) {
         // volume knob
         $('#volume').knob({
             inline: false,
-            change: function (value) {
+            change: function(value) {
                 //setvol(value);    // disabled until perfomance issues are solved (mouse wheel is not working now)
             },
-            release: function (value) {
+            release: function(value) {
                 setvol(value);
             },
             draw: function() {
@@ -1866,7 +1866,7 @@ if ($('#section-index').length) {
                 customScroll('pl', current, 500);
             }
         })
-        .on('shown.bs.tab', function (e) {
+        .on('shown.bs.tab', function(e) {
             var current = parseInt(GUI.json.song);
             customScroll('pl', current, 0);
         });
@@ -1951,7 +1951,7 @@ if ($('#section-index').length) {
         var sortlist = document.getElementById('playlist-entries');
         new Sortable(sortlist, {
             ghostClass: 'sortable-ghost',
-            onUpdate: function (evt){
+            onUpdate: function(evt){
                 sortOrder(evt.item.getAttribute('id'));
             }
         });
@@ -1966,7 +1966,7 @@ if ($('#section-index').length) {
                 customScroll('pl', parseInt(GUI.json.song), 500);
             }
         })
-        .on('shown.bs.tab', function (e) {
+        .on('shown.bs.tab', function(e) {
             customScroll('db', GUI.currentDBpos[GUI.currentDBpos[10]], 0);
         });
         

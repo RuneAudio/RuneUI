@@ -4,11 +4,11 @@ window.data = window.data || {};
 
 window.source = new mithril.RuneModule('/sources');
 
-source.Source = function (data) {
+source.Source = function(data) {
     this.nas_name = m.prop(data.nas_name || '');
 };
 
-source.vm.validate = function () {
+source.vm.validate = function() {
     var d = new source.Source(source.vm.data);
     if (d.nas_name() === '') {
         alert('Nas Name is Required');
@@ -18,7 +18,7 @@ source.vm.validate = function () {
 };
 
 // single source view
-source.view = function (ctrl) {
+source.view = function(ctrl) {
     return [m('h1', 'NAS mounts'),
     m('fieldset', [
         m('legend', ['Add new network mount ', m('span.hide', ['(', m('a[data-toggle="modal"][href="#source-delete-modal"]', 'remove this mount'), ')'])]),
@@ -156,8 +156,8 @@ source.view = function (ctrl) {
 		]),
         m('.form-group.form-actions', [
                    m('.col-sm-offset-2.col-sm-10', [
-                       m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { source.vm.cancel(); } }, 'Cancel'),
-                       m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { source.vm.save(); } }, 'Save and apply')
+                       m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function(e) { source.vm.cancel(); } }, 'Cancel'),
+                       m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function(e) { source.vm.save(); } }, 'Save and apply')
                    ])
         ])
 

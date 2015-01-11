@@ -4,14 +4,14 @@ window.data = window.data || {};
 
 window.mpd = new mithril.RuneModule('/mpd');
 
-mpd.vm.saveAudioOutput = function () {
+mpd.vm.saveAudioOutput = function() {
     data.postData(mpd.vm.url, mpd.vm.ao);
 };
 
 
 // 'MPD' view
-mpd.view = function (ctrl) {
-    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function (e) { m.module(document.getElementById('dialog'), modal.resetmpd); } }, 'reset to default'), '.\n']), '\n',
+mpd.view = function(ctrl) {
+    return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: function(e) { m.module(document.getElementById('dialog'), modal.resetmpd); } }, 'reset to default'), '.\n']), '\n',
         m('fieldset.form-horizontal', [
 			m('legend', 'Audio Output'),
 				m('.form-group', [
@@ -135,8 +135,8 @@ mpd.view = function (ctrl) {
 			]),
             m('.form-group.form-actions', [
                 m('.col-sm-offset-2.col-sm-10', [
-                    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: function (e) { mpd.vm.cancel('conf'); } }, 'Cancel'), ' ',
-                    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: function (e) { mpd.vm.save('conf'); } }, 'Save and apply')
+                    m('button.btn.btn-default.btn-lg[name="cancel"][value="cancel"][type="button"]', { onclick: function(e) { mpd.vm.cancel('conf'); } }, 'Cancel'), ' ',
+                    m('button.btn.btn-primary.btn-lg[name="save"][value="save"][type="button"]', { onclick: function(e) { mpd.vm.save('conf'); } }, 'Save and apply')
                 ])
             ])
 		])

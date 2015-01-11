@@ -24,7 +24,7 @@ helpers.toggleLoader = function(action, type) {
 };
 
 // converts an HTML element into a Bootstrap Select
-helpers.selectpicker = function (element, isInitialized) {
+helpers.selectpicker = function(element, isInitialized) {
     if (!isInitialized) {
         // the first time the view is here, set up the picker
         $(element).selectpicker();
@@ -35,9 +35,9 @@ helpers.selectpicker = function (element, isInitialized) {
 };
 
 // decode html text into html entity
-helpers.decodeHtmlEntity = function (str) {
+helpers.decodeHtmlEntity = function(str) {
     if (str) {
-        return str.replace(/&#(\d+);/g, function (match, dec) {
+        return str.replace(/&#(\d+);/g, function(match, dec) {
             return String.fromCharCode(dec);
         });
     } else {
@@ -46,7 +46,7 @@ helpers.decodeHtmlEntity = function (str) {
 };
 
 // encode html text into html entity
-helpers.encodeHtmlEntity = function (str) {
+helpers.encodeHtmlEntity = function(str) {
     var buf = [];
     for (var i = str.length - 1; i >= 0; i--) {
         buf.unshift(['&#', str[i].charCodeAt(), ';'].join(''));
@@ -55,7 +55,7 @@ helpers.encodeHtmlEntity = function (str) {
 };
 
 // check WebSocket support
-helpers.checkWebSocket = function(){
+helpers.checkWebSocket = function() {
     if (window.WebSocket){
         // console.log('WebSockets supported');
         return 'websocket';
@@ -66,7 +66,7 @@ helpers.checkWebSocket = function(){
 };
 
 // check HTML5 Workers support
-helpers.checkWorkers = function(){
+helpers.checkWorkers = function() {
     if ((window.Worker && window.Blob) || (Modernizr.webworkers && Modernizr.blobconstructor)) {
         // console.log('WebWorkers supported');
         return true;

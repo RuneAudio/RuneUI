@@ -5,13 +5,13 @@ window.mithril = window.mithril || {};
 // ----------------------------------------------------------------------------------------------------
 
 // base 2-way binding helper
-mithril.createInput = function (container, field, config, readonly) {
+mithril.createInput = function(container, field, config, readonly) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
     // config: jQuery function to run after the item is in the DOM
     var attributes = {
         config: config,
-        onchange: m.withAttr('value', function (value) { container[field] = value; }),
+        onchange: m.withAttr('value', function(value) { container[field] = value; }),
         value: helpers.decodeHtmlEntity(container[field])
     };
 
@@ -23,26 +23,26 @@ mithril.createInput = function (container, field, config, readonly) {
 
 };
 
-mithril.createInputchecked = function (container, field, config) {
+mithril.createInputchecked = function(container, field, config) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
     // config: jQuery function to run after the item is in the DOM
     return {
         config: config,
-        onchange: m.withAttr('checked', function (value) {
+        onchange: m.withAttr('checked', function(value) {
             container[field] = value;
         }),
-        checked: (function () {
+        checked: (function() {
             return container[field];
         }())
     };
 };
 
-mithril.createLabel = function (id, text) {
+mithril.createLabel = function(id, text) {
     return m('label.col-sm-2.control-label', { 'for': id }, text);
 };
 
-mithril.createYesNo = function (id, container, field, config) {
+mithril.createYesNo = function(id, container, field, config) {
     return m('label.switch-light.well', [
         m('input[id="' + id + '"][type="checkbox"]', mithril.createInputchecked(container, field)),
         m('span', [m('span', 'OFF'), m('span', 'ON')]),
@@ -51,7 +51,7 @@ mithril.createYesNo = function (id, container, field, config) {
 };
 
 // createSelectYesNo('the-field', mpd.vm.data, 'the-field', selectpicker)
-mithril.createSelectYesNo = function (id, container, field, config) {
+mithril.createSelectYesNo = function(id, container, field, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
         mithril.createInput(container, field), [
             m('option[value="yes"]', 'enabled'),
@@ -61,16 +61,16 @@ mithril.createSelectYesNo = function (id, container, field, config) {
 
 // createSelect('the-field', mpd.vm.data, 'list-field-with-oprions', selectpicker)
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
-mithril.createSelect = function (id, container, field, list, valueField, displayField, config) {
+mithril.createSelect = function(id, container, field, list, valueField, displayField, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        mithril.createInput(container, field, helpers.selectpicker), [container[list].map(function (item, index) {
+        mithril.createInput(container, field, helpers.selectpicker), [container[list].map(function(item, index) {
             return m('option', {
                 value: item[valueField]
             }, helpers.decodeHtmlEntity(item[displayField]));
         })]);
 };
 
-//var select = function () {
+//var select = function() {
 //    var select = {};
 //    select.vm = {
 //        id: '',
@@ -81,10 +81,10 @@ mithril.createSelect = function (id, container, field, list, valueField, display
 //        displayField: '',
 //        config: {}
 //    };
-//    select.view = function (ctrl) {
+//    select.view = function(ctrl) {
 //        var selectTag = 'select[data-style="btn-default btn-lg"][id="' + id + '"]';
 //        return m(selectTag, createInput(container, field, helpers.selectpicker),
-//        [container[list].map(function (item, index) {
+//        [container[list].map(function(item, index) {
 //            return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
 //        })
 //        ]);
@@ -96,32 +96,32 @@ mithril.createSelect = function (id, container, field, list, valueField, display
 // base classes
 
 // base view model
-mithril.getViewModel = function (url) {
+mithril.getViewModel = function(url) {
     var vm = {};
 
     // properties of all our viewmodels
     var urlPrefix = '/api';
     vm.url = urlPrefix + url;
-    vm.validate = function () {
+    vm.validate = function() {
         return true;
     };
 
     // initialize the view model
-    vm.init = function (id) {
+    vm.init = function(id) {
         this.id = id;
         // property 'data' is defined here asnd the loading is set up
         this.data = data.getData(this);
 
         // console.log('* in vm init');
         navigation.vm.navigate(this.url.replace(urlPrefix, ''));
-        // return m.request({ method: 'GET', url: vm.url }).then(function (response) {
+        // return m.request({ method: 'GET', url: vm.url }).then(function(response) {
         // vm.data = response;
         // vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
         // });
     };
 
     // methods of all of view models
-    vm.save = function (field) {
+    vm.save = function(field) {
         if (vm.validate()) {
             if (field) {
                 var d = {};
@@ -140,7 +140,7 @@ mithril.getViewModel = function (url) {
     };
 
     // methods of all of view models
-    vm.cancel = function (field) {
+    vm.cancel = function(field) {
         if (field) {
             vm.data[field] = JSON.parse(JSON.stringify(vm.originalData[field]));
         } else {
@@ -152,8 +152,8 @@ mithril.getViewModel = function (url) {
 };
 
 // base controller
-mithril.getController = function (vm) {
-    var controller = function () {
+mithril.getController = function(vm) {
+    var controller = function() {
         this.id = m.route.param("id");
         vm.init(this.id);
         
@@ -166,7 +166,7 @@ mithril.getController = function (vm) {
     return controller;
 };
 
-mithril.RuneModule = function (url) {
+mithril.RuneModule = function(url) {
     var module = {};
     module.vm = mithril.getViewModel(url);
     module.controller = mithril.getController(module.vm);

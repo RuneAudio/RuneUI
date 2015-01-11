@@ -44,6 +44,7 @@ class NameValuePair {
 }
 
 $environment = [];
+$timezones = [];
 $kernel = [];
 $features = [];
 $system = [];
@@ -189,8 +190,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // waitSyWrk($redis,$jobID);
    
 } else {
+
     if (!$template->uri(3)) {
     // MAIN SECTION - /api/settings/
+        
+        // environment section    
+        $environment['hostname'] = $redis->get('hostname');
+        $environment['ntpserver'] = $redis->get('ntpserver');
+        $environment['timezone'] = $redis->get('timezone');
+        $template->environment = $environment;
+        
         // kernel section
         $kernel['kernel'] = $redis->get('kernel');
         $kernel['i2smodule'] = $redis->get('i2smodule');
@@ -217,30 +226,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $features['hwplatformid'] = $redis->get('hwplatformid');
         $template->features = $features;
 
-        // system section
-        $system['kernel'] = file_get_contents('/proc/version');
-        $system['time'] = implode('\n', sysCmd('date'));
-        $system['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
-        $system['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
-        $system['playerID'] = $redis->get('playerid');
-        $template->system = $system;
-
-        // environment section    
-
-
-        $environment['hostname'] = $redis->get('hostname');
-        $environment['ntpserver'] = $redis->get('ntpserver');
-        $environment['timezone'] = $redis->get('timezone');
-        $template->environment = $environment;
     } else {
     // SUBSECTIONS
-        // TIMEZONES - /api/settings/timezones/
+
         if ($template->uri(3, 'timezones')) {
-            $timezones = [];
+        // TIMEZONES - /api/settings/timezones/
             foreach (ui_timezone() as $t) {
                 $timezones[] = new NameValuePair($t['zone'].' - '.$t['diff_from_GMT'], $t['zone']);
             }
             $template->timezones = $timezones;
+        } else if ($template->uri(3, 'sysinfo')) {
+        // SYSTEM INFO - /api/settings/sysinfo/
+            $system['kernel'] = file_get_contents('/proc/version');
+            $system['time'] = implode('\n', sysCmd('date'));
+            $system['uptime'] = date('d:H:i:s', strtok(file_get_contents('/proc/uptime'), ' ' ));
+            $system['HWplatform'] = $redis->get('hwplatform')." (".$redis->get('hwplatformid').")";
+            $system['playerID'] = $redis->get('playerid');
+            $template->system = $system;
         }
     }
 }

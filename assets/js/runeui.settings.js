@@ -35,7 +35,7 @@ settings.timezonesSelect = function(element, isInitialized, context) {
 };
 
 // 'Settings' view
-settings.view = function (ctrl) {
+settings.view = function(ctrl) {
     return [
         m('h1', 'Settings'),
         m('fieldset.form-horizontal', [
@@ -43,7 +43,10 @@ settings.view = function (ctrl) {
             m('.form-group[id="systemstatus"]', [
                 m('label.control-label.col-sm-2', 'Check system status'),
                 m('.col-sm-10', [
-                    m('a.btn.btn-default.btn-lg[data-toggle="modal"][href="#modal-sysinfo"]', [m('i.fa.fa-info-circle.sx'), 'show status']),
+                    m('a.btn.btn-default.btn-lg[data-toggle="modal"][href="#modal-sysinfo"]', { onclick: function(e) { m.module(document.getElementById('dialog'), modal.sysinfo); } }, [
+                        m('i.fa.fa-info-circle.sx'),
+                        'show status'
+                    ]),
                     m('span.help-block', 'See information regarding the system and its status.')
                 ])
             ]),
@@ -80,13 +83,13 @@ settings.view = function (ctrl) {
             m('.form-group.form-actions', [
                 m('.col-sm-offset-2.col-sm-10', [
                     m('button.btn.btn-default.btn-lg[type="button"]', {
-                        onclick: function (e) {
+                        onclick: function(e) {
                             settings.vm.cancel('environment');
                         }
                     }, 'Cancel'),
                     ' ',
                     m('button.btn.btn-primary.btn-lg[type="button"]', {
-                        onclick: function (e) {
+                        onclick: function(e) {
                             settings.vm.save('environment');
                         }
                     }, 'Save and apply')
@@ -276,7 +279,7 @@ settings.view = function (ctrl) {
                 m('.form-group.form-actions', [
                     m('.col-sm-offset-2.col-sm-10', [
                         m('button.btn.btn-primary.btn-lg[name="features[submit]"][type="button"]', {
-                            onclick: function (e) {
+                            onclick: function(e) {
                                 settings.vm.save('features');
                             }
                         }, 'apply settings')

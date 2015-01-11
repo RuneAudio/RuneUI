@@ -4,12 +4,12 @@ window.data = window.data || {};
 
 window.network = new mithril.RuneModule('/network');
 
-network.vm.updateMDP = function () {
+network.vm.updateMDP = function() {
     postData(sources.vm.url, { mountall: true });
 };
 
 // 'Network' view
-network.view = function (ctrl) {
+network.view = function(ctrl) {
     return [m('h1', 'Network configuration'),
         m('.boxed',
             [m('p', ['Configure wired and wireless connections. See below for the list of the active network interfaces as detected by the system.',

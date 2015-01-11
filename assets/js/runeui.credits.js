@@ -5,7 +5,7 @@ window.data = window.data || {};
 window.credits = new mithril.RuneModule('/credits');
 
 // 'Credits' view
-credits.view = function (ctrl) {
+credits.view = function(ctrl) {
     return [m('.credits', [
 		m('h1', 'RuneAudio project'),
 		m('.row', [
