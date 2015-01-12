@@ -63,11 +63,11 @@ mithril.createSelectYesNo = function(id, container, field, config) {
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
 mithril.createSelect = function(id, container, field, list, valueField, displayField, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        mithril.createInput(container, field, helpers.selectpicker), [container[list].map(function(item, index) {
-            return m('option', {
-                value: item[valueField]
-            }, helpers.decodeHtmlEntity(item[displayField]));
-        })]);
+        mithril.createInput(container, field, helpers.selectpicker), [
+            container[list].map(function(item, index) {
+                return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
+            })
+        ]);
 };
 
 //var select = function() {
@@ -139,13 +139,16 @@ mithril.getViewModel = function(url) {
         }
     };
 
-    // methods of all of view models
     vm.cancel = function(field) {
         if (field) {
             vm.data[field] = JSON.parse(JSON.stringify(vm.originalData[field]));
         } else {
             vm.data = JSON.parse(JSON.stringify(vm.originalData)); // we need a clone of this object
         }
+    };
+    
+    vm.refresh = function() {
+        vm.data = data.getData(this);
     };
 
     return vm;
@@ -154,7 +157,7 @@ mithril.getViewModel = function(url) {
 // base controller
 mithril.getController = function(vm) {
     var controller = function() {
-        this.id = m.route.param("id");
+        this.id = m.route.param('id');
         vm.init(this.id);
         
         // console.log('* in controller');
