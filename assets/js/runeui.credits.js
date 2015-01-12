@@ -5,7 +5,7 @@ window.data = window.data || {};
 window.credits = new mithril.RuneModule('/credits');
 
 // 'Credits' view
-credits.view = function (ctrl) {
+credits.view = function(ctrl) {
     return [m('.credits', [
 		m('h1', 'RuneAudio project'),
 		m('.row', [
@@ -94,6 +94,7 @@ credits.view = function (ctrl) {
 			m('span.help-block', '- copyright (C) 2013-2014 – Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)'),
 			m('br'),
 			m('strong', 'RuneOS'),
+            ' ',
 			m('span.help-block', '- copyright (C) 2013-2014 – Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)')
 		]),
 		m('h2', 'RuneUI credits'),

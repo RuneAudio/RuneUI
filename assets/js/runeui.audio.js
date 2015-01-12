@@ -5,7 +5,7 @@ window.data = window.data || {};
 window.audio = new mithril.RuneModule('/audio');
 
 // 'Audio' view
-audio.view = function (ctrl) {
+audio.view = function(ctrl) {
     return [
         m('h1', 'Audio Configuration'),
         m('fieldset.form-horizontal', [
@@ -20,8 +20,8 @@ audio.view = function (ctrl) {
             ]),
             m('.form-group.form-actions', [
                 m('.col-sm-offset-2.col-sm-10', [
-                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { audio.vm.cancel('ao'); } }, 'Cancel'), ' ',
-                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { audio.vm.save('ao'); } }, 'Apply')
+                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function(e) { audio.vm.cancel('ao'); } }, 'Cancel'), ' ',
+                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function(e) { audio.vm.save('ao'); } }, 'Apply')
                 ])
             ])
         ]),
@@ -31,7 +31,7 @@ audio.view = function (ctrl) {
                 m('label.col-sm-2.control-label[for="mixer-type"]', 'Volume control'),
                 m('.col-sm-10', [
                     m('select[data-style="btn-default btn-lg"][id="mixer-type"]',
-                        //{ config: helpers.selectpicker, onchange: m.withAttr('value', function (value) { mpd.data.conf.mixer_type = value }), value: mpd.data.conf.mixer_type }
+                        //{ config: helpers.selectpicker, onchange: m.withAttr('value', function(value) { mpd.data.conf.mixer_type = value }), value: mpd.data.conf.mixer_type }
                         mithril.createInput(audio.vm.data.conf, 'mixer_type', helpers.selectpicker), [
                         m('option[value="disabled"]', 'disabled'),
                         m('option[value="software"]', 'enabled - software'),
@@ -60,8 +60,8 @@ audio.view = function (ctrl) {
             ]),
             m('.form-group.form-actions', [
                 m('.col-sm-offset-2.col-sm-10', [
-                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { audio.vm.cancel('conf'); } }, 'Cancel'), ' ',
-                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { audio.vm.save('conf'); } }, 'Apply')
+                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function(e) { audio.vm.cancel('conf'); } }, 'Cancel'), ' ',
+                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function(e) { audio.vm.save('conf'); } }, 'Apply')
                 ])
             ])
         ]),
@@ -89,8 +89,8 @@ audio.view = function (ctrl) {
             ]),
             m('.form-group.form-actions', [
                 m('.col-sm-offset-2.col-sm-10', [
-                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { audio.vm.cancel('orionprofile'); } }, 'Cancel'), ' ',
-                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { audio.vm.save('orionprofile'); } }, 'Apply')
+                    m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function(e) { audio.vm.cancel('orionprofile'); } }, 'Cancel'), ' ',
+                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function(e) { audio.vm.save('orionprofile'); } }, 'Apply')
                 ])
             ])
         ])

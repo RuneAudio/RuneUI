@@ -5,7 +5,7 @@ window.data = window.data || {};
 window.debug = new mithril.RuneModule('/debug');
 
 // 'Debug' view
-debug.view = function (ctrl) {
+debug.view = function(ctrl) {
     return [m('.container.debug', [
 		m('h1', 'DEBUG DATA'),
 		m('.boxed', [

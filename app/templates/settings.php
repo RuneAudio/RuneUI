@@ -364,7 +364,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h3 class="modal-title">System status</h3>
             </div>
-            <div class="modal-body">
+            <div id="sysinfo-modal-body" class="modal-body">
 				<strong>Active kernel</strong>
 				<p><?=$this->sysstate['kernel'] ?></p>
 				<strong>System time</strong>
