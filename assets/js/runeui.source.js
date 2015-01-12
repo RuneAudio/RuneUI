@@ -5,7 +5,8 @@ window.data = window.data || {};
 window.source = new mithril.RuneModule('/sources');
 
 source.Source = function (data) {
-    this.nas_name = m.prop(data.nas_name || '');
+    this.name = m.prop(data.name || '');
+    this.address = m.prop(data.remotedir || '');
 };
 
 source.vm.validate = function () {

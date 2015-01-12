@@ -72,53 +72,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($json['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
     }
     
-    waitSyWrk($redis, $jobID);
+    //waitSyWrk($redis, $jobID);
+
 } else {
+
+    // GET
+
     $id = $template->arg; // null when the id = 0
-    
-    if ($id == '0') {
-		// THe user is doing a GET to setup the UI for a new source
-        $template->nas_name = '';
-        $template->nas_ip = '';
-        $template->nas_dir = '';
-        
-    } else {
-        
-    }
-    
     $source = netMounts($redis, 'read');
-    if($source !== true) { 
-        foreach ($source as $mp) {
-            if (wrk_checkStrSysfile('/proc/mounts', '/mnt/MPD/NAS/'.$mp['name'])) {
-                $mp['status'] = true;
-            } else {
-                $mp['status'] = false;
+
+    if ($id === NULL) {
+        // Getting the Sources list
+
+        // Disk Mounts
+        
+        if($source !== true) { 
+            foreach ($source as $mp) {
+                if (wrk_checkStrSysfile('/proc/mounts', '/mnt/MPD/NAS/'.$mp['name'])) {
+                    $mp['status'] = true;
+                } else {
+                    $mp['status'] = false;
+                }
+                $mounts[]=$mp;
             }
-            $mounts[]=$mp;
         }
-    }
-    $template->mounts = $mounts;
-    
-    $usbmounts = $redis->hGetAll('usbmounts');
-    //$template->usbmounts = ();
-    foreach ($usbmounts as $usbmount) {
-        $template->usbmounts[] = json_decode($usbmount);
-    }
-    if (isset($template->usbmounts)===false) {
-        $template->usbmounts = NULL; // we still want the property sent to the UI
+        $template->mounts = $mounts;
+
+        // USB Mounts
+        $usbmounts = $redis->hGetAll('usbmounts');
+        foreach ($usbmounts as $usbmount) {
+            $template->usbmounts[] = json_decode($usbmount);
+        }
+        // we still want the property sent to the UI
+        if (isset($template->usbmounts)===false) {
+            $template->usbmounts = NULL; 
+        }
+
+
+    } else if ($id === '0') {
+        // GET to setup a New Source
+
+        $mount->name = '';
+        $mount->address = '';
+        $mount->type = '';
+        $mount->remotedir = '';
+        $mount->username = '';
+        $mount->password = '';
+        
+        $template->mount = $mount;
+
+    } else if ($id > 0) {
+        // GET to Edit Existing
+
+        foreach ($source as $mp) {
+            if ($mp['id'] == $id) {
+                $template->mount = $mp;
+            }
+        }
     }
 
-    if (isset($template->action)) {
-        if (isset($template->arg)) {
-            foreach ($source as $mp) {
-                if ($mp['id'] == $template->arg) {
-                    $template->mount = $mp;
-                }
-            }
-            $template->title = 'Edit network mount';
-        } else {
-            $template->title = 'Add new network mount';
-        }
-    } 
+    //if (isset($template->action)) {
+    //    if (isset($template->arg)) {
+    //        foreach ($source as $mp) {
+    //            if ($mp['id'] == $template->arg) {
+    //                $template->mount = $mp;
+    //            }
+    //        }
+    //        $template->title = 'Edit network mount';
+    //    } else {
+    //        $template->title = 'Add new network mount';
+    //    }
+    //} 
         
 }
