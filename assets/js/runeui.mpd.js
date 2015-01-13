@@ -18,7 +18,7 @@ mpd.view = function(ctrl) {
                     mithril.createLabel('ao', 'Audio output interface'),
 					m('.col-sm-10', [
                         //(id, container, field, list, valueField, displayField, config)
-                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', mithril.createInput(mpd.vm.data, 'ao', null, true)),
+                        m('input.form-control.input-lg[data-trigger="change"][id="ao"][type="text"]', mithril.createInput(mpd.vm.data, 'ao', null, true, true)),
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
                         m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
                         ])

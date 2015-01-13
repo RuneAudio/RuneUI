@@ -60,6 +60,8 @@
 <script src="<?=$this->asset('/js/runeui.mpd.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.navigation.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.network.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.network_wired.js')?>"></script>
+<script src="<?=$this->asset('/js/runeui.network_wireless.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.settings.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.source.js')?>"></script>
 <script src="<?=$this->asset('/js/runeui.sources.js')?>"></script>

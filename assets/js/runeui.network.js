@@ -4,8 +4,9 @@ window.data = window.data || {};
 
 window.network = new mithril.RuneModule('/network');
 
-network.vm.edit = function (id) {
-    m.route('/network/' + id);
+network.vm.edit = function(item) {
+    var path = (item.wireless) ? 'wireless/' : 'wired/';
+    m.route('/network/' + path + item.id);
 };
 
 // 'Network' view
@@ -30,7 +31,7 @@ network.view = function(ctrl) {
         m('.button-list[id="network-interface-list"]', [
             network.vm.data.nics.map(function(item, index) {
                 return m('p', [
-                    m('button.btn.btn-lg.btn-default.btn-block', { onclick: function(e) { network.vm.edit(item.id); } }, [
+                    m('button.btn.btn-lg.btn-default.btn-block', { onclick: function(e) { network.vm.edit(item); } }, [
                         ' ',
                         m('i.fa.sx', { className: (item.ip) ? 'fa-check green' : 'fa-times red' }),
                         ' ',

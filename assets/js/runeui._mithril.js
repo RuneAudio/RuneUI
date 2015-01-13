@@ -5,14 +5,14 @@ window.mithril = window.mithril || {};
 // ----------------------------------------------------------------------------------------------------
 
 // base 2-way binding helper
-mithril.createInput = function(container, field, config, readonly) {
+mithril.createInput = function(container, field, config, readonly, decode) {
     // container: for example 'mpd.vm.data.conf'
     // field: for example 'port or audio_mixer'
     // config: jQuery function to run after the item is in the DOM
     var attributes = {
         config: config,
         onchange: m.withAttr('value', function(value) { container[field] = value; }),
-        value: helpers.decodeHtmlEntity(container[field])
+        value: (decode) ? helpers.decodeHtmlEntity(container[field]) : container[field]
     };
 
     if (readonly) {
@@ -20,7 +20,6 @@ mithril.createInput = function(container, field, config, readonly) {
     }
 
     return attributes;
-
 };
 
 mithril.createInputchecked = function(container, field, config) {
@@ -42,10 +41,12 @@ mithril.createLabel = function(id, text) {
     return m('label.col-sm-2.control-label', { 'for': id }, text);
 };
 
-mithril.createYesNo = function(id, container, field, config) {
+mithril.createYesNo = function(id, container, field, config, yestext, notext) {
+    var yes = (yestext) ? yestext : 'ON';
+    var no = (notext) ? notext : 'OFF';
     return m('label.switch-light.well', [
         m('input[id="' + id + '"][type="checkbox"]', mithril.createInputchecked(container, field)),
-        m('span', [m('span', 'OFF'), m('span', 'ON')]),
+        m('span', [m('span', no), m('span', yes)]),
         m('a.btn.btn-primary')
     ]);
 };
@@ -54,16 +55,16 @@ mithril.createYesNo = function(id, container, field, config) {
 mithril.createSelectYesNo = function(id, container, field, config) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
         mithril.createInput(container, field), [
-            m('option[value="yes"]', 'enabled'),
-            m('option[value="no"]', 'disabled')
+            m('option[value="true"]', 'enabled'),
+            m('option[value="false"]', 'disabled')
         ]);
 };
 
 // createSelect('the-field', mpd.vm.data, 'list-field-with-oprions', selectpicker)
 // createSelect('ao', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker)
-mithril.createSelect = function(id, container, field, list, valueField, displayField, config) {
+mithril.createSelect = function(id, container, field, list, valueField, displayField, config, decode) {
     return m('select[data-style="btn-default btn-lg"][id="' + id + '"]',
-        mithril.createInput(container, field, helpers.selectpicker), [
+        mithril.createInput(container, field, helpers.selectpicker, decode), [
             container[list].map(function(item, index) {
                 return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
             })

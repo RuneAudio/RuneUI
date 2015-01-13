@@ -16,10 +16,15 @@ settings.timezonesSelect = function(element, isInitialized, context) {
     if (isInitialized) {
         return;
     }
-    m.request({
-        method: 'GET',
-        url: '/api/settings/timezones/'
-    }).then(function(response) {
+    // m.request({
+        // method: 'GET',
+        // url: '/api/settings/timezones/'
+    // }).then(function(response) {
+    $.ajax({
+        type: 'GET',
+        url: '/api/settings/timezones/',
+        dataType: 'json'
+    }).done(function(response) {
         var options = response.timezones;
         // console.log(options);
         m.render(document.getElementById('timezone-select'), [

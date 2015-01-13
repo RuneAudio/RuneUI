@@ -40,6 +40,8 @@ m.route(document.getElementById('app'), '/', {
     '/debug': debug,
     '/dev': dev,
     '/error': error,
+    '/network/wired/:id': network_wired,
+    '/network/wireless/:id': network_wireless,
     '/network': network,
     '/sources/:id': source,
     '/sources': sources

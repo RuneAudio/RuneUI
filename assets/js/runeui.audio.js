@@ -13,7 +13,7 @@ audio.view = function(ctrl) {
                 m('.form-group', [
                     mithril.createLabel('audio-output-interface', 'Output interface'),
                     m('.col-sm-10', [
-                        mithril.createSelect('audio-output-interface', audio.vm.data, 'ao', 'acards', 'name', 'extlabel', helpers.selectpicker),
+                        mithril.createSelect('audio-output-interface', audio.vm.data, 'ao', 'acards', 'name', 'extlabel', helpers.selectpicker, true),
                         m('span.help-block', ['This is the current output interface.'
                     ])
                 ])
