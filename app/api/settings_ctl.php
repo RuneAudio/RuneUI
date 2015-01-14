@@ -219,13 +219,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $features['globalrandom'] = ($features['globalrandom'] === '1');
         $features['lastfm'] = $redis->hGetAll('lastfm');
         $features['lastfm']['enable'] = ($features['lastfm']['enable'] === '1');
+        $features['lastfm']['authenticated'] = TRUE; // [TODO] make it real
         $features['proxy'] = $redis->hGetAll('proxy');
         $features['proxy']['enable'] = ($features['proxy']['enable'] === '1');
         $features['spotify'] = $redis->hGetAll('spotify');
         $features['spotify']['enable'] = ($features['spotify']['enable'] === '1');
+        $features['spotify']['authenticated'] = FALSE; // [TODO] make it real
         $features['hwplatformid'] = $redis->get('hwplatformid');
         $template->features = $features;
-
+        
+        // cmedia fix
+        $template->cmediafix = ($redis->get('cmediafix') === '1');
+        
     } else {
     // SUBSECTIONS
 
