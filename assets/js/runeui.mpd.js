@@ -31,7 +31,8 @@ mpd.view = function(ctrl) {
 				mithril.createLabel('mixer-type', 'Volume control'),
 				m('.col-sm-10', [
                     m('input.form-control.input-lg[id="mixer-type"][type="text"]', mithril.createInput(mpd.vm.data.conf, 'mixer_type', null, true)),
-					m('span.help-block', ['This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
+					m('span.help-block', [
+                        'This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
 					])
 				])
 			])

@@ -227,7 +227,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $features['spotify']['authenticated'] = FALSE; // [TODO] make it real
         $features['hwplatformid'] = $redis->get('hwplatformid');
         $template->features = $features;
-
+        
+        // cmedia fix
+        $template->cmediafix = ($redis->get('cmediafix') === '1');
+        
     } else {
     // SUBSECTIONS
 

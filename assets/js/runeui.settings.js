@@ -144,17 +144,10 @@ settings.view = function(ctrl) {
             m('.form-group', [
                 m('label.control-label.col-sm-2[for="orionprofile"]', 'Sound Signature (optimization profiles)'),
                 m('.col-sm-10', [
-                    m('select.selectpicker[data-style="btn-default btn-lg"][name="orionprofile"]', mithril.createInput(settings.vm.data, 'orionprofile', helpers.selectpicker), [
-                        m('option[value="default"]', 'ArchLinux default'),
-                        m('option[value="RuneAudio"]', 'RuneAudio'),
-                        m('option[selected=""][value="ACX"]', 'ACX'),
-                        m('option[value="Orion"]', 'Orion'),
-                        m('option[value="OrionV2"]', 'OrionV2'),
-                        m('option[value="OrionV3_berrynosmini"]', 'OrionV3 - (BerryNOS-mini)'),
-                        m('option[value="OrionV3_iqaudio"]', 'OrionV3 - (IQaudioPi-DAC)'),
-                        m('option[value="Um3ggh1U"]', 'Um3ggh1U')
-                    ]),
-                    m('span.help-block', ['These profiles include a set of performance tweaks that act on some system kernel parameters.\n It does not have anything to do with DSPs or other sound effects: the output is kept untouched (bit perfect).\n It happens that these parameters introduce an audible impact on the overall sound quality, acting on kernel latency parameters (and probably on the amount of overall \n ', m('a[href="http://www.thewelltemperedcomputer.com/KB/BitPerfectJitter.htm"][target="_blank"][title="Bit Perfect Jitter by Vincent Kars"]', 'jitter'), ').\n Sound results may vary depending on where music is listened, so choose according to your personal taste.\n (If you can"t hear any tangible differences... nevermind, just stick to the default settings.)'])
+                    m('input.form-control.input-lg[id="orionprofile"][type="text"]', mithril.createInput(settings.vm.data.kernel, 'orionprofile', null, true)),
+					m('span.help-block', [
+                        'These profiles include a set of performance tweaks that act on some system kernel parameters. They can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
+					])
                 ])
             ]),
             m('.form-group.form-actions', [
@@ -258,7 +251,7 @@ settings.view = function(ctrl) {
                     m('.form-group', [
                         m('label.control-label.col-sm-2[for="lastfm"]', [m('i.fa.fa.fa-lastfm-square'), ' Last.fm']),
                         m('.col-sm-10', [
-                            mithril.createYesNo('enable', settings.vm.data.features.lastfm, 'enable'),
+                            mithril.createYesNo('lastfm', settings.vm.data.features.lastfm, 'enable'),
                             m('span.help-block', 'Send to Last.fm informations about the music you are listening to (requires a Last.fm account)')
                         ])
                     ]),
@@ -268,14 +261,14 @@ settings.view = function(ctrl) {
                         m('.form-group', [
                             m('label.control-label.col-sm-2[for="lastfm-usr"]', 'Username'),
                             m('.col-sm-10', [
-                                m('input.form-control.input-lg[autocomplete="off"][id="lastfm_user"][name="features[lastfm][user]"][placeholder="user"][type="text"][value="user"]'),
+                                m('input.form-control.input-lg[autocomplete="off"][id="lastfm_user"][placeholder="user"][type="text"][value="user"]'),
                                 m('span.help-block', ['Insert your Last.fm ', m('i', 'username')])
                             ])
                         ]),
                         m('.form-group', [
                             m('label.control-label.col-sm-2[for="lastfm-pasw"]', 'Password'),
                             m('.col-sm-10', [
-                                m('input.form-control.input-lg[autocomplete="off"][id="lastfm_pass"][name="features[lastfm][pass]"][placeholder="pass"][type="password"][value="pass"]'),
+                                m('input.form-control.input-lg[autocomplete="off"][id="lastfm_pass"][placeholder="pass"][type="password"][value="pass"]'),
                                 m('span.help-block', ['Insert your Last.fm ', m('i', 'password'), ' (case sensitive)'])
                             ])
                         ])
@@ -283,11 +276,7 @@ settings.view = function(ctrl) {
                 ]),
                 m('.form-group.form-actions', [
                     m('.col-sm-offset-2.col-sm-10', [
-                        m('button.btn.btn-primary.btn-lg[name="features[submit]"][type="button"]', {
-                            onclick: function(e) {
-                                settings.vm.save('features');
-                            }
-                        }, 'apply settings')
+                        m('button.btn.btn-primary.btn-lg[type="button"]', {onclick: function(e) { settings.vm.save('features'); } }, 'apply settings')
                     ])
                 ])
             ]),
@@ -297,17 +286,13 @@ settings.view = function(ctrl) {
                 m('.form-group', [
                     m('label.control-label.col-sm-2[for="cmediafix"]', 'CMedia fix'),
                     m('.col-sm-10', [
-                        m('label.switch-light.well', [
-                            m('input[name="cmediafix[1]"][type="checkbox"]'),
-                            m('span', [m('span', 'OFF'), m('span', 'ON')]),
-                            m('a.btn.btn-primary')
-                        ]),
+                        mithril.createYesNo('cmediafix', settings.vm.data, 'cmediafix'),
                         m('span.help-block', ['For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.', m('br'), ' \n                    A \'dirty\' fix that should avoid the problem, do NOT use if everything works normally.'])
                     ])
                 ]),
                 m('.form-group.form-actions', [
                     m('.col-sm-offset-2.col-sm-10', [
-                        m('button.btn.btn-primary.btn-lg[name="cmediafix[0]"][type="submit"]', 'Apply fixes')
+                        m('button.btn.btn-primary.btn-lg[type="button"]', 'Apply fixes') // [TODO] make it work
                     ])
                 ])
             ]),
@@ -317,7 +302,7 @@ settings.view = function(ctrl) {
                 m('.form-group', [
                     m('label.control-label.col-sm-2', 'Backup player config'),
                     m('.col-sm-10', [
-                        m('input.btn.btn-primary.btn-lg[id="syscmd-backup"][name="syscmd"][type="submit"][value="backup"]'),
+                        m('button.btn.btn-primary.btn-lg[id="syscmd-backup"][type="button"]', 'Backup'), // [TODO] make it work
                         m('span.help-block', 'NOTE: restore feature will come in 0.4 release.')
                     ])
                 ])

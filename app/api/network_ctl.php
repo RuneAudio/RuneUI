@@ -89,14 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $template->url = $uri_length;
     } else if (!$template->uri(4)) {
     // INTERFACE SETUP - /api/network/eth0 or /api/network/wlan0
-    
+        $nicID = $template->uri(3); // i.e. 'eth0' or 'wlan0'
         // retrieve current nic status data (detected from the system)
-        $nic_connection = $redis->hGet('nics', $template->arg);
+        $nic_connection = $redis->hGet('nics', $nicID);
         $template->nic = json_decode($nic_connection);
         $template->nic->dns2 = ($template->nic->dns2 === null) ? '' : $template->nic->dns2;
         // fetch current (stored) nic configuration data
-        if ($redis->get($template->arg)) {
-            $template->profile = json_decode($redis->get($template->arg));
+        if ($redis->get($nicID)) {
+            $template->profile = json_decode($redis->get($nicID));
             $template->profile->dhcp = ($template->profile->dhcp === '1');
             // ok nic configuration not stored, but check if it is configured
         } else if ($nic_connection == null) {
