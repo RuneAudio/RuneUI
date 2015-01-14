@@ -11,11 +11,19 @@ data.getData = function(vm) {
     var loaderClose = function() {
         helpers.toggleLoader('close');
     };
-    var loaderCloseFail = function() {
-        console.log('FAIL');
+    var loaderCloseFail = function(errormsg) {
+        console.log('FAIL: ' + errormsg);
+        //TODO: Implement return to functionality
+        error.vm.showError(errormsg, vm.selector);
     };
     // the standard Mithril syntax expects our service to return [], but ours returns {}
-    m.request({ method: 'GET', url: url }).then(function(response) {
+    m.request({
+        method: 'GET',
+        url: url,
+        unwrapError: function (response) {
+            return response.errormsg;
+        }
+    }).then(function (response) {
         vm.data = response;
         vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
     }).then(loaderClose, loaderCloseFail);
@@ -38,12 +46,14 @@ data.postData = function(url, data) {
         url: url,
         data: data,
         unwrapSuccess: function(response) {
-            return;
+            return response;
         },
         unwrapError: function(response) {
-            return 'oops';
+            return response.errormsg;
         },
         // PHP errors are not wrapped in Proper JSON,. breaking Mitrhil
-        deserialize: function(value) { return value; }
+        deserialize: function (value) {
+            return value;
+        }
     }).then(loaderClose, loaderCloseFail);
 };

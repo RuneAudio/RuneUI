@@ -71,40 +71,17 @@ mithril.createSelect = function(id, container, field, list, valueField, displayF
         ]);
 };
 
-//var select = function() {
-//    var select = {};
-//    select.vm = {
-//        id: '',
-//        container: '',
-//        field: '',
-//        url: '',
-//        valueField: '',
-//        displayField: '',
-//        config: {}
-//    };
-//    select.view = function(ctrl) {
-//        var selectTag = 'select[data-style="btn-default btn-lg"][id="' + id + '"]';
-//        return m(selectTag, createInput(container, field, helpers.selectpicker),
-//        [container[list].map(function(item, index) {
-//            return m('option', { value: item[valueField] }, helpers.decodeHtmlEntity(item[displayField]));
-//        })
-//        ]);
-//    };
-//};
-
 
 // MITHRIL BASE CLASES FOR RUNE MODULES
-// base classes
 
 // base view model
-mithril.getViewModel = function(url) {
+mithril.getViewModel = function(baseurl) {
     var vm = {};
-
-    vm.data = m.prop({});
 
     // properties of all our viewmodels
     var urlPrefix = '/api';
-    vm.url = urlPrefix + url;
+    vm.selector = baseurl;
+    vm.url = urlPrefix + baseurl;
     vm.validate = function() {
         return true;
     };
@@ -112,16 +89,9 @@ mithril.getViewModel = function(url) {
     // initialize the view model
     vm.init = function(id) {
         this.id = id;
-        // property 'data' is defined here asnd the loading is set up
-        ////this.data = data.getData(this);
+        // property 'data' is defined on VM in teh call below
         data.getData(this);
-        //m.request({ method: 'GET', url: vm.url }).then(vm.data);
-        // console.log('* in vm init');
-        navigation.vm.navigate(this.url.replace(urlPrefix, ''));
-        // return m.request({ method: 'GET', url: vm.url }).then(function(response) {
-        // vm.data = response;
-        // vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
-        // });
+        navigation.vm.navigate(baseurl); //this.url.replace(baseurl, ''));
     };
 
     // methods of all of view models

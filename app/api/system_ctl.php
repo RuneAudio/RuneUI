@@ -37,14 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // convert to an associative array
     $json = json_decode($postData, true); 
     
-    if ($json['syscmd'] === 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
-    if ($json['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
-    // push backup file
-    if ($json['syscmd'] === 'backup') {
+    if ($json['reboot']) {
+        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
+    } else if ($json['poweroff']) {
+        $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
+    } else if($json['syscmd'] === 'backup') {
         $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
         pushFile($redis->hGet('w_msg', $jobID[0]));
         $redis->hDel('w_msg', $jobID[0]);
     }
     
-    waitSyWrk($redis,$jobID);
+    // waitSyWrk($redis,$jobID);
 };

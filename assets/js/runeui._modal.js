@@ -4,7 +4,7 @@ window.data = window.data || {};
 window.modal = window.modal || {};
 
 modal.turnoff = {
-    vm: (function (data) {
+    vm: (function (info) {
 
         var vm = {};
 
@@ -47,7 +47,7 @@ modal.turnoff = {
 };
 
 modal.resetmpd = {
-    vm: (function (data) {
+    vm: (function (info) {
 
         var vm = {};
 
@@ -90,7 +90,7 @@ modal.resetmpd = {
 };
 
 modal.deleteSource = {
-    vm: (function (data) {
+    vm: (function (info) {
 
         var vm = {};
 
@@ -171,6 +171,49 @@ modal.unmountUSB = {
                         m("button.btn.btn-primary.btn-lg[data-dismiss='modal']", { onclick: modal.unmountUSB.vm.unmount }, [m("i.fa.fa-times.sx"), "Unmount"])
                     ])
                 ])
+            ])
+        ];
+    }
+};
+
+modal.error = {
+    vm: (function (info) {
+
+        var vm = {};
+      
+
+        vm.showError = function (error) {
+            vm.error = error;
+        };
+
+        vm.init = function () {
+            vm.error = '';
+            $('#dialog').modal('show');
+        };
+
+        return vm;
+
+    }()),
+    controller: function () {
+        modal.error.vm.init();
+    },
+    view: function (ctrl) {
+        return [m('.modal-dialog',
+            [m('.modal-content', [
+                m('.modal-header', [
+                    m('button.close[aria-hidden="true"][data-dismiss="modal"][type="button"]', '×'), m('h3.modal-title[id="mpd-config-defaults-label"]', 'Reset the configuration')
+                ]),
+                m('.modal-body',
+                    [
+                        m('p', modal.error.vm.error)
+                    ]
+                ),
+                m('.modal-footer',
+                    [' ', m('input[name="reset"][type="hidden"][value="1"]'),
+                        m('button.btn.btn-default.btn-lg[aria-hidden="true"][data-dismiss="modal"]', 'Close')
+                    ]
+                )
+            ])
             ])
         ];
     }

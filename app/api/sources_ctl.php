@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $template->usbmounts[] = json_decode($usbmount);
         }
         // we still want the property sent to the UI
-        if (isset($template->usbmounts)===false) {
+        if (isset($template->usbmounts)===FALSE) {
             $template->usbmounts = NULL; 
         }
 
@@ -123,11 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else if ($id > 0) {
         // GET to Edit Existing
-
+        //$template->mount = NULL;
         foreach ($source as $mp) {
             if ($mp['id'] == $id) {
                 $template->mount = $mp;
             }
+        }
+
+        if (isset($template->mount)===FALSE) {
+            $template->errormsg = 'The selected mount does not exist.';
+            http_response_code(400); // HTTP : Bad Request
         }
     }
 
