@@ -49,7 +49,6 @@ $redis->hSet('acards_details', 'XMOS USB Audio 2.0', '{"sysname":"XMOS USB Audio
 $redis->hSet('acards_details', 'wm8731-audio', '{"sysname":"wm8731-audio","extlabel":"Utilite Analog Out","mixer_numid":"1","mixer_control":"Master","hwplatformid":"05","type":"integrated"}');
 $redis->hSet('acards_details', 'imx-spdif', '{"sysname":"imx-spdif","extlabel":"Utilite Coax SPDIF Out","hwplatformid":"05","type":"integrated"}');
 $redis->hSet('acards_details', 'imx-hdmi-soc', '{"sysname":"imx-hdmi-soc","extlabel":"Utilite HDMI Out","hwplatformid":"05","type":"integrated"}');
-$redis->hSet('acards_details', 'bcm2835 ALSA', '{"sysname":"bcm2835 ALSA","extlabel":"none","mixer_numid":"1","mixer_control":"PCM","hwplatformid":"01","type":"integrated_sub"}');
 $redis->hSet('acards_details', 'SA9023 USB Audio', '{"sysname":"SA9023 USB Audio","extlabel":"HiFimeDIY SABRE U2","mixer_numid":"4","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'UAC1 DAC', '{"sysname":"UAC1 DAC","extlabel":"ObjectiveDAC (ODAC)","mixer_numid":"3","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'USB Sound Device', '{"sysname":"USB Sound Device","extlabel":"Cmedia CM2606","mixer_numid":"7","mixer_control":"Speaker","type":"usb"}');
@@ -61,16 +60,16 @@ $redis->hSet('acards_details', 'AudioQuest DragonFly', '{"sysname":"AudioQuest D
 $redis->hSet('acards_details', 'USB Audio CODEC', '{"sysname":"USB Audio CODEC","extlabel":"Behringer U-CONTROL UCA202","mixer_numid":"3","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'NuForce USB Audio', '{"sysname":"NuForce USB Audio","extlabel":"NuForce DDA-100","mixer_numid":"4","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'Rotel PC-USB', '{"sysname":"Rotel PC-USB","extlabel":"Rotel USB","type":"usb"}');
-$redis->hSet('acards_details', 'snd_rpi_wsp', '{"sysname":"snd_rpi_wsp","extlabel":"none","mixer_numid":"1","mixer_control":"HPOUT2 Digital","hwplatformid":"01","type":"integrated_sub"}');
-// KEW: not sure about thiese:
+$redis->hSet('acards_details', 'bcm2835 ALSA', '{"sysname":"bcm2835 ALSA","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
+$redis->hSet('acards_details', 'snd_rpi_wsp', '{"sysname":"snd_rpi_wsp","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
+$redis->sAdd('bcm2835 ALSA', '{"id":"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"PCM","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
+$redis->sAdd('bcm2835 ALSA', '{"id":"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"PCM","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}');
+$redis->sAdd('snd_rpi_wsp', '{"id":"1","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Line Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"HPOUT2 Digital","route_cmd":"/srv/http/command/wolfson.sh *CARDID* line_out > /dev/null"}');
+$redis->sAdd('snd_rpi_wsp', '{"id":"2","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card S&#47;PDIF Out","hwplatformid":"01","mixer_numid":"1","route_cmd":"/srv/http/command/wolfson.sh *CARDID* spdif_out > /dev/null"}');
+$redis->sAdd('snd_rpi_wsp', '{"id":"3","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Headset Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"HPOUT1 Digital","route_cmd":"/srv/http/command/wolfson.sh *CARDID* headset_out > /dev/null"}');
+$redis->sAdd('snd_rpi_wsp', '{"id":"4","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Speakers Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"Speaker Digital","route_cmd":"/srv/http/command/wolfson.sh *CARDID* speakers_out > /dev/null"}');
+// KEW: not sure about these two:
 $redis->hSet('acards_details', 'sunxi-sndi2s', '{"sysname":"sunxi-sndi2s","extlabel":"MP Transducer (I&#178;S)","hwplatformid":"06","type":"i2s"}');
 $redis->hSet('acards_details', 'sunxi-CODEC', '{"sysname":"sunxi-CODEC","extlabel":"MP PCM Output","hwplatformid":"06","type":"integrated"}');
 // END
-$redis->sAdd('bcm2835 ALSA', '{"id":"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
-$redis->sAdd('bcm2835 ALSA', '{"id":"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}');
-$redis->sAdd('snd_rpi_wsp', '{"id":"1","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Line Out","hwplatformid":"01","route_cmd":"/srv/http/command/wolfson.sh *CARDID* line_out > /dev/null"}');
-$redis->sAdd('snd_rpi_wsp', '{"id":"2","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card S&#47;PDIF Out","hwplatformid":"01","route_cmd":"/srv/http/command/wolfson.sh *CARDID* spdif_out > /dev/null"}');
-$redis->sAdd('snd_rpi_wsp', '{"id":"3","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Headset Out","hwplatformid":"01","route_cmd":"/srv/http/command/wolfson.sh *CARDID* headset_out > /dev/null"}');
-$redis->sAdd('snd_rpi_wsp', '{"id":"4","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Speakers Out","hwplatformid":"01","route_cmd":"/srv/http/command/wolfson.sh *CARDID* speakers_out > /dev/null"}');
-
 echo "Audio Cards database initialized\n";

@@ -10,6 +10,9 @@ ExecStartPre=/bin/mkdir -p /var/lib/redis
 ExecStart=/usr/bin/redis-server /etc/redis.conf
 ExecStop=/usr/bin/redis-cli shutdown
 Restart=always
+RestartSec=1
+StartLimitInterval=30
+StartLimitBurst=20
 
 [Install]
 WantedBy=multi-user.target

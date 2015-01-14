@@ -39,6 +39,31 @@ error_reporting(E_ALL);
 ini_set('error_log', '/var/log/runeaudio/rune_SY_wrk.log');
 define('APP', '/srv/http/app/');
 include('/srv/http/app/libs/runeaudio.php');
+
+// if os updates are needed
+if(file_exists('/srv/http/command/update_os')) 
+{
+    include '/srv/http/command/update_os';
+    updateOS();
+}
+
+// test if all services are enabled
+$retval = sysCmd('systemctl is-enabled ntpd.service');
+if ($retval[0] === 'disabled')
+    sysCmd('systemctl enable ntpd.service');
+$retval = sysCmd('systemctl is-enabled rune_PL_wrk.service');
+if ($retval[0] === 'disabled')
+    sysCmd('systemctl enable rune_PL_wrk.service');
+$retval = sysCmd('systemctl is-enabled redis.service');
+if ($retval[0] === 'disabled')
+    sysCmd('systemctl enable redis.service');
+$retval = sysCmd('systemctl is-enabled nginx.service');
+if ($retval[0] === 'disabled')
+    sysCmd('systemctl enable nginx.service');
+$retval = sysCmd('systemctl is-enabled dhcpcd.service');
+if ($retval[0] === 'disabled')
+    sysCmd('systemctl enable dhcpcd.service');
+
 // stop php-fpm
 sysCmd('systemctl stop php-fpm');
 // setup /run dir
@@ -77,6 +102,10 @@ if ($arch_db !== $arch) {
     // reset playerID if architectureID not match. This condition "fire" another first-run process
     $playerid_db = '';
 }
+// check git branch
+$gitbranch = sysCmd("cd /var/www/ ; git branch | grep \"*\" | cut -d ' ' -f 2");
+runelog('GIT BRANCH: ', $gitbranch[0]);
+$redis->hSet('git', 'branch', $gitbranch[0]);
 if ($playerid_db === '') {
     // RUNEAUDIO FIRST RUN PROCESS --- //
     runelog('>>>>>>RUNEAUDIO FIRST RUN PROCESS ---');
@@ -124,8 +153,8 @@ if ($playerid_db === '') {
     // NTP sync
     $start2 = microtime(true);
     $firstlap = $start2-$start;
-    runelog('NTP sync', $redis->get('ntpserver'));
-    wrk_NTPsync($redis->get('ntpserver'));
+    //runelog('NTP sync', $redis->get('ntpserver'));
+    //wrk_NTPsync($redis->get('ntpserver'));
     $start3 = microtime(true);
     // check HOSTNAME << TODO: integrate in wrk_sysEnvCheck >>
     $hn = sysCmd('hostname');
@@ -197,25 +226,7 @@ if ($redis->get('udevil') === '1') {
 // hashCFG('check_net',$redis);
 // check /etc/mpd.conf integrity
 // hashCFG('check_mpd',$redis);
-// Cmediafix startup check
-if ($redis->get('cmediafix') === '1') {
-    // close palyer backend connection
-    if ($activePlayer === 'MPD') {
-        // open MPD connection
-        $mpd = openMpdSocket('/run/mpd.sock');
-        // send cmediafix command
-        sendMpdCommand($mpd, 'cmediafix');
-        // close MPD connection
-        closeMpdSocket($mpd);
-    } elseif ($activePlayer === 'Spotify') {
-        // open SPOP connection
-        $spop = openSpopSocket('localhost', 6602, 1);
-        // send cmediafix command
-        sendSpopCommand($mpd, 'cmediafix');
-        // close SPOP connection
-        closeSpopSocket($spop);
-    }
-}
+
 // initialize OrionProfile
 runelog('env: SET KERNEL PROFILE',$redis->get('orionprofile'));
 sysCmd("/var/www/command/orion_optimize.sh ".$redis->get('orionprofile')." ".$redis->get('hwplatformid'));
@@ -225,11 +236,8 @@ sysCmd('systemctl start php-fpm');
 if ($redis->get('dev') === '0') {
     // prime PHP OPCache
     runelog('prime PHP OPCache');
-    // wrk_opcache('prime',$redis);
-    sysCmdAsync("curl -s -X GET 'http://localhost/command/cachectl.php?action=prime'");
+    sysCmdAsync("curl -s -X GET 'http://127.0.0.1/command/cachectl.php?action=prime'");
 }
-// mount all sources
-wrk_sourcemount($redis, 'mountall');
 runelog('--- NORMAL STARTUP');
 // --- NORMAL STARTUP //
 $start4 = microtime(true);
@@ -242,6 +250,8 @@ $redis->close();
 sysCmdAsync('/var/www/command/refresh_nics ; /var/www/command/debug_collector');
 runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
+$all_mounted = 0;
+$retries_mounting = 0;
 while (1) {
 // Connect to Redis backend
 $redis->pconnect('/tmp/redis.sock');
@@ -400,6 +410,7 @@ $redis->pconnect('/tmp/redis.sock');
                     if (wrk_kernelswitch($redis,$job->args)) {
                         if ($job->args === 'linux-rune-rpi_3.12.13-rt21_wosa') {
                             $redis->set('ao', 'snd_rpi_wsp_1');
+                            $redis->set('i2smodule', 'none');
                             $redis->set('orionprofile', 'OrionV2');
                         }
                         $notification = new stdClass();
@@ -479,6 +490,7 @@ $redis->pconnect('/tmp/redis.sock');
                     }
                     if ($job->action === 'reset') {
                         wrk_mpdconf($redis, 'reset');
+                        wrk_mpdconf($redis, 'restart');
                     }
                     if ($job->action === 'switchao') {
                         wrk_mpdconf($redis, 'switchao', $job->args, $jobID);
@@ -494,7 +506,7 @@ $redis->pconnect('/tmp/redis.sock');
                     wrk_mpdconf($redis, 'stop');
                     // write mpd.conf file
                     $fh = fopen('/etc/mpd.conf', 'w');
-                    fwrite($fh, $job['args']);
+                    fwrite($fh, $job->args);
                     fclose($fh);
                     wrk_mpdconf($redis, 'start');
                     $redis->sRem('w_lock', $jobID);
@@ -513,21 +525,35 @@ $redis->pconnect('/tmp/redis.sock');
                     // reset network configuration to default
                     if ($job->action === 'reset') {
                         wrk_netconfig($redis,'reset',$job->args);
+                        $redis->sRem('w_lock', $jobID);
                     }
                     // write network configuration
                     if ($job->action === 'config') {
-                        wrk_netconfig($redis, 'writecfg', $job->args);
-                        sysCmd('/var/www/command/refresh_nics');
+                        // send notfy to UI
+                        ui_notify('Networkconfiguration', 'it takes some time .....');
+                        $retval = wrk_netconfig($redis, 'writecfg', $job->args);
+                        $redis->sRem('w_lock', $jobID);
+                        // reboot if needed !!!
+                        if ($retval === 'reboot') {
+                            //$notification = new stdClass();
+                            //$notification->title = 'Network config';
+                            //$notification->text = 'Config changed successfully, reboot reqired';
+                            //wrk_notify($redis, 'kernelswitch', $notification, $jobID);
+                            sysCmd('/var/www/command/rune_shutdown');
+                            sysCmd('systemctl reboot');
+                            //$redis->sRem('w_lock', $jobID);
+                        }
                     }
                     // refresh network configuration
                     if ($job->action === 'refresh') {
                         sysCmd('/var/www/command/refresh_nics');
+                        $redis->sRem('w_lock', $jobID);
                     }
                     // manual network configuration
                     if ($job->action === 'manual') {
                         // wrk_netconfig($redis,'manual',$job->args);
+                        $redis->sRem('w_lock', $jobID);
                     }
-                    $redis->sRem('w_lock', $jobID);
                     break;
                 case 'ntpserver':
                     runelog('wrk_SY: ', $job->wrkcmd);
@@ -540,18 +566,16 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     // Restart PHP service
                     if ($job->action === 'enable') {
-                        wrk_opcache('enable');
+                        wrk_opcache('enable', $redis);
                         runelog('PHP 5.5 OPcache enabled');
-                        sysCmd('systemctl restart php-fpm');
+                        sysCmdAsync('systemctl restart php-fpm', 5);
                         // wrk_opcache('forceprime');
-                        $redis->set('opcache', 1);
                         // send notfy to UI
                         ui_notify_async('PHP OpCache', 'cache enabled', $jobID);
                     } else {
-                        wrk_opcache('disable');
+                        wrk_opcache('disable', $redis);
                         runelog('PHP 5.5 OPcache disabled');
-                        sysCmd('systemctl restart php-fpm');
-                        $redis->set('opcache', 0);
+                        sysCmdAsync('systemctl restart php-fpm', 5);
                         // send notfy to UI
                         ui_notify_async('PHP OpCache', 'cache disabled', $jobID);
                     }
@@ -713,36 +737,47 @@ $redis->pconnect('/tmp/redis.sock');
                     break;
                 case 'wificfg':
                     runelog('wrk_SY: ', $job->wrkcmd);
-                    // inject random delay to avoid wifi scan overlapping
-                    if ($job->action === 'scan') {
-                        // random delay
-                        $sleep = rand(1000000, 2000000);
-                        usleep($sleep);
-                        $lock = $redis->Get('lock_wifiscan');
-                    }
                     $redis->sAdd('w_lock',$jobID);
                     // add profile
                     if ($job->action === 'add') {
                         runelog('wificfg: add profile for SSID: '.$job->args->ssid);
+                        ui_notify_async('Adding WIFI-Profile', $job->args->ssid, $jobID);
                         wrk_wifiprofile($redis, 'add', $job->args);
+                        ui_notify_async('Added WIFI-Profile', $job->args->ssid, $jobID);
                     }
                     if ($job->action === 'edit') {
                         runelog('wificfg: edit profile for SSID: '.$job->args->ssid);
+                        ui_notify_async('Changing WIFI-Profile', $job->args->ssid, $jobID);
                         wrk_wifiprofile($redis, 'edit', $job->args);
+                        ui_notify_async('Changed WIFI-Profile', $job->args->ssid, $jobID);
                     }
                     if ($job->action === 'delete') {
                         runelog('wificfg: delete profile for SSID: '.$job->args->ssid);
+                        ui_notify_async('Deleting WIFI-Profile', $job->args->ssid, $jobID);
                         wrk_wifiprofile($redis, 'delete', $job->args);
+                        ui_notify_async('Deleted WIFI-Profile', $job->args->ssid, $jobID);
                     }
                     if ($job->action === 'disconnect') {
                         runelog('wificfg: disconnect profile for SSID: '.$job->args->ssid);
-                        wrk_wifiprofile($redis, 'disconnect');
+                        ui_notify_async('Disconnecting from WIFI-Profile', $job->args->ssid, $jobID);
+                        wrk_wifiprofile($redis, 'disconnect', $job->args);
+                        ui_notify_async('Disconnected from WIFI-Profile', $job->args->ssid, $jobID);
                     }
                     if ($job->action === 'connect') {
                         runelog('wificfg: connect profile for SSID: '.$job->args->ssid);
-                        wrk_wifiprofile($redis, 'connect');
+                        ui_notify_async('Connecting to WIFI-Profile', $job->args->ssid, $jobID);
+                        wrk_wifiprofile($redis, 'connect', $job->args);
+                        ui_notify_async('Connected to WIFI-Profile', $job->args->ssid, $jobID);
+                    }
+                    // inject random delay to avoid wifi scan overlapping
+                    if ($job->action === 'scan') {
+                        // random delay
+//                        $sleep = rand(1000000, 2000000);
+//                        usleep($sleep);
+//                        $lock = $redis->Get('lock_wifiscan');
                     }
                     if ($job->action === 'scan') {
+                        $lock = $redis->Get('lock_wifiscan');
                         if ($lock !== '1') {
                             runelog('wificfg: scan ');
                             // refresh nics status
@@ -781,6 +816,23 @@ $redis->pconnect('/tmp/redis.sock');
             runelog('(loop) delete job_queue', $jobID);
         } // end foreach loop
     } // end if loop
+    // mount all sources
+    if ($all_mounted === 0) {
+        runelog('wrk_SY: try to mount all shares!');
+        $all_mounted = wrk_sourcemount($redis, 'mountall');
+        if ($all_mounted === 1) {
+            runelog('wrk_SY: all shares mounted successfully!');
+        } else {
+            $retries_mounting++;
+            runelog('wrk_SY: error mounting shares, try it again! Count: '.$retries_mounting);
+            if ($retries_mounting > 20) {
+                $all_mounted = 1;
+                runelog('wrk_SY: mounting: tried it 20 times (10 seconds) => capitulating!');
+                ui_notify_async('ERROR','Failed to mount network shares');
+            }
+            usleep(500000);
+        }
+    }
     // unload CPU
     usleep(500000);
 } // end while loop
