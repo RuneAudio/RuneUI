@@ -14,10 +14,12 @@ data.getData = function(vm) {
     var loaderCloseFail = function() {
         console.log('FAIL');
     };
-    return m.request({ method: 'GET', url: url }).then(function(response) {
+    // the standard Mithril syntax expects our service to return [], but ours returns {}
+    m.request({ method: 'GET', url: url }).then(function(response) {
         vm.data = response;
         vm.originalData = JSON.parse(JSON.stringify(response)); // we need a clone of this object
     }).then(loaderClose, loaderCloseFail);
+    
 };
 
 // base data saving function

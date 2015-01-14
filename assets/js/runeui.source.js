@@ -11,8 +11,8 @@ source.Source = function (data) {
 
 source.vm.validate = function () {
     var d = new source.Source(source.vm.data);
-    if (d.nas_name() === '') {
-        alert('Nas Name is Required');
+    if (d.name() === '') {
+        alert('The Source name is Required');
         return false;
     }
     return true;
@@ -20,6 +20,7 @@ source.vm.validate = function () {
 
 source.vm.internal = {};
 source.vm.internal.guest = true;
+source.vm.internal.advanced = false;
 
 
 // single source view
@@ -33,10 +34,7 @@ source.view = function (ctrl) {
             ]),
             m('label.col-sm-2.control-label[for="nas-name"]', 'Source name'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][id="nas-name"][placeholder="eg: Classical"]', mithril.createInput(source.vm.data.mount, 'name')),
-                m('ul.parsley-errors-list[id="parsley-id-0754"]'),
-                m('input[name="mount[id]"][type="hidden"][value=""]'),
-                m('input[name="action"][type="hidden"][value="add"]'),
+                m('input.form-control.input-lg[placeholder="eg: Classical"]', mithril.createInput(source.vm.data.mount, 'name')),
                 m('span.help-block', 'The name you want to give to this source. It will appear in your database tree structure')
             ])
         ]),
@@ -53,7 +51,7 @@ source.view = function (ctrl) {
     m('.form-group', [
     m('label.col-sm-2.control-label[for="nas-ip"]', 'IP address'),
     m('.col-sm-10', [
-        m('input.form-control.input-lg[autocomplete="off"][id="nas_ip"][placeholder="eg: 192.168.1.250"][type="text"]', mithril.createInput(source.vm.data.mount, 'address')),
+        m('input.form-control.input-lg[placeholder="eg: 192.168.1.250"][type="text"]', mithril.createInput(source.vm.data.mount, 'address')),
         m('ul.parsley-errors-list[id="parsley-id-0037"]'),
         m('span.help-block', 'Specify your NAS address')
     ])
@@ -61,7 +59,7 @@ source.view = function (ctrl) {
     m('.form-group', [
         m('label.col-sm-2.control-label[for="nas-dir"]', 'Remote directory'),
         m('.col-sm-10', [
-            m('input.form-control.input-lg[autocomplete="off"][id="nas_dir"][placeholder="eg: Music/Classical"][type="text"]', mithril.createInput(source.vm.data.mount, 'remotedir')),
+            m('input.form-control.input-lg[placeholder="eg: Music/Classical"][type="text"]', mithril.createInput(source.vm.data.mount, 'remotedir')),
             m('span.help-block', 'Specify the directory name on the NAS where to scan music files (case sensitive)')
         ])
     ]),
@@ -78,16 +76,14 @@ source.view = function (ctrl) {
             m('.form-group', [
                 m('label.col-sm-2.control-label[for="nas-usr"]', 'Username'),
                 m('.col-sm-10', [
-                    m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="5061"][data-trigger="change"][id="nas-usr"][name="mount[username]"][placeholder="user"][type="text"]', mithril.createInput(source.vm.data.mount, 'username')),
-                    m('ul.parsley-errors-list[id="parsley-id-5061"]'),
+                    m('input.form-control.input-lg[placeholder="user"][type="text"]', mithril.createInput(source.vm.data.mount, 'username')),
                     m('span.help-block', 'If required, specify username to grant access to the NAS (case sensitive)')
                 ])
             ]),
             m('.form-group', [
                 m('label.col-sm-2.control-label[for="nas-pasw"]', 'Password'),
                 m('.col-sm-10', [
-                    m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="8023"][id="nas-pasw"][name="mount[password]"][placeholder="pass"][type="password"]', mithril.createInput(source.vm.data.mount, 'password')),
-                    m('ul.parsley-errors-list[id="parsley-id-8023"]'),
+                    m('input.form-control.input-lg[placeholder="pass"][type="password"]', mithril.createInput(source.vm.data.mount, 'password')),
                     m('span.help-block', 'If required, specify password to grant access to the NAS (case sensitive)')
                 ])
             ]),
@@ -97,60 +93,48 @@ source.view = function (ctrl) {
     m('.form-group', [
         m('label.col-sm-2.control-label[for="nas-advanced"]', 'Advanced options'),
         m('.col-sm-10', [
-            m('label.switch-light.well[onclick=""]', [
-                m('input[data-parsley-id="8687"][data-parsley-multiple="nas-advanced"][id="nas-advanced"][name="nas-advanced"][type="checkbox"]'),
-                m('span', [m('span', 'OFF'), m('span', 'ON')]),
-                m('a.btn.btn-primary')
-            ]),
-            m('ul.parsley-errors-list[id="parsley-id-multiple-nas-advanced"]'),
+            mithril.createYesNo('advanced', source.vm.internal, 'advanced'),
             m('span.help-block', 'Show/hide advanced mount options')
         ])
     ])
     ]),
-    m('fieldset.hide[id="mount-advanced-config"]', [
+    m('fieldset[id="mount-advanced-config"]', { className: (source.vm.internal.advanced) ? '' : 'hide' }, [
         m('legend', 'Advanced options'),
         m('.form-group', [
             m('label.col-sm-2.control-label[for="nas-charset"]', 'Charset'),
             m('.col-sm-10', [
-                m('select.selectpicker[data-parsley-id="6685"][data-style="btn-default btn-lg"][id="log-level"][name="mount[charset]"]', { style: { 'display': ' none' } }, [
+                    m('select.selectpicker[data-style="btn-default btn-lg"]', mithril.createInput(source.vm.data, 'charset', helpers.selectpicker), [
                     m('option[value="utf8"]', 'UTF8 (default)'),
-                    '\n\';    \n                    ',
                     m('option[value="iso8859-1"]', 'ISO 8859-1')
                 ]),
-                m('.btn-group.bootstrap-select', [m('button.btn.dropdown-toggle.selectpicker.btn-default.btn-lg[data-id="log-level"][data-toggle="dropdown"][title="UTF8 (default)"][type="button"]', [m('span.filter-option.pull-left', 'UTF8 (default)'), ' ', m('span.caret')]), m('.dropdown-menu.open', [m('ul.dropdown-menu.inner.selectpicker[role="menu"]', [m('li.selected[data-original-index="0"]', [m('a[data-normalized-text="<span class=\'text\'>UTF8 (default)</span>"][tabindex="0"]', [m('span.text', 'UTF8 (default)'), m('span.glyphicon.glyphicon-ok.check-mark')])]), m('li[data-original-index="1"]', [m('a[data-normalized-text="<span class=\'text\'>ISO 8859-1</span>"][tabindex="0"]', [m('span.text', 'ISO 8859-1'), m('span.glyphicon.glyphicon-ok.check-mark')])])])])]),
-                m('ul.parsley-errors-list[id="parsley-id-6685"]'),
                 m('span.help-block', 'Change this settings if you experience problems with character encoding')
             ])
         ]),
         m('.form-group', [
             m('label.col-sm-2.control-label[for="nas-rsize"]', 'Rsize'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="9174"][data-trigger="change"][id="nas-rsize"][name="mount[rsize]"][placeholder="8192"][type="text"][value=""]'),
-                m('ul.parsley-errors-list[id="parsley-id-9174"]'),
+                m('input.form-control.input-lg[placeholder="8192"][type="text"]', mithril.createInput(source.vm.data.mount, 'rsize')),
                 m('span.help-block', 'Change this settings if you experience problems with music playback (es: pops or clips)')
             ])
         ]),
         m('.form-group', [
             m('label.col-sm-2.control-label[for="nas-wsize"]', 'Wsize'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="8169"][data-trigger="change"][id="nas-wsize"][name="mount[wsize]"][placeholder="16384"][type="text"][value=""]'),
-                m('ul.parsley-errors-list[id="parsley-id-8169"]'),
+                m('input.form-control.input-lg[placeholder="16384"][type="text"]', mithril.createInput(source.vm.data.mount, 'wsize')),
                 m('span.help-block', 'Change this settings if you experience problems with music playback (es: pops or clips)')
             ])
         ]),
         m('.form-group', [
             m('label.col-sm-2.control-label[for="options"]', 'Mount flags'),
             m('.col-sm-10', [
-                m('input.form-control.input-lg[autocomplete="off"][data-parsley-id="9135"][data-trigger="change"][id="options"][name="mount[options]"][placeholder="cache=none,ro"][type="text"][value=""]'),
-                m('ul.parsley-errors-list[id="parsley-id-9135"]'),
-                m('input[name="mount[error]"][type="hidden"][value=""]'),
+                m('input.form-control.input-lg[placeholder="cache=none,ro"][type="text"]', mithril.createInput(source.vm.data.mount, 'options')),
                 m('span.help-block', 'Advanced mount flags. Don"t use this field if you don"t know what you are doing.')
             ])
         ])
     ]),
     m('.form-group.form-actions', [
                m('.col-sm-offset-2.col-sm-10', [
-                   m('button.btn.btn-default.btn-lg[type="button"]', { onclick: function (e) { source.vm.cancel(); } }, 'Cancel'),
+                   m('a.btn.btn-default.btn-lg[href="/sources"]', { config: m.route }, 'Cancel'),
                    m('button.btn.btn-primary.btn-lg[type="button"]', { onclick: function (e) { source.vm.save(); } }, 'Save and apply')
                ])
     ])];

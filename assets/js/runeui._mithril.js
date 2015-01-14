@@ -99,6 +99,8 @@ mithril.createSelect = function(id, container, field, list, valueField, displayF
 mithril.getViewModel = function(url) {
     var vm = {};
 
+    vm.data = m.prop({});
+
     // properties of all our viewmodels
     var urlPrefix = '/api';
     vm.url = urlPrefix + url;
@@ -110,8 +112,9 @@ mithril.getViewModel = function(url) {
     vm.init = function(id) {
         this.id = id;
         // property 'data' is defined here asnd the loading is set up
-        this.data = data.getData(this);
-
+        ////this.data = data.getData(this);
+        data.getData(this);
+        //m.request({ method: 'GET', url: vm.url }).then(vm.data);
         // console.log('* in vm init');
         navigation.vm.navigate(this.url.replace(urlPrefix, ''));
         // return m.request({ method: 'GET', url: vm.url }).then(function(response) {
@@ -166,7 +169,7 @@ mithril.getController = function(vm) {
 
 mithril.RuneModule = function(url) {
     var module = {};
-    module.vm = mithril.getViewModel(url);
-    module.controller = mithril.getController(module.vm);
+    module.vm = new mithril.getViewModel(url);
+    module.controller = new mithril.getController(module.vm);
     return module;
 };

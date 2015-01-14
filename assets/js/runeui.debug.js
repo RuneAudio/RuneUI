@@ -13,6 +13,7 @@ debug.view = function(ctrl) {
 			m('button.btn.btn-primary.btn-lg[data-clipboard-target="clipboard_pre"][id="copy-to-clipboard"]', [m('i.fa.fa-copy.sx'), ' Copy data to clipboard'])
 		]),
 		m('br'),
-		m('pre[id="clipboard_pre"]', debug.vm.data.debug)])
+        m('pre[id="clipboard_pre"]', debug.vm.data.debug)
+        ])
     ];
 };
