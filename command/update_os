@@ -1,4 +1,5 @@
-<?php
+#!/usr/bin/php
+<?php 
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -26,12 +27,23 @@
  * along with RuneAudio; see the file COPYING.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.txt>.
  *
- *  file: app/credits_ctl.php
- *  version: 1.3
- *  coder: Simone De Gregori
+ *  file: command/update_os
+ *  version: 0.1
+ *  coder: Frank Friedmann
  *
  */
 
- $template->buildversion = $redis->get('buildversion');
- $template->release = $redis->get('release');
- 
+function updateOS()
+{
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/rune_SY_wrk.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/rune_PL_wrk.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/redis.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/mpd.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/ntpd.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/php-fpm.service /usr/lib/systemd/system/');
+    sysCmd('systemctl daemon-reload');
+
+    sysCmd('cp /srv/http/app/config/_os/etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/');
+
+    sysCmd('rm /srv/http/command/update_os');
+}

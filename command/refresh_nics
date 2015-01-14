@@ -50,7 +50,7 @@ usleep($sleep);
 runelog('random delay: ', $sleep);
 // startup - collect system data
 runelog('--------------------------- collect system data ---------------------------');
-$excluded_nics = array('ifb0', 'ifb1');
+$excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
 $active_nics = sysCmd("ifconfig | grep UP | cut -d ':' -f 1");
 $detected_nics = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
 $detected_nics = array_diff($detected_nics, $excluded_nics);
@@ -72,115 +72,87 @@ runelog('########### configured_nics ########### ', $configured_nics);
 runelog('########### removed_nics ########### ', $removed_nics);
 // handle inactive nics
 runelog('--------------------------- handle inactive nics ---------------------------');
-if (!empty($inactive_nics)) {
-    foreach($inactive_nics as $nic) {
-        $wireless = sysCmd("iwconfig ".$nic." | grep 'no wireless'");
-        if (empty($wireless)) {
-            // activate link
-            runelog('########### activate currently inactive wifi nic: '.$nic);
-            sysCmd('ip link set '.$nic.' up');
-            // start wpa_supplicant
-            runelog('########### start wpa_supplicant for wifi nic: '.$nic);
-            sysCmd('systemctl start wpa_supplicant@'.$nic);
-            // check if the nic is unconfigured (= without an existing netctl profile)
-            if (empty(sysCmd('ls /etc/netctl/ | grep '.$nic))) {
-                // create a new standard (dhcp) wifi netctl profile
-                $args = new stdClass;
-                $args->name = $nic;
-                $args->wireless = '1';
-                $args->dhcp = '1';
-                wrk_netconfig($redis, 'writecfg', $args, 1);
-            }
-            // check wpa_supplicant status
-            // if (empty(sysCmd('ls /etc/systemd/system/multi-user.target.wants/ | grep wpa_supplicant@'.$nic))) {
-                // enable wpa_supplicant
-                // runelog('########### enable wpa_supplicant for wifi nic: '.$nic);
-                // sysCmd('systemctl enable wpa_supplicant@'.$nic);
-            // }
-            // enable netctl profile
-            // if (empty(sysCmd('ls /etc/systemd/system/multi-user.target.wants/ | grep netctl@'.$nic))) {
-                // runelog('########### enable netctl for wifi nic: '.$nic);
-                // sysCmd('netctl enable '.$nic);
-            // }
-        }
-    }
-}
 unset($nic);
 runelog('--------------------------- handle active nics ---------------------------');
 // check if there is a stored profile
 // refesh visible wifi networks.
 $iw = new iwlist_parser;
-// debug
-// print_r($iw->parseScanDev( 'wlan0' ));
 wrk_netconfig($redis, 'setnics');
 $nics = wrk_netconfig($redis, 'getnics');
-// debug
-// print_r($nics);
 foreach ($nics as $nic => $nicdetail) {
     if ($nicdetail->wireless === 1) {
-        // check and activate wpa_supplicant
-        if (empty(sysCmd("ps x | grep '\-c\/etc\/wpa_supplicant\/wpa_supplicant.conf'"))) {
-            runelog('########### start wpa_supplicant for nic: '.$nic);
-            sysCmd('systemctl start wpa_supplicant@'.$nic);
-            }
-        // check and activate netctl@nic profile
-        if (empty(sysCmd('netctl list | grep '.$nic.' | grep \*'))) {
-            runelog('########### start netctl profile for nic: '.$nic);
-                if(!empty(sysCmd('netctl start '.$nic))) {
-                    runelog('########### ZERO condition reached for nic: '.$nic.' restart link and wpa_supplicant helper');
-                    sysCmd('ip link set '.$nic.' up');
-                    sysCmd('systemctl start wpa_supplicant@'.$nic);
-                }
-            }
-        // temp
-        $scan = $iw->parseScanDev( $nic );
-        $redis->set('wlans',json_encode($scan));
-        // debug
-        // print_r($scan);
-        foreach ($scan as $nicname => $nicscan) {
-            foreach ($nicscan as $count => $wlan) {
-                foreach ($wlan as $key => $value) {
-                    $wlans[$count]['nic'] = $nicname;
-                    if ($key === 'ESSID') {
-                        $wlans[$count][$key] = $value;
-                        if ($nicdetail->currentssid === $value) {
-                            $wlans[$count]['connected'] = 1;
-                        } else {
-                            $wlans[$count]['connected'] = 0;
-                        }
-                    }
-                    if ($key === 'Encryption key') $wlans[$count]['encryption'] = $value;
-                }
-            }
-        } 
-        // debug
-        // print_r($wlans);
-        // render wlans channel
-        // $wlans = json_encode($wlans);
-        $wlans_profiles = $redis->hGetAll('wlan_profiles');
-        $i = count($wlans);
-        foreach ($wlans_profiles as $profile => $details) {
-            $i++;
-            $details = json_decode($details);
-            $stored_profiles[$i]['nic'] = $details->nic;
-            if ($details->encryption !== 'open') {
-                $stored_profiles[$i]['encryption'] = 'on';
-            } else {
-                $stored_profiles[$i]['encryption'] = 'off';
-            }
-            $stored_profiles[$i]['ESSID'] = $details->ssid;
-            if ($nicdetail->currentssid === $details->ssid) {
-                $stored_profiles[$i]['connected'] = 1;
-            } else {
-                $stored_profiles[$i]['connected'] = 0;
-            }
-            $stored_profiles[$i]['storedprofile'] = 1;
-            $wlans[] = $stored_profiles[$i];
+        if (empty(sysCmd('ifconfig | grep '.$nic.''))) {
+            runelog('########### restart link for nic: '.$nic);
+                sysCmd('ip link set '.$nic.' up');
         }
+        runelog('  try nic: '.$nic);
+        
+        // test if service is enabled
+        sysCmd('systemctl enable netctl-auto@'.$nic.'.service');
+        
+        // get stored profiles
+        $wlans_profiles = sysCmd("netctl-auto list | cut -c3-");
+        $redis->set('stored_profiles',json_encode($wlans_profiles));
+        // scan for ap in range
+        $scan = $iw->parseScanDev( $nic );
+        $tmp_wlans = array();
+        $redis->set('wlans',json_encode($scan));
+        foreach ($scan as $nicname => $nicscan) {
+            runelog('    scan for nic: '.$nic.' nicname = '.$nicname);
+            foreach ($nicscan as $count => $wlan) {
+                runelog('      scan for nic: '.$nic.' AP = '.$count);
+                if ($wlan['ESSID'] === "" OR array_search ($wlan['ESSID'], $tmp_wlans) !== false) {
+                    runelog('        SSID already found');
+                } else {
+                    foreach ($wlan as $key => $value) {
+                        $wlans[$count]['nic'] = $nicname;
+                        runelog('        scan for nic: '.$nic.' = '.$key.' = '.$value);
+                        if ($key === 'ESSID') {
+                            $wlans[$count][$key] = $value;
+                            $tmp_wlans[] = $value;
+                            if ($nicdetail->currentssid === $value) {
+                                $wlans[$count]['connected'] = 1;
+                            } else {
+                                $wlans[$count]['connected'] = 0;
+                            }
+                            foreach($wlans_profiles as $item){
+                                if($item === $value){
+                                    $wlans[$count]['storedprofile'] = 1;
+                                    break;   // found it!
+                                } else {
+                                    $wlans[$count]['storedprofile'] = 0;
+                                }
+                            }
+                        }
+                        if ($key === 'Encryption key') $wlans[$count]['encryption'] = $value;
+                        $wlans[$count]['origin'] = 'scan';
+                    }
+                }
+            }
+        }
+
+        // handle hidden but stored profiles
+        foreach ($wlans_profiles as $item){
+            if ((bool)strpos(serialize($wlans), $item) === false){
+                $wlans[++$count]['nic'] = $nic;
+                $wlans[$count]['ESSID'] = $item;
+                if ($nicdetail->currentssid === $item) {
+                    $wlans[$count]['connected'] = 1;
+                } else {
+                    $wlans[$count]['connected'] = 0;
+                }
+                $wlans[$count]['storedprofile'] = 1;
+                $wlans[$count]['encryption'] = 'unknown';
+                $wlans[$count]['origin'] = 'storage';
+            }
+        }
+
+        //runelog('wlans response: ', $wlans);
         $wlans = json_encode($wlans);
-        // $wlans = json_encode(array_merge($wlans, $stored_profiles));
+        runelog('wlans response(encoded): ', $wlans);
         ui_render('wlans', $wlans);
-        runelog('wlans response: ', $wlans);
+    } else {
+        sysCmd('systemctl enable netctl-ifplugd@'.$nic.'.service');
     }
 }
 // send nics status to RuneUI
@@ -192,19 +164,10 @@ if (!empty($removed_nics)) {
     foreach($removed_nics as $nic) {
         // check for orphan netctl startup profiles
         if (!empty(sysCmd('ls /etc/systemd/system/multi-user.target.wants/ | grep '.$nic))) {
-            // disable orphan netctl profiles
-            // sysCmd("rm -f /etc/systemd/system/multi-user.target.wants/netctl@".$nic.".service')");
-            // sysCmd("systemctl disable netctl@".$nic.".service')");
             runelog('########### disable netctl profiles for nic: '.$nic);
-            sysCmd('netctl disable '.$nic);
+            sysCmd('systemctl disable netctl-ifplugd@'.$nic);
+            sysCmd('systemctl disable netctl-auto@'.$nic);
         }
-        // check wpa_supplicant startup status
-        // if (!empty(sysCmd('ls /etc/systemd/system/multi-user.target.wants/ | grep wpa_supplicant@'.$nic))) {
-            // disable wpa_supplicant autostart 
-            // runelog('########### disable wpa_supplicant autostart for nic: '.$nic);
-            // sysCmd("rm -f /etc/systemd/system/multi-user.target.wants/wpa_supplicant@".$nic.".service')");
-            // sysCmd('systemctl disable wpa_supplicant@'.$nic.'.service');
-        // }
     }
 }
 // end - unlock the scan system

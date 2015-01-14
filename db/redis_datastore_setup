@@ -119,7 +119,8 @@ function redisDatastore($redis,$action) {
             $redis->set('debug', 0);
             $redis->set('debugdata', '');
             $redis->set('opcache', 1);
-            $redis->set('buildversion', 'beta-20141027');
+            $redis->set('buildversion', 'beta-20141216');
+            $redis->set('release', '0.4');
             // HW platform data
             // $redis->set('playerid', '');
             // $redis->set('hwplatform', '');
@@ -156,7 +157,6 @@ function redisDatastore($redis,$action) {
             $transaction = $redis->multi();
             // RuneAudio Libs & config
             $transaction->sAdd('php_opcache_prime', '/srv/http/app/config/config.php');
-            $transaction->sAdd('php_opcache_prime', '/srv/http/app/libs/runeaudio.php');
             // RuneAudio Controllers
             $transaction->sAdd('php_opcache_prime', '/srv/http/index.php');
             $transaction->sAdd('php_opcache_prime', '/srv/http/db/index.php');
