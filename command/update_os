@@ -42,6 +42,8 @@ function updateOS()
     sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/ntpd.service /usr/lib/systemd/system/');
     sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/php-fpm.service /usr/lib/systemd/system/');
     sysCmd('systemctl daemon-reload');
+    
+    sysCmd('rm /etc/netctl/wlan0');
 
     sysCmd('cp /srv/http/app/config/_os/etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/');
 
