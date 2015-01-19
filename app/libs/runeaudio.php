@@ -273,6 +273,20 @@ function getPlayQueue($sock)
     return $playqueue;
 }
 
+function readShairportState($path)
+{
+
+    $nowplaying = explode("\n", file_get_contents($path));
+    foreach ($nowplaying as $line) {
+        if (strlen($line) > 0) {
+            $exp_line = explode("=", $line);
+            $shairport_status[$exp_line[0]] = $exp_line[1];
+        }
+    }
+    $status = array('currentartist' => $shairport_status['artist'], 'currentalbum' => $shairport_status['album'], 'currentsong' => $shairport_status['title'], 'coverart' => $shairport_status['artwork']);
+    return json_encode($status);
+}
+
 // Spotify support
 function openSpopSocket($host, $port, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
@@ -556,11 +570,6 @@ function setLastFMauth($redis, $lastfm)
     $redis->hSet('lastfm', 'pass', $lastfm->pass);
 }
 
-function echoTemplate($template)
-{
-    echo $template;
-}
-
 function saveBookmark($redis, $path)
 {
     $idx = $redis->incr('bookmarksidx');
@@ -716,13 +725,6 @@ function MpdStatus($sock)
     return $status;
 }
 
-// create JS like Timestamp
-function jsTimestamp()
-{
-    $timestamp = round(microtime(true) * 1000);
-    return $timestamp;
-}
-
 function songTime($sec)
 {
     $minutes = sprintf('%02d', floor($sec / 60));
@@ -788,14 +790,14 @@ function _parseFileListResponse($resp)
                 $dirCounter++;
                 // $plistFile = $value;
                 $plistArray[$plCounter]['directory'] = $value;
-            } else if ($browseMode) {
+            } elseif ($browseMode) {
                 if ( $element === 'Album' ) {
                     $plCounter++;
                     $plistArray[$plCounter]['album'] = $value;
-                } else if ( $element === 'Artist' ) {
+                } elseif ( $element === 'Artist' ) {
                     $plCounter++;
                     $plistArray[$plCounter]['artist'] = $value;
-                } else if ( $element === 'Genre' ) {
+                } elseif ( $element === 'Genre' ) {
                     $plCounter++;
                     $plistArray[$plCounter]['genre'] = $value;
                 }
@@ -2553,6 +2555,7 @@ function wrk_switchplayer($redis, $playerengine)
             sysCmdAsync('rune_prio nice');
             break;
     }
+if ($redis->hGet('airplay','enable') === '1') sysCmd('killall -9 shairport; systemctl start shairport');
 return $return;    
 }
 
@@ -2808,20 +2811,18 @@ function wrk_notify_check($notification)
     }
 }
 
-/*
-class ui_renderQueue extends Thread
+class ui_renderQueue
 {
     public function __construct($socket)
     {
         $this->socket = $socket;
     }
-    public function run()
+    public function output()
     {
         $queue = getPlayQueue($this->socket);
         ui_render('queue', json_encode($queue));
     }
 }
-*/
 
 function ui_status($mpd, $status)
 {

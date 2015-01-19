@@ -63,7 +63,6 @@ if ($retval[0] === 'disabled')
 $retval = sysCmd('systemctl is-enabled dhcpcd.service');
 if ($retval[0] === 'disabled')
     sysCmd('systemctl enable dhcpcd.service');
-
 // stop php-fpm
 sysCmd('systemctl stop php-fpm');
 // setup /run dir
@@ -79,6 +78,9 @@ if ($activePlayer === 'MPD') {
 } elseif ($activePlayer === 'Spotify') {
     // check MPD process
     sysCmd('pgrep -x spopd || systemctl start spopd');
+} else {
+    // reset activePlayer state to MPD (default)
+    $redis->set('activePlayer', 'MPD');
 }
 // read registered HW architecture
 $arch_db = $redis->get('hwplatformid');
