@@ -5,7 +5,7 @@ window.helpers = window.helpers || {};
 
 // toggle loading layers (spinning arrows and circle)
 helpers.toggleLoader = function(action, type) {
-    console.log(type);
+    //console.log(type);
     var div, style;
     if (type === 'blocking') {
         div = '#loader';
@@ -85,9 +85,10 @@ helpers.checkWorkers = function () {
 
 // send playback control commands to the backend
 function sendCmd(cmd) {
-    //var request = m.request({
-    //    method: 'GET',
-    //    url: '/command/?cmd=' + cmd,
-    //    deserialize: function(value) {return value;}
-    //});
+    var request = m.request({
+        background: true,
+        method: 'GET',
+        url: '/command/?cmd=' + cmd,
+        deserialize: function(value) {return value;}
+    });
 }

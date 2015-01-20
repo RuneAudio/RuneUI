@@ -3079,7 +3079,7 @@ function netmask($bitcount)
 }
 
 // sort multi-dimensional array by key
-function osort(&$array, $key)
+function osort($array, $key)
 {
     usort($array, function($a, $b) use ($key) {
         return $a->$key > $b->$key ? 1 : -1;

@@ -5,7 +5,13 @@ window.data = window.data || {};
 window.network_wireless = new mithril.RuneModule('/network');
 
 // 'Wired Network' view
-network_wireless.view = function(ctrl) {
+network_wireless.view = function (ctrl) {
+
+    if (!network_wireless.vm.data.nic.wireless) {
+        error.vm.showError('URL Error');
+        return;
+    }
+
     return [
         m('h1', 'Wireless network (' + network_wireless.vm.data.profile.name + ')'),
         m('legend', 'Wi-Fi networks in range'),

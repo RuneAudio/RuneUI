@@ -1,4 +1,4 @@
-// window.playback_controls = window.playback_controls || {};
+window.channels = window.channels || {};
 
 var GUI = {
     DBentry: ['','',''],
@@ -27,9 +27,9 @@ var GUI = {
 };
 
 
-
-// ROUTING
+// NAVIGATION & ROUTING
 // ----------------------------------------------------------------------------------------------------
+m.module(document.getElementById('main-menu'), navigation);
 
 m.route.mode = 'hash';
 m.route(document.getElementById('app'), '/', {
@@ -47,6 +47,26 @@ m.route(document.getElementById('app'), '/', {
     '/sources': sources
 });
 
+
+// COMMON MODULES
+// ----------------------------------------------------------------------------------------------------
+m.module(document.getElementById('playback-controls'), playback_controls);
+
+
+function RuneChannel(name, onmessage, onstatuschange) {
+    var channel = {};
+    channel.pushstream = new PushStream({
+        host: window.location.hostname,
+        port: window.location.port,
+        modes: GUI.mode,
+        reconnectOnChannelUnavailableInterval: 5000
+    });
+    channel.pushstream.onmessage = onmessage;
+    channel.pushstream.onstatuschange = onstatuschange;
+    channel.pushstream.addChannel(name);
+    channel.pushstream.connect();
+    return channel;
+}
 
 
 // NGINX PUSHSTREAM MODULE CHANNELS
@@ -187,17 +207,17 @@ function libraryChannel(){
     pushstream.connect();
 }
 
-// open the notify messages channel
-function notifyChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode
-    });
-    pushstream.onmessage = renderMSG;
-    pushstream.addChannel('notify');
-    pushstream.connect();
-}
+//// open the notify messages channel
+//function notifyChannel(){
+//    var pushstream = new PushStream({
+//        host: window.location.hostname,
+//        port: window.location.port,
+//        modes: GUI.mode
+//    });
+//    pushstream.onmessage = renderMSG;
+//    pushstream.addChannel('notify');
+//    pushstream.connect();
+//}
 
 // open the in range Wi-Fi networks list channel
 function wlansChannel(){
@@ -238,7 +258,12 @@ jQuery(document).ready(function($) { 'use strict';
     
     // first connection with MPD daemon
     // open UI rendering channel;
-    playbackChannel();
+    var playbackStatus = function(status) {
+        if (status === 2) {
+            sendCmd('renderui'); // force UI rendering (backend-call)
+        }
+    };
+    channels.playbackChannel = new RuneChannel('playback', renderUI, playbackStatus);
     
     // PNotify init options
     PNotify.prototype.options.styling = 'fontawesome';
@@ -248,7 +273,8 @@ jQuery(document).ready(function($) { 'use strict';
     PNotify.prototype.options.stack.firstpos2 = 50;
     PNotify.prototype.options.stack.spacing1 = 10;
     PNotify.prototype.options.stack.spacing2 = 10;
+
     // open notify channel
-    notifyChannel();
+    channels.notifyChannel = new RuneChannel('notify', renderMSG);
 
 });

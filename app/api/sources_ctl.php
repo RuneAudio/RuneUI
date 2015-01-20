@@ -130,8 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+       
         if (isset($template->mount)===FALSE) {
-            $template->errormsg = 'The selected mount does not exist.';
+            // we were sent a bad ID in the URL
+            $template->errormsg = 'The selected mount does not exist.'; // [TODO] pass the localized string ID
             http_response_code(400); // HTTP : Bad Request
         }
     }

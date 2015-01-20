@@ -7,11 +7,11 @@ window.error = new mithril.RuneModule('/error');
 error.vm.showError = function (errormsg, returnto) {
     error.vm.errormsg = errormsg;
     error.vm.returnto = returnto;
-    error.vm.getReturnTo = function() {
+    error.vm.getReturnTo = function () {
         if (error.vm.returnto) {
-            return m('button.btn.btn-default.btn-lg', { onclick: function () { m.route(error.vm.returnto) } }, 'Go back');
+            return m('button.btn.btn-default.btn-lg', { onclick: function () { m.route(error.vm.returnto);} }, 'Go back');
         }
-    }
+    };
 
     m.route('/error');
 };

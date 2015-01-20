@@ -5,7 +5,13 @@ window.data = window.data || {};
 window.network_wired = new mithril.RuneModule('/network');
 
 // 'Wired Network' view
-network_wired.view = function(ctrl) {
+network_wired.view = function (ctrl) {
+
+    if (network_wired.vm.data.nic.wireless) {
+        error.vm.showError('URL Error');
+        return;
+    }
+
     return [
         m('h1', 'Wired network (' + network_wired.vm.data.profile.name + ')'),
 		m('input[name="nic[name]"][type="hidden"][value="eth0"]'),

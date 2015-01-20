@@ -17,7 +17,7 @@ mpd.vm.reset = function (e) {
 mpd.view = function (ctrl) {
     return [m('h1', 'MPD Configuration'), '\n', m('p', ['\n    If you mess up with this configuration you can ', m('a[href="javascript:;"]', { onclick: mpd.vm.reset }, 'reset to default'), '.\n']), '\n',
         m('fieldset', [
-			m('legend', 'Audio Output'),
+			m('legend', 'Audio Settings'),
 				m('.form-group', [
                     mithril.createLabel('ao', 'Audio output interface'),
 					m('.col-sm-10', [
@@ -26,21 +26,28 @@ mpd.view = function (ctrl) {
 						//createSelect('audio-output-interface', mpd.vm.data, 'ao', 'acards', 'name', 'extlabel', selectpicker),
                         m('span.help-block', ['This is the current output interface. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
                         ])
-					])
-				])
-        ]),
-		m('fieldset.form-horizontal', [
-			m('legend', 'Volume control'),
-			m('.form-group', [
-				mithril.createLabel('mixer-type', 'Volume control'),
+					]),
+                    mithril.createLabel('mixer-type', 'Volume control'),
 				m('.col-sm-10', [
                     m('input.form-control.input-lg[id="mixer-type"][type="text"]', mithril.createInput(mpd.vm.data.conf, 'mixer_type', null, true)),
 					m('span.help-block', [
                         'This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
 					])
 				])
-			])
-		]),
+				])
+        ]),
+		//m('fieldset.form-horizontal', [
+		//	m('legend', 'Volume control'),
+		//	m('.form-group', [
+		//		mithril.createLabel('mixer-type', 'Volume control'),
+		//		m('.col-sm-10', [
+        //            m('input.form-control.input-lg[id="mixer-type"][type="text"]', mithril.createInput(mpd.vm.data.conf, 'mixer_type', null, true)),
+		//			m('span.help-block', [
+        //                'This is the current volume control setting. It can be ', m('a[href="/audio"]', { config: m.route }, 'configured here'), '.'
+		//			])
+		//		])
+		//	])
+		//]),
 		m('fieldset.form-horizontal', [
 			m('legend', 'General music daemon options'),
 			m('.form-group', [

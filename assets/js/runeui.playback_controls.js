@@ -19,10 +19,10 @@ playback_controls.vm = (function() {
         vm.validStates = {stop: 'stop', play: 'play', pause: 'pause'};
         
         vm.setState = function(state) {
-            ////m.startComputation();
+            m.startComputation();
             playback_controls.vm.state(vm.validStates[state]);
             // console.log(vm.validStates[state]);
-            ////m.endComputation();
+            m.endComputation();
         };
 
         // valid commands to the backend
@@ -84,5 +84,3 @@ playback_controls.view = function(ctrl) {
         ])
     ];
 };
-
-m.module(document.getElementById('playback-controls'), playback_controls);

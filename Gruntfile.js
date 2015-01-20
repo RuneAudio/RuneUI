@@ -22,6 +22,9 @@ module.exports = function(grunt) {
         files: {
           'assets/css/runeui.css': [
             'assets/less/runeui.less'
+          ],
+          'assets/css/musicapristina.css': [
+              'assets/less/musicapristina.less'
           ]
         }
       }

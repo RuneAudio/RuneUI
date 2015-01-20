@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="msapplication-tap-highlight" content="no" />
-    <link rel="stylesheet" href="<?=$this->asset('/css/runeui.css')?>">
+    <link rel="stylesheet" href="<?=$this->asset('/css/musicapristina.css')?>">
     <link rel="shortcut icon" href="<?=$this->asset('/img/favicon.ico')?>">
     <link rel="apple-touch-icon" sizes="57x57" href="<?=$this->asset('/img/apple-touch-icon-57x57.png')?>">
     <link rel="apple-touch-icon" sizes="114x114" href="<?=$this->asset('/img/apple-touch-icon-114x114.png')?>">

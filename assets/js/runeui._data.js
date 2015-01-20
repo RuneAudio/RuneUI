@@ -7,13 +7,12 @@ data.getData = function(vm) {
     if (vm.id) {
         url += '/' + vm.id;
     }
-    helpers.toggleLoader('open', '');
+    helpers.toggleLoader('open');
     var loaderClose = function() {
         helpers.toggleLoader('close');
     };
     var loaderCloseFail = function(errormsg) {
         console.log('FAIL: ' + errormsg);
-        //TODO: Implement return to functionality
         error.vm.showError(errormsg, vm.selector);
     };
     // the standard Mithril syntax expects our service to return [], but ours returns {}

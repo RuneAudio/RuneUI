@@ -57,4 +57,3 @@ window.navigation = {
         })])];
     }
 };
-m.module(document.getElementById('main-menu'), navigation);
