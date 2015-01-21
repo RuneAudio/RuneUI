@@ -81,20 +81,12 @@ if (!$socket) {
             $redis->set('pl_length', $status['playlistlength']);
             // runelog('---------status data------------',$status);
             $status = ui_status($socket, $status);
-            // runelog('---------status data(2)------------',$status);
+            runelog('---------status data(2)------------',$status);
             // render Queue (push async)
-            // if ($status['changed'] === 'playlist') {
-            // $queue = new ui_renderQueue($socket);
-            // $queue->start();
-            // runelog('---------------- PLAYLIST RENDER ----------------');
-            // }
-            // CMediaFix
-            if ($redis->get('cmediafix') === '1' && $status['state'] === 'play' ) {
-                $status['lastbitdepth'] = $redis->get('lastbitdepth');
-                    if ($redis->get('lastbitdepth') !== $status['audio']) {
-                        sendMpdCommand($socket, 'cmediafix');
-                    }
-            }
+            //if ($status['changed'] === 'playlist') {
+            //    sysCmdAsync('ui_render_pl');
+            //    runelog('---------------- PLAYLIST RENDER ----------------');
+            //}
             // Global Random
             if (($redis->get('globalrandom') === '1') && ($redis->get('lastsongid') != $status['songid']) && ($redis->get('lock_globalrandom') === '0')) {
                 $addsong = new globalRandom($status);
@@ -123,6 +115,7 @@ if (!$socket) {
             runelog('rune_PL_wrk: close SPOP socket');
             closeSpopSocket($socket);
         } elseif ($activePlayer === 'Airplay') {
+            ui_render('playback', readShairportStatus('/run/shairport/now_playing'));
             sleep(1);
             $forceupdate = 1;
         } else {

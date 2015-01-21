@@ -33,17 +33,17 @@ var m = (function app(window, undefined) {
 	 */
 	function m() {
 		var args = [].slice.call(arguments);
-		var hasAttrs = args[1] != null && type.call(args[1]) == OBJECT && !("tag" in args[1]) && !("subtree" in args[1]);
+		var hasAttrs = args[1] != null && type.call(args[1]) === OBJECT && !("tag" in args[1]) && !("subtree" in args[1]);
 		var attrs = hasAttrs ? args[1] : {};
 		var classAttrName = "class" in attrs ? "class" : "className";
 		var cell = {tag: "div", attrs: {}};
 		var match, classes = [];
 		if (type.call(args[0]) != STRING) throw new Error("selector in m(selector, attrs, children) should be a string")
 		while (match = parser.exec(args[0])) {
-			if (match[1] == "" && match[2]) cell.tag = match[2];
-			else if (match[1] == "#") cell.attrs.id = match[2];
-			else if (match[1] == ".") classes.push(match[2]);
-			else if (match[3][0] == "[") {
+			if (match[1] === "" && match[2]) cell.tag = match[2];
+			else if (match[1] === "#") cell.attrs.id = match[2];
+			else if (match[1] === ".") classes.push(match[2]);
+			else if (match[3][0] === "[") {
 				var pair = attrParser.exec(match[3]);
 				cell.attrs[pair[1]] = pair[3] || (pair[2] ? "" :true)
 			}
@@ -52,7 +52,7 @@ var m = (function app(window, undefined) {
 
 
 		var children = hasAttrs ? args[2] : args[1];
-		if (type.call(children) == ARRAY) {
+		if (type.call(children) === ARRAY) {
 			cell.children = children
 		}
 		else {
@@ -60,7 +60,7 @@ var m = (function app(window, undefined) {
 		}
 
 		for (var attrName in attrs) {
-			if (attrName == classAttrName) cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName];
+			if (attrName === classAttrName) cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName];
 			else cell.attrs[attrName] = attrs[attrName]
 		}
 		return cell
@@ -91,14 +91,15 @@ var m = (function app(window, undefined) {
 		//there's logic that relies on the assumption that null and undefined data are equivalent to empty strings
 		//- this prevents lifecycle surprises from procedural helpers that mix implicit and explicit return statements (e.g. function foo() {if (cond) return m("div")}
 		//- it simplifies diffing code
-		if (data == null) data = "";
+		//data.toString() is null if data is the return value of Console.log in Firefox
+		if (data == null || data.toString() == null) data = "";
 		if (data.subtree === "retain") return cached;
 		var cachedType = type.call(cached), dataType = type.call(data);
-		if (cached == null || cachedType != dataType) {
+		if (cached == null || cachedType !== dataType) {
 			if (cached != null) {
 				if (parentCache && parentCache.nodes) {
 					var offset = index - parentIndex;
-					var end = offset + (dataType == ARRAY ? data : cached.nodes).length;
+					var end = offset + (dataType === ARRAY ? data : cached.nodes).length;
 					clear(parentCache.nodes.slice(offset, end), parentCache.slice(offset, end))
 				}
 				else if (cached.nodes) clear(cached.nodes, cached)
@@ -108,10 +109,10 @@ var m = (function app(window, undefined) {
 			cached.nodes = []
 		}
 
-		if (dataType == ARRAY) {
+		if (dataType === ARRAY) {
 			//recursively flatten array
-			for (var i = 0; i < data.length; i++) {
-				if (type.call(data[i]) == ARRAY) {
+			for (var i = 0, len = data.length; i < len; i++) {
+				if (type.call(data[i]) === ARRAY) {
 					data = data.concat.apply([], data);
 					i-- //check current index again and flatten until there are no more nested arrays at that index
 				}
@@ -134,56 +135,70 @@ var m = (function app(window, undefined) {
 				}
 			}
 			if (shouldMaintainIdentities) {
-				for (var i = 0; i < data.length; i++) {
-					if (data[i] && data[i].attrs) {
-						if (data[i].attrs.key != null) {
-							var key = data[i].attrs.key;
-							if (!existing[key]) existing[key] = {action: INSERTION, index: i};
-							else existing[key] = {
-								action: MOVE,
-								index: i,
-								from: existing[key].index,
-								element: parentElement.childNodes[existing[key].index] || $document.createElement("div")
+				if (data.indexOf(null) > -1) data = data.filter(function(x) {return x != null})
+				
+				var keysDiffer = false
+				if (data.length != cached.length) keysDiffer = true
+				else for (var i = 0, cachedCell, dataCell; cachedCell = cached[i], dataCell = data[i]; i++) {
+					if (cachedCell.attrs && dataCell.attrs && cachedCell.attrs.key != dataCell.attrs.key) {
+						keysDiffer = true
+						break
+					}
+				}
+				
+				if (keysDiffer) {
+					for (var i = 0, len = data.length; i < len; i++) {
+						if (data[i] && data[i].attrs) {
+							if (data[i].attrs.key != null) {
+								var key = data[i].attrs.key;
+								if (!existing[key]) existing[key] = {action: INSERTION, index: i};
+								else existing[key] = {
+									action: MOVE,
+									index: i,
+									from: existing[key].index,
+									element: parentElement.childNodes[existing[key].index] || $document.createElement("div")
+								}
 							}
+							else unkeyed.push({index: i, element: parentElement.childNodes[i] || $document.createElement("div")})
 						}
-						else unkeyed.push({index: i, element: parentElement.childNodes[i] || $document.createElement("div")})
 					}
-				}
-				var actions = Object.keys(existing).map(function(key) {return existing[key]});
-				var changes = actions.sort(function(a, b) {return a.action - b.action || a.index - b.index});
-				var newCached = cached.slice();
+					var actions = []
+					for (var prop in existing) actions.push(existing[prop])
+					var changes = actions.sort(sortChanges);
+					var newCached = new Array(cached.length)
 
-				for (var i = 0, change; change = changes[i]; i++) {
-					if (change.action == DELETION) {
-						clear(cached[change.index].nodes, cached[change.index]);
-						newCached.splice(change.index, 1)
-					}
-					if (change.action == INSERTION) {
-						var dummy = $document.createElement("div");
-						dummy.key = data[change.index].attrs.key;
-						parentElement.insertBefore(dummy, parentElement.childNodes[change.index] || null);
-						newCached.splice(change.index, 0, {attrs: {key: data[change.index].attrs.key}, nodes: [dummy]})
-					}
-
-					if (change.action == MOVE) {
-						if (parentElement.childNodes[change.index] !== change.element && change.element !== null) {
-							parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null)
+					for (var i = 0, change; change = changes[i]; i++) {
+						if (change.action === DELETION) {
+							clear(cached[change.index].nodes, cached[change.index]);
+							newCached.splice(change.index, 1)
 						}
-						newCached[change.index] = cached[change.from]
+						if (change.action === INSERTION) {
+							var dummy = $document.createElement("div");
+							dummy.key = data[change.index].attrs.key;
+							parentElement.insertBefore(dummy, parentElement.childNodes[change.index] || null);
+							newCached.splice(change.index, 0, {attrs: {key: data[change.index].attrs.key}, nodes: [dummy]})
+						}
+
+						if (change.action === MOVE) {
+							if (parentElement.childNodes[change.index] !== change.element && change.element !== null) {
+								parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null)
+							}
+							newCached[change.index] = cached[change.from]
+						}
 					}
+					for (var i = 0, len = unkeyed.length; i < len; i++) {
+						var change = unkeyed[i];
+						parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null);
+						newCached[change.index] = cached[change.index]
+					}
+					cached = newCached;
+					cached.nodes = new Array(parentElement.childNodes.length);
+					for (var i = 0, child; child = parentElement.childNodes[i]; i++) cached.nodes[i] = child
 				}
-				for (var i = 0; i < unkeyed.length; i++) {
-					var change = unkeyed[i];
-					parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null);
-					newCached[change.index] = cached[change.index]
-				}
-				cached = newCached;
-				cached.nodes = [];
-				for (var i = 0, child; child = parentElement.childNodes[i]; i++) cached.nodes.push(child)
 			}
 			//end key algorithm
 
-			for (var i = 0, cacheCount = 0; i < data.length; i++) {
+			for (var i = 0, cacheCount = 0, len = data.length; i < len; i++) {
 				//diff each item in the array
 				var item = build(parentElement, parentTag, cached, index, data[i], cached[cacheCount], shouldReattach, index + subArrayCount || subArrayCount, editable, namespace, configs);
 				if (item === undefined) continue;
@@ -194,14 +209,14 @@ var m = (function app(window, undefined) {
 					//the second clause (after the pipe) matches text nodes
 					subArrayCount += (item.match(/<[^\/]|\>\s*[^<]/g) || []).length
 				}
-				else subArrayCount += type.call(item) == ARRAY ? item.length : 1;
+				else subArrayCount += type.call(item) === ARRAY ? item.length : 1;
 				cached[cacheCount++] = item
 			}
 			if (!intact) {
 				//diff the array itself
 				
 				//update the list of DOM nodes by collecting the nodes from each item
-				for (var i = 0; i < data.length; i++) {
+				for (var i = 0, len = data.length; i < len; i++) {
 					if (cached[i] != null) nodes.push.apply(nodes, cached[i].nodes)
 				}
 				//remove items from the end of the array if the new array is shorter than the old one
@@ -213,16 +228,16 @@ var m = (function app(window, undefined) {
 				cached.nodes = nodes
 			}
 		}
-		else if (data != null && dataType == OBJECT) {
+		else if (data != null && dataType === OBJECT) {
 			if (!data.attrs) data.attrs = {};
 			if (!cached.attrs) cached.attrs = {};
 
-			var dataAttrKeys = Object.keys(data.attrs);
+			var dataAttrKeys = Object.keys(data.attrs)
 			var hasKeys = dataAttrKeys.length > ("key" in data.attrs ? 1 : 0)
 			//if an element is different enough from the one in cache, recreate it
 			if (data.tag != cached.tag || dataAttrKeys.join() != Object.keys(cached.attrs).join() || data.attrs.id != cached.attrs.id) {
 				if (cached.nodes.length) clear(cached.nodes);
-				if (cached.configContext && typeof cached.configContext.onunload == FUNCTION) cached.configContext.onunload()
+				if (cached.configContext && typeof cached.configContext.onunload === FUNCTION) cached.configContext.onunload()
 			}
 			if (type.call(data.tag) != STRING) return;
 
@@ -236,7 +251,7 @@ var m = (function app(window, undefined) {
 				cached = {
 					tag: data.tag,
 					//set attributes first, then create children
-					attrs: dataAttrKeys.length ? setAttributes(node, data.tag, data.attrs, {}, namespace) : {},
+					attrs: hasKeys ? setAttributes(node, data.tag, data.attrs, {}, namespace) : data.attrs,
 					children: data.children != null && data.children.length > 0 ?
 						build(node, data.tag, undefined, undefined, data.children, cached.children, true, 0, data.attrs.contenteditable ? node : editable, namespace, configs) :
 						data.children,
@@ -244,18 +259,18 @@ var m = (function app(window, undefined) {
 				};
 				if (cached.children && !cached.children.nodes) cached.children.nodes = [];
 				//edge case: setting value on <select> doesn't work before children exist, so set it again after children have been created
-				if (data.tag == "select" && data.attrs.value) setAttributes(node, data.tag, {value: data.attrs.value}, {}, namespace);
+				if (data.tag === "select" && data.attrs.value) setAttributes(node, data.tag, {value: data.attrs.value}, {}, namespace);
 				parentElement.insertBefore(node, parentElement.childNodes[index] || null)
 			}
 			else {
 				node = cached.nodes[0];
-				if (dataAttrKeys.length) setAttributes(node, data.tag, data.attrs, cached.attrs, namespace);
+				if (hasKeys) setAttributes(node, data.tag, data.attrs, cached.attrs, namespace);
 				cached.children = build(node, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? node : editable, namespace, configs);
 				cached.nodes.intact = true;
 				if (shouldReattach === true && node != null) parentElement.insertBefore(node, parentElement.childNodes[index] || null)
 			}
 			//schedule configs to be called. They are called after `build` finishes running
-			if (typeof data.attrs["config"] == FUNCTION) {
+			if (typeof data.attrs["config"] === FUNCTION) {
 				var context = cached.configContext = cached.configContext || {};
 
 				// bind
@@ -294,7 +309,7 @@ var m = (function app(window, undefined) {
 						if (parentTag === "textarea") parentElement.value = data;
 						else if (editable) editable.innerHTML = data;
 						else {
-							if (nodes[0].nodeType == 1 || nodes.length > 1) { //was a trusted string
+							if (nodes[0].nodeType === 1 || nodes.length > 1) { //was a trusted string
 								clear(cached.nodes, cached);
 								nodes = [$document.createTextNode(data)]
 							}
@@ -311,6 +326,7 @@ var m = (function app(window, undefined) {
 
 		return cached
 	}
+	function sortChanges(a, b) {return a.action - b.action || a.index - b.index}
 	function setAttributes(node, tag, dataAttrs, cachedAttrs, namespace) {
 		for (var attrName in dataAttrs) {
 			var dataAttr = dataAttrs[attrName];
@@ -319,14 +335,13 @@ var m = (function app(window, undefined) {
 				cachedAttrs[attrName] = dataAttr;
 				try {
 					//`config` isn't a real attributes, so ignore it
-					//we don't ignore `key` because it must be unique and having it on the DOM helps debugging
-					if (attrName === "config") continue;
+					if (attrName === "config" || attrName == "key") continue;
 					//hook event handlers to the auto-redrawing system
-					else if (typeof dataAttr == FUNCTION && attrName.indexOf("on") == 0) {
+					else if (typeof dataAttr === FUNCTION && attrName.indexOf("on") === 0) {
 						node[attrName] = autoredraw(dataAttr, node)
 					}
 					//handle `style: {...}`
-					else if (attrName === "style" && dataAttr != null && type.call(dataAttr) == OBJECT) {
+					else if (attrName === "style" && dataAttr != null && type.call(dataAttr) === OBJECT) {
 						for (var rule in dataAttr) {
 							if (cachedAttr == null || cachedAttr[rule] !== dataAttr[rule]) node.style[rule] = dataAttr[rule]
 						}
@@ -343,9 +358,9 @@ var m = (function app(window, undefined) {
 					//handle cases that are properties (but ignore cases where we should use setAttribute instead)
 					//- list and form are typically used as strings, but are DOM element references in js
 					//- when using CSS selectors (e.g. `m("[style='']")`), style is used as a string, but it's an object in js
-					else if (attrName in node && !(attrName == "list" || attrName == "style" || attrName == "form" || attrName == "type")) {
+					else if (attrName in node && !(attrName === "list" || attrName === "style" || attrName === "form" || attrName === "type")) {
 						//#348 don't set the value if not needed otherwise cursor placement breaks in Chrome
-						if (node[attrName] != dataAttr) node[attrName] = dataAttr
+						if (tag !== "input" || node[attrName] !== dataAttr) node[attrName] = dataAttr
 					}
 					else node.setAttribute(attrName, dataAttr)
 				}
@@ -373,10 +388,10 @@ var m = (function app(window, undefined) {
 		if (nodes.length != 0) nodes.length = 0
 	}
 	function unload(cached) {
-		if (cached.configContext && typeof cached.configContext.onunload == FUNCTION) cached.configContext.onunload();
+		if (cached.configContext && typeof cached.configContext.onunload === FUNCTION) cached.configContext.onunload();
 		if (cached.children) {
-			if (type.call(cached.children) == ARRAY) {
-				for (var i = 0; i < cached.children.length; i++) unload(cached.children[i])
+			if (type.call(cached.children) === ARRAY) {
+				for (var i = 0, child; child = cached.children[i]; i++) unload(child)
 			}
 			else if (cached.children.tag) unload(cached.children)
 		}
@@ -408,7 +423,7 @@ var m = (function app(window, undefined) {
 			m.startComputation();
 			try {return callback.call(object, e)}
 			finally {
-				m.endComputation()
+				endFirstComputation()
 			}
 		}
 	}
@@ -433,13 +448,13 @@ var m = (function app(window, undefined) {
 		var configs = [];
 		if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
 		var id = getCellCacheKey(root);
-		var isDocumentRoot = root == $document;
-		var node = isDocumentRoot || root == $document.documentElement ? documentNode : root;
+		var isDocumentRoot = root === $document;
+		var node = isDocumentRoot || root === $document.documentElement ? documentNode : root;
 		if (isDocumentRoot && cell.tag != "html") cell = {tag: "html", attrs: {}, children: cell};
 		if (cellCache[id] === undefined) clear(node.childNodes);
 		if (forceRecreation === true) reset(root);
 		cellCache[id] = build(node, null, undefined, undefined, cell, cellCache[id], false, 0, null, undefined, configs);
-		for (var i = 0; i < configs.length; i++) configs[i]()
+		for (var i = 0, len = configs.length; i < len; i++) configs[i]()
 	};
 	function getCellCacheKey(element) {
 		var index = nodeCache.indexOf(element);
@@ -467,7 +482,7 @@ var m = (function app(window, undefined) {
 
 	m.prop = function (store) {
 		//note: using non-strict equality check here because we're checking if store is null OR undefined
-		if (((store != null && type.call(store) == OBJECT) || typeof store == FUNCTION) && typeof store.then == FUNCTION) {
+		if (((store != null && type.call(store) === OBJECT) || typeof store === FUNCTION) && typeof store.then === FUNCTION) {
 			return propify(store)
 		}
 
@@ -477,10 +492,11 @@ var m = (function app(window, undefined) {
 	var roots = [], modules = [], controllers = [], lastRedrawId = null, lastRedrawCallTime = 0, computePostRedrawHook = null, prevented = false, topModule;
 	var FRAME_BUDGET = 16; //60 frames per second = 1 call per 16 ms
 	m.module = function(root, module) {
+		if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
 		var index = roots.indexOf(root);
 		if (index < 0) index = roots.length;
 		var isPrevented = false;
-		if (controllers[index] && typeof controllers[index].onunload == FUNCTION) {
+		if (controllers[index] && typeof controllers[index].onunload === FUNCTION) {
 			var event = {
 				preventDefault: function() {isPrevented = true}
 			};
@@ -494,11 +510,11 @@ var m = (function app(window, undefined) {
 			var controller = new module.controller;
 			//controllers may call m.module recursively (via m.route redirects, for example)
 			//this conditional ensures only the last recursive m.module call is applied
-			if (currentModule == topModule) {
+			if (currentModule === topModule) {
 				controllers[index] = controller;
 				modules[index] = module
 			}
-			m.endComputation();
+			endFirstComputation();
 			return controllers[index]
 		}
 	};
@@ -508,7 +524,7 @@ var m = (function app(window, undefined) {
 		if (lastRedrawId && force !== true) {
 			//when setTimeout: only reschedule redraw if time between now and previous redraw is bigger than a frame, otherwise keep currently scheduled timeout
 			//when rAF: always reschedule redraw
-			if (new Date - lastRedrawCallTime > FRAME_BUDGET || $requestAnimationFrame == window.requestAnimationFrame) {
+			if (new Date - lastRedrawCallTime > FRAME_BUDGET || $requestAnimationFrame === window.requestAnimationFrame) {
 				if (lastRedrawId > 0) $cancelAnimationFrame(lastRedrawId);
 				lastRedrawId = $requestAnimationFrame(redraw, FRAME_BUDGET)
 			}
@@ -520,10 +536,10 @@ var m = (function app(window, undefined) {
 	};
 	m.redraw.strategy = m.prop();
 	function redraw() {
-		var mode = m.redraw.strategy();
-		for (var i = 0; i < roots.length; i++) {
-			if (controllers[i] && mode != "none") {
-				m.render(roots[i], modules[i].view(controllers[i]), mode == "all")
+		var forceRedraw = m.redraw.strategy() === "all";
+		for (var i = 0, root; root = roots[i]; i++) {
+			if (controllers[i]) {
+				m.render(root, modules[i].view(controllers[i]), forceRedraw)
 			}
 		}
 		//after rendering within a routed context, we need to scroll back to the top, and fetch the document title for history.pushState
@@ -540,8 +556,15 @@ var m = (function app(window, undefined) {
 	m.startComputation = function() {pendingRequests++};
 	m.endComputation = function() {
 		pendingRequests = Math.max(pendingRequests - 1, 0);
-		if (pendingRequests == 0) m.redraw()
+		if (pendingRequests === 0) m.redraw()
 	};
+	var endFirstComputation = function() {
+		if (m.redraw.strategy() == "none") {
+			pendingRequests--
+			m.redraw.strategy("diff")
+		}
+		else m.endComputation();
+	}
 
 	m.withAttr = function(prop, withAttrCallback) {
 		return function(e) {
@@ -558,7 +581,7 @@ var m = (function app(window, undefined) {
 		//m.route()
 		if (arguments.length === 0) return currentRoute;
 		//m.route(el, defaultRoute, routes)
-		else if (arguments.length === 3 && type.call(arguments[1]) == STRING) {
+		else if (arguments.length === 3 && type.call(arguments[1]) === STRING) {
 			var root = arguments[0], defaultRoute = arguments[1], router = arguments[2];
 			redirect = function(source) {
 				var path = currentRoute = normalizeRoute(source);
@@ -566,7 +589,7 @@ var m = (function app(window, undefined) {
 					m.route(defaultRoute, true)
 				}
 			};
-			var listener = m.route.mode == "hash" ? "onhashchange" : "onpopstate";
+			var listener = m.route.mode === "hash" ? "onhashchange" : "onpopstate";
 			window[listener] = function() {
 				if (currentRoute != normalizeRoute($location[m.route.mode])) {
 					redirect($location[m.route.mode])
@@ -585,7 +608,7 @@ var m = (function app(window, undefined) {
 			element.addEventListener("click", routeUnobtrusive)
 		}
 		//m.route(route, params)
-		else if (type.call(arguments[0]) == STRING) {
+		else if (type.call(arguments[0]) === STRING) {
 			currentRoute = arguments[0];
 			var args = arguments[1] || {}
 			var queryIndex = currentRoute.indexOf("?")
@@ -595,7 +618,7 @@ var m = (function app(window, undefined) {
 			var currentPath = queryIndex > -1 ? currentRoute.slice(0, queryIndex) : currentRoute
 			if (querystring) currentRoute = currentPath + (currentPath.indexOf("?") === -1 ? "?" : "&") + querystring;
 
-			var shouldReplaceHistoryEntry = (arguments.length == 3 ? arguments[2] : arguments[1]) === true;
+			var shouldReplaceHistoryEntry = (arguments.length === 3 ? arguments[2] : arguments[1]) === true;
 
 			if (window.history.pushState) {
 				computePostRedrawHook = function() {
@@ -623,7 +646,7 @@ var m = (function app(window, undefined) {
 		}
 
 		for (var route in router) {
-			if (route == path) {
+			if (route === path) {
 				m.module(root, router[route]);
 				return true
 			}
@@ -634,7 +657,7 @@ var m = (function app(window, undefined) {
 				path.replace(matcher, function() {
 					var keys = route.match(/:[^\/]+/g) || [];
 					var values = [].slice.call(arguments, 1, -2);
-					for (var i = 0; i < keys.length; i++) routeParams[keys[i].replace(/:|\./g, "")] = decodeURIComponent(values[i])
+					for (var i = 0, len = keys.length; i < len; i++) routeParams[keys[i].replace(/:|\./g, "")] = decodeURIComponent(values[i])
 					m.module(root, router[route])
 				});
 				return true
@@ -643,11 +666,11 @@ var m = (function app(window, undefined) {
 	}
 	function routeUnobtrusive(e) {
 		e = e || event;
-		if (e.ctrlKey || e.metaKey || e.which == 2) return;
+		if (e.ctrlKey || e.metaKey || e.which === 2) return;
 		if (e.preventDefault) e.preventDefault();
 		else e.returnValue = false;
 		var currentTarget = e.currentTarget || this;
-		var args = m.route.mode == "pathname" && currentTarget.search ? parseQueryString(currentTarget.search.slice(1)) : {};
+		var args = m.route.mode === "pathname" && currentTarget.search ? parseQueryString(currentTarget.search.slice(1)) : {};
 		m.route(currentTarget[m.route.mode].slice(modes[m.route.mode].length), args)
 	}
 	function setScroll() {
@@ -658,13 +681,13 @@ var m = (function app(window, undefined) {
 		var str = [];
 		for(var prop in object) {
 			var key = prefix ? prefix + "[" + prop + "]" : prop, value = object[prop];
-			str.push(value != null && type.call(value) == OBJECT ? buildQueryString(value, key) : encodeURIComponent(key) + "=" + encodeURIComponent(value))
+			str.push(value != null && type.call(value) === OBJECT ? buildQueryString(value, key) : encodeURIComponent(key) + "=" + encodeURIComponent(value))
 		}
 		return str.join("&")
 	}
 	function parseQueryString(str) {
 		var pairs = str.split("&"), params = {};
-		for (var i = 0; i < pairs.length; i++) {
+		for (var i = 0, len = pairs.length; i < len; i++) {
 			var pair = pairs[i].split("=");
 			params[decodeSpace(pair[0])] = pair[1] ? decodeSpace(pair[1]) : ""
 		}
@@ -724,10 +747,10 @@ var m = (function app(window, undefined) {
 
 		self.promise["then"] = function(successCallback, failureCallback) {
 			var deferred = new Deferred(successCallback, failureCallback);
-			if (state == RESOLVED) {
+			if (state === RESOLVED) {
 				deferred.resolve(promiseValue)
 			}
-			else if (state == REJECTED) {
+			else if (state === REJECTED) {
 				deferred.reject(promiseValue)
 			}
 			else {
@@ -739,12 +762,12 @@ var m = (function app(window, undefined) {
 		function finish(type) {
 			state = type || REJECTED;
 			next.map(function(deferred) {
-				state == RESOLVED && deferred.resolve(promiseValue) || deferred.reject(promiseValue)
+				state === RESOLVED && deferred.resolve(promiseValue) || deferred.reject(promiseValue)
 			})
 		}
 
 		function thennable(then, successCallback, failureCallback, notThennableCallback) {
-			if (((promiseValue != null && type.call(promiseValue) == OBJECT) || typeof promiseValue == FUNCTION) && typeof then == FUNCTION) {
+			if (((promiseValue != null && type.call(promiseValue) === OBJECT) || typeof promiseValue === FUNCTION) && typeof then === FUNCTION) {
 				try {
 					// count protects against abuse calls from spec checker
 					var count = 0;
@@ -788,10 +811,10 @@ var m = (function app(window, undefined) {
 				fire()
 			}, function() {
 				try {
-					if (state == RESOLVING && typeof successCallback == FUNCTION) {
+					if (state === RESOLVING && typeof successCallback === FUNCTION) {
 						promiseValue = successCallback(promiseValue)
 					}
-					else if (state == REJECTING && typeof failureCallback == "function") {
+					else if (state === REJECTING && typeof failureCallback === "function") {
 						promiseValue = failureCallback(promiseValue);
 						state = RESOLVING
 					}
@@ -802,7 +825,7 @@ var m = (function app(window, undefined) {
 					return finish()
 				}
 
-				if (promiseValue == self) {
+				if (promiseValue === self) {
 					promiseValue = TypeError();
 					finish()
 				}
@@ -810,14 +833,14 @@ var m = (function app(window, undefined) {
 					thennable(then, function () {
 						finish(RESOLVED)
 					}, finish, function () {
-						finish(state == RESOLVING && RESOLVED)
+						finish(state === RESOLVING && RESOLVED)
 					})
 				}
 			})
 		}
 	}
 	m.deferred.onerror = function(e) {
-		if (type.call(e) == "[object Error]" && !e.constructor.toString().match(/ Error/)) throw e
+		if (type.call(e) === "[object Error]" && !e.constructor.toString().match(/ Error/)) throw e
 	};
 
 	m.sync = function(args) {
@@ -826,7 +849,7 @@ var m = (function app(window, undefined) {
 			return function(value) {
 				results[pos] = value;
 				if (!resolved) method = "reject";
-				if (--outstanding == 0) {
+				if (--outstanding === 0) {
 					deferred.promise(results);
 					deferred[method](results)
 				}
@@ -899,18 +922,18 @@ var m = (function app(window, undefined) {
 					else options.onerror({type: "error", target: xhr})
 				}
 			};
-			if (options.serialize == JSON.stringify && options.data && options.method != "GET") {
+			if (options.serialize === JSON.stringify && options.data && options.method !== "GET") {
 				xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
 			}
-			if (options.deserialize == JSON.parse) {
+			if (options.deserialize === JSON.parse) {
 				xhr.setRequestHeader("Accept", "application/json, text/*");
 			}
-			if (typeof options.config == FUNCTION) {
+			if (typeof options.config === FUNCTION) {
 				var maybeXhr = options.config(xhr, options);
 				if (maybeXhr != null) xhr = maybeXhr
 			}
 
-			var data = options.method == "GET" || !options.data ? "" : options.data
+			var data = options.method === "GET" || !options.data ? "" : options.data
 			if (data && (type.call(data) != STRING && data.constructor != window.FormData)) {
 				throw "Request data should be either be a string or FormData. Check the `serialize` option in `m.request`";
 			}
@@ -919,7 +942,7 @@ var m = (function app(window, undefined) {
 		}
 	}
 	function bindData(xhrOptions, data, serialize) {
-		if (xhrOptions.method == "GET" && xhrOptions.dataType != "jsonp") {
+		if (xhrOptions.method === "GET" && xhrOptions.dataType != "jsonp") {
 			var prefix = xhrOptions.url.indexOf("?") < 0 ? "?" : "&";
 			var querystring = buildQueryString(data);
 			xhrOptions.url = xhrOptions.url + (querystring ? prefix + querystring : "")
@@ -953,15 +976,15 @@ var m = (function app(window, undefined) {
 		xhrOptions.onload = xhrOptions.onerror = function(e) {
 			try {
 				e = e || event;
-				var unwrap = (e.type == "load" ? xhrOptions.unwrapSuccess : xhrOptions.unwrapError) || identity;
+				var unwrap = (e.type === "load" ? xhrOptions.unwrapSuccess : xhrOptions.unwrapError) || identity;
 				var response = unwrap(deserialize(extract(e.target, xhrOptions)));
-				if (e.type == "load") {
-					if (type.call(response) == ARRAY && xhrOptions.type) {
+				if (e.type === "load") {
+					if (type.call(response) === ARRAY && xhrOptions.type) {
 						for (var i = 0; i < response.length; i++) response[i] = new xhrOptions.type(response[i])
 					}
 					else if (xhrOptions.type) response = new xhrOptions.type(response)
 				}
-				deferred[e.type == "load" ? "resolve" : "reject"](response)
+				deferred[e.type === "load" ? "resolve" : "reject"](response)
 			}
 			catch (e) {
 				m.deferred.onerror(e);
@@ -986,4 +1009,4 @@ var m = (function app(window, undefined) {
 })(typeof window != "undefined" ? window : {});
 
 if (typeof module != "undefined" && module !== null && module.exports) module.exports = m;
-else if (typeof define == "function" && define.amd) define(function() {return m});
+else if (typeof define === "function" && define.amd) define(function() {return m});

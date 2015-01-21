@@ -15,10 +15,11 @@
             <a href="https://github.com/cristianp6" target="_blank" rel="nofollow"><strong>Cristian Pascottini</strong></a> <span class="help-block">- RuneUI Javascript optimizations</span><br>
             <a href="https://github.com/vabatta"><strong>Valerio Battaglia</strong></a> <span class="help-block">- RuneUI Javascript optimizations</span><br>
             <a href="https://github.com/hondagx35" target="_blank" rel="nofollow"><strong>Frank Friedmann</strong></a> (aka hondagx35) <span class="help-block">- RuneUI/RuneOS PHP backend code debug, refactoring of network management, RuneOS porting for Cubietruck</span><br>
+            <a href="https://github.com/kdubious" target="_blank" rel="nofollow"><strong>Kevin Welsh</strong></a> (aka kdubious) <span class="help-block">- RuneUI/RuneOS Frontend & backend development</span><br> 
             <a href="https://github.com/GitAndrer" target="_blank" rel="nofollow"><strong>Andrea Rizzato</strong></a> (aka AandreR) <span class="help-block">- RuneUI/RuneOS PHP backend code debug, integration of Wolfson Audio Card</span><br>
             <a href="http://www.runeaudio.com/forum/member275.html" target="_blank" rel="nofollow"><strong>Saman</strong></a> <span class="help-block">- RuneOS RT Linux kernel for Wolfson Audio Card (RaspberryPi)</span><br>
             <a href="https://github.com/Mte90" target="_blank" rel="nofollow"><strong>Daniele Scasciafratte</strong></a> (aka Mte90) <span class="help-block">- RuneUI Firefox integration</span><br>
-            <a href="https://github.com/fcasarsa"><strong>Francesco Casarsa</strong></a> <span class="help-block">- Shairport patch</span><br>
+            <a href="https://github.com/fcasarsa"><strong>Francesco Casarsa</strong></a> (aka CAS)<span class="help-block">- Shairport patch</span><br>
         </div>
         <div class="col-md-4">
             <h3 class="txtmid">Support us!</h3>
