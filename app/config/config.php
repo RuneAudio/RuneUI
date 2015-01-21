@@ -48,16 +48,18 @@ $redis->pconnect('127.0.0.1');
 //$redis->pconnect('/tmp/redis.sock');
 $devmode = $redis->get('dev');
 $activePlayer = $redis->get('activePlayer');
+
 // LogSettings
 if ($redis->get('debug') > 0 ) {
-    $activeLog=1;
+    $activeLog='1';
 } else {
-    $activeLog=0;
+    $activeLog='0';
 }
 ini_set('log_errors', $activeLog);
-ini_set('error_log', '/var/log/runeaudio/runeui.log');
-// ini_set('display_errors', $activeLog);
-ini_set('display_errors', 0);
+// ini_set('error_log', '/var/log/runeaudio/runeui.log');
+ini_set('error_log', '/var/log/runeaudio/runeui_error.log');
+ini_set('display_errors', $activeLog);
+
 // connect to MPD daemon
 if ($_SERVER["SCRIPT_FILENAME"] === '/var/www/command/index.php' && $activePlayer === 'MPD') {
     // debug

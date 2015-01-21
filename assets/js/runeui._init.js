@@ -149,103 +149,6 @@ function renderUI(text){
     playback_controls.vm.setState(status.state);
 }
 
-// open the Playback UI refresh channel
-function playbackChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode,
-        reconnectOnChannelUnavailableInterval: 5000
-    });
-    pushstream.onmessage = renderUI;
-    pushstream.onstatuschange = function(status) {
-        // console.log('[nginx pushtream module] status = ', status);
-        if (status === 2) {
-            // $('#loader').addClass('hide');
-            sendCmd('renderui'); // force UI rendering (backend-call)
-        } else {
-            // console.log('[nginx pushtream module] status change (' + status + ')');
-            if (status === 0) {
-                // console.log('[nginx pushtream module] status disconnected (0)');
-                // toggleLoader();
-            }
-        }
-    };
-    // pushstream.onerror = function() {
-        // toggleLoader();
-        // console.log('[nginx pushtream module] error');
-    // };
-    pushstream.addChannel('playback');
-    pushstream.connect();
-}
-
-// open the playing queue channel
-function queueChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode
-    });
-    pushstream.onmessage = renderQueue;
-    // pushstream.onstatuschange = function(status) {
-    // force queue rendering (backend-call)
-        // if (status === 2) sendCmd('renderpl');
-    // };
-    pushstream.addChannel('queue');
-    pushstream.connect();
-}
-
-// open the library channel
-function libraryChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode
-    });
-    pushstream.onmessage = libraryHome;
-    pushstream.addChannel('library');
-    pushstream.connect();
-}
-
-//// open the notify messages channel
-//function notifyChannel(){
-//    var pushstream = new PushStream({
-//        host: window.location.hostname,
-//        port: window.location.port,
-//        modes: GUI.mode
-//    });
-//    pushstream.onmessage = renderMSG;
-//    pushstream.addChannel('notify');
-//    pushstream.connect();
-//}
-
-// open the in range Wi-Fi networks list channel
-function wlansChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode
-    });
-    pushstream.onmessage = listWLANs;
-    pushstream.addChannel('wlans');
-    pushstream.connect();
-    $.ajax({url: '/command/?cmd=wifiscan'});
-}
-
-// open the NIC details channel
-function nicsChannel(){
-    var pushstream = new PushStream({
-        host: window.location.hostname,
-        port: window.location.port,
-        modes: GUI.mode
-    });
-    pushstream.onmessage = nicsDetails;
-    pushstream.addChannel('nics');
-    pushstream.connect();
-}
-
-
-
 // INIT
 // ----------------------------------------------------------------------------------------------------
 
@@ -255,16 +158,7 @@ jQuery(document).ready(function($) { 'use strict';
 
     // check WebSocket support
     GUI.mode = helpers.checkWebSocket();
-    
-    // first connection with MPD daemon
-    // open UI rendering channel;
-    var playbackStatus = function(status) {
-        if (status === 2) {
-            sendCmd('renderui'); // force UI rendering (backend-call)
-        }
-    };
-    channels.playbackChannel = new RuneChannel('playback', renderUI, playbackStatus);
-    
+       
     // PNotify init options
     PNotify.prototype.options.styling = 'fontawesome';
     PNotify.prototype.options.stack.dir1 = 'up';
@@ -274,7 +168,25 @@ jQuery(document).ready(function($) { 'use strict';
     PNotify.prototype.options.stack.spacing1 = 10;
     PNotify.prototype.options.stack.spacing2 = 10;
 
-    // open notify channel
+    // first connection with MPD daemon
+    // open UI rendering channel;
+    //var playbackStatus = function (status) {
+    //    if (status === 2) {
+    //        sendCmd('renderui'); // force UI rendering (backend-call)
+    //    }
+    //};
+    channels.playbackChannel = new RuneChannel('playback', renderUI); //, playbackStatus);
+
+    // open channels
     channels.notifyChannel = new RuneChannel('notify', renderMSG);
+    //channels.nicsChannel = new RuneChannel('nics', nicsDetails);
+    //channels.wlansChannel = new RuneChannel('wlans', listWLANs); // $.ajax({url: '/command/?cmd=wifiscan'});
+    //channels.libraryChannel = new RuneChannel('library', libraryHome);
+    //channels.queueChannel = new RuneChannel('queue', renderQueue);
+
+    // remove 300ms delay from Mobile Browsers
+    //    FastClick.attach(document.body);
+
+    sendCmd('renderui');
 
 });

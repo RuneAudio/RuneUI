@@ -13,7 +13,7 @@ playback_controls.vm = (function() {
     
     vm.init = function() {
         // a slot to store the state
-        // vm.state = m.prop('');
+        vm.state = m.prop('');
         
         // valid states from the backend
         vm.validStates = {stop: 'stop', play: 'play', pause: 'pause'};
@@ -23,6 +23,7 @@ playback_controls.vm = (function() {
             playback_controls.vm.state(vm.validStates[state]);
             // console.log(vm.validStates[state]);
             m.endComputation();
+            //m.redraw();
         };
 
         // valid commands to the backend
@@ -48,6 +49,7 @@ playback_controls.vm = (function() {
         // send playback control commands to the backend
         vm.sendCmd = function(cmd) {
             var request = m.request({
+                background: true,
                 method: 'GET',
                 url: '/command/?cmd=' + cmd,
                 deserialize: function(value) {return value;}

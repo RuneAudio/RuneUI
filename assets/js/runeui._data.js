@@ -2,7 +2,7 @@
 window.data = window.data || {};
 
 // base data loading function
-data.getData = function(vm) {
+data.getData = function(vm, onload) {
     var url = vm.url;
     if (vm.id) {
         url += '/' + vm.id;
@@ -10,10 +10,16 @@ data.getData = function(vm) {
     helpers.toggleLoader('open');
     var loaderClose = function() {
         helpers.toggleLoader('close');
+        if (onload) {
+            onload(true);
+        }
     };
     var loaderCloseFail = function(errormsg) {
         console.log('FAIL: ' + errormsg);
         error.vm.showError(errormsg, vm.selector);
+        if (onload) {
+            onload(false);
+        }
     };
     // the standard Mithril syntax expects our service to return [], but ours returns {}
     m.request({

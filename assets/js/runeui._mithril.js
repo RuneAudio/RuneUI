@@ -72,6 +72,12 @@ mithril.createSelect = function(id, container, field, list, valueField, displayF
 };
 
 
+
+
+mithril.showModal = function (module) {
+    m.module(document.getElementById('dialog'), module);
+}
+
 // MITHRIL BASE CLASES FOR RUNE MODULES
 
 // base view model
@@ -86,14 +92,18 @@ mithril.getViewModel = function(baseurl) {
         return true;
     };
 
+    vm.onload = function (status) {
+        return status;
+    };
+
     // initialize the view model
     vm.init = function(id) {
         this.id = id;
         // property 'data' is defined on VM in teh call below
-        data.getData(this);
+        data.getData(this, vm.onload);
         navigation.vm.navigate(baseurl); //this.url.replace(baseurl, ''));
     };
-
+    
     // methods of all of view models
     vm.save = function(field) {
         if (vm.validate()) {
@@ -132,6 +142,9 @@ mithril.getViewModel = function(baseurl) {
 mithril.getController = function(vm) {
     var controller = function() {
         this.id = m.route.param('id');
+        //TODO: Test this line below at some point:
+        //    m.redraw.strategy("diff")
+
         vm.init(this.id);
 
         this.onunload = function () {

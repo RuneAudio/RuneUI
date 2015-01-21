@@ -1214,7 +1214,11 @@ function runelog($title, $data = null, $function_name = null)
                 error_log($function_name.'### '.$title.' ###  [\''.$key.'\'] => '.$value,0);
             }
         } else {
-            error_log($function_name.'### '.$title.' ###  '.$data,0);
+            $msg = $function_name.'### '.$title.' ###  ';
+            if (isset($data)) {
+                $msg = $msg.$data;
+            }
+            error_log($msg,0);
         }
     }
     $store->close();
@@ -1252,7 +1256,8 @@ function wrk_control($redis, $action, $data)
             break;
     }
     // debug
-    runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID); // [TODO] check this
+    $msg = '[wrk] wrk_control($redis,'.$action.','.$data.') jobID='.$jobID;
+    runelog(msg); // [TODO] check this
     return $jobID;
 }
 
@@ -2378,12 +2383,20 @@ function wrk_sourcecfg($redis, $action, $args)
     switch ($action) {
         case 'add':
             // unset($args->id);
+            runelog('KEW  wrk_sourcecfg PRE redis incr(mountidx)', $args->id);
+
             $args->id = $redis->incr('mountidx');
+
+            runelog('KEW  wrk_sourcecfg POST', $args->id);
+
             $args = (array) $args;
             $redis->hMset('mount_'.$args['id'], $args);
             $return = wrk_sourcemount($redis, 'mount', $args['id']);
             break;
         case 'edit':
+
+            runelog('KEW  wrk_sourcecfg PRE edit', $args->id);
+
             $mp = $redis->hGetAll('mount_'.$args->id);
             $args = (array) $args;
             $redis->hMset('mount_'.$args['id'], $args);

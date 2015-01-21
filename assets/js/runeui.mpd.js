@@ -9,7 +9,7 @@ mpd.vm.saveAudioOutput = function (e) {
 };
 
 mpd.vm.reset = function (e) {
-    m.module(document.getElementById('dialog'), modal.resetmpd);
+    mithril.showModal(modal.resetmpd);
 };
 
 

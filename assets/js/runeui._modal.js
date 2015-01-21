@@ -89,14 +89,18 @@ modal.resetmpd = {
     }
 };
 
-modal.deleteSource = {
+modal.removeSource = {
     vm: (function (info) {
 
         var vm = {};
 
         vm.remove = function () {
             console.log('reset');
-            //postData('/api/sources', { ???: ??? });
+            data.postData('/api/sources', {
+                'source-umount': true,
+                mount: source.vm.data.mount
+            });
+            m.route('/sources');
         };
 
         vm.init = function () {
@@ -107,7 +111,7 @@ modal.deleteSource = {
 
     }()),
     controller: function () {
-        modal.deleteSource.vm.init();
+        modal.removeSource.vm.init();
     },
     view: function () {
         return [
@@ -122,7 +126,7 @@ modal.deleteSource = {
                     ]),
                     m(".modal-footer", [
                         m("button.btn.btn-default.btn-lg[aria-hidden='true'][data-dismiss='modal']", "Cancel"),
-                        m("button.btn.btn-primary.btn-lg[data-dismiss='modal']", { onclick: modal.resetmpd.vm.remove }, "Remove"),
+                        m("button.btn.btn-primary.btn-lg[data-dismiss='modal']", { onclick: modal.removeSource.vm.remove }, "Remove"),
                         m("input[name='mount[id]'][type='hidden'][value='']")
                     ])
                 ])

@@ -45,7 +45,7 @@ sources.view = function (ctrl) {
                              sources.vm.edit(item.id);
                          }
                      },
-                         [" ", m("i.fa.sx", { className: (item.status) ? 'fa-check green' : 'fa-times red' }), item.name, m("span", "\\\\" + item.address + "\\" + item.remotedir)])
+                         [" ", m("i.fa.sx", { className: (item.status) ? 'fa-check green' : 'fa-times red' }), item.name, m("span", " \\\\" + item.address + "\\" + item.remotedir)])
                      ]);
                  }),
                  m('p', [m('a.btn.btn-lg.btn-primary.btn-block', { onclick: sources.vm.add }, [m('i.fa.fa-plus.sx'), ' Add new mount'])]),

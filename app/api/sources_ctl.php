@@ -45,13 +45,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($json['mountall'] == true) {
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'mountall' ));
-        waitSyWrk($redis, $jobID);
+        //waitSyWrk($redis, $jobID);
         return ;
+    }
+	
+	if ($json['source-umount']) {
+        $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $json['mount']));
+        //waitSyWrk($redis, $jobID);
+        return;
     }
     
     if ($json['usb-umount']) {
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'umountusb', 'args' => $json['usb-umount']));
-        waitSyWrk($redis, $jobID);
+        //waitSyWrk($redis, $jobID);
         return;
     }
     
@@ -61,16 +67,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($json['mount']['wsize'] == '') $json['mount']['wsize'] = 17408;
         if ($json['mount']['options'] == '') {
             if ($json['mount']['type'] === 'cifs' OR $json['mount']['type'] === 'osx') {
-                $json['mount']['options'] = "cache=none,ro";
+                $json['mount']['options'] = "cache=none,noserverino,ro";
             } else {
                 $json['mount']['options'] = "nfsvers=3,ro";
             }
         }
-        if ($json['action'] == 'add') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $json['mount']));
-        if ($json['action'] == 'edit') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $json['mount']));
-        if ($json['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $json['mount']));
-        if ($json['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
+        if ($json['mount']['id'] == '0') {
+			// Add
+			$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'add', 'args' => $json['mount']));	
+		} else {
+			// Edit
+			$jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'edit', 'args' => $json['mount']));	
+		}
     }
+	
+	// TODO : reset
+	// if ($json['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
     
     //waitSyWrk($redis, $jobID);
 
@@ -111,7 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else if ($id === '0') {
         // GET to setup a New Source
-
+        $mount = new stdClass();
+        $mount->id = 0;
         $mount->name = '';
         $mount->address = '';
         $mount->type = '';
