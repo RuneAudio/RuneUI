@@ -2769,7 +2769,7 @@ m.module(document.getElementById('playlist'), {
                             console.log(song);
                         }
 					}
-                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': start + idx, 'class': song.current ? 'active' : ''}, [
+                    return m('li', {id: 'pl-' + song.id, 'data-queuepos': start + idx, 'class': (song.id === GUI.json.songid) ? 'active' : ''}, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
 							song.title,
