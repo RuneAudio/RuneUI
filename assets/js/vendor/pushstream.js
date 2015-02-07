@@ -1,28 +1,34 @@
 /*global PushStream WebSocketWrapper EventSourceWrapper EventSource*/
 /*jshint evil: true, plusplus: false, regexp: false */
 /**
- * Copyright (C) 2010-2013 Wandenberg Peixoto <wandenberg@gmail.com>, Rogério Carvalho Schneider <stockrt@gmail.com>
- *
- * This file is part of Nginx Push Stream Module.
- *
- * Nginx Push Stream Module is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Nginx Push Stream Module is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Nginx Push Stream Module.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * pushstream.js
- *
- * Created: Nov 01, 2011
- * Authors: Wandenberg Peixoto <wandenberg@gmail.com>, Rogério Carvalho Schneider <stockrt@gmail.com>
+The MIT License (MIT)
+
+Copyright (c) 2010-2014 Wandenberg Peixoto <wandenberg@gmail.com>, Rogério Carvalho Schneider <stockrt@gmail.com>
+
+This file is part of Nginx Push Stream Module.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+pushstream.js
+
+Created: Nov 01, 2011
+Authors: Wandenberg Peixoto <wandenberg@gmail.com>, Rogério Carvalho Schneider <stockrt@gmail.com>
  */
 (function (window, document, undefined) {
   "use strict";
@@ -152,24 +158,34 @@
     debug : function() { if  (PushStream.LOG_LEVEL === 'debug')                                         { Log4js._log.apply(Log4js._log, arguments); }},
     info  : function() { if ((PushStream.LOG_LEVEL === 'info')  || (PushStream.LOG_LEVEL === 'debug'))  { Log4js._log.apply(Log4js._log, arguments); }},
     error : function() {                                                                                  Log4js._log.apply(Log4js._log, arguments); },
+    _initLogger : function() {
+      var console = window.console;
+      if (console && console.log) {
+        if (console.log.apply) {
+          Log4js.logger = console.log;
+        } else if ((typeof console.log === "object") && Function.prototype.bind) {
+          Log4js.logger = Function.prototype.bind.call(console.log, console);
+        } else if ((typeof console.log === "object") && Function.prototype.call) {
+          Log4js.logger = function() {
+            Function.prototype.call.call(console.log, console, Array.prototype.slice.call(arguments));
+          };
+        }
+      }
+    },
     _log  : function() {
       if (!Log4js.logger) {
-        var console = window.console;
-        if (console && console.log) {
-          if (console.log.apply) {
-            Log4js.logger = console.log;
-          } else if ((typeof console.log === "object") && Function.prototype.bind) {
-            Log4js.logger = Function.prototype.bind.call(console.log, console);
-          } else if ((typeof console.log === "object") && Function.prototype.call) {
-            Log4js.logger = function() {
-              Function.prototype.call.call(console.log, console, Array.prototype.slice.call(arguments));
-            };
-          }
-        }
+        Log4js._initLogger();
       }
 
       if (Log4js.logger) {
-        Log4js.logger.apply(window.console, arguments);
+        try {
+          Log4js.logger.apply(window.console, arguments);
+        } catch(e) {
+          Log4js._initLogger();
+          if (Log4js.logger) {
+            Log4js.logger.apply(window.console, arguments);
+          }
+        }
       }
 
       var logElement = document.getElementById(PushStream.LOG_OUTPUT_ELEMENT_ID);
@@ -189,18 +205,22 @@
   };
 
   var Ajax = {
-    _getXHRObject : function() {
+    _getXHRObject : function(crossDomain) {
       var xhr = false;
+      if (crossDomain) {
+        try { xhr = new window.XDomainRequest(); } catch (e) { }
+        if (xhr) {
+          return xhr;
+        }
+      }
+
       try { xhr = new window.XMLHttpRequest(); }
       catch (e1) {
-        try { xhr = new window.XDomainRequest(); }
+        try { xhr = new window.ActiveXObject("Msxml2.XMLHTTP"); }
         catch (e2) {
-          try { xhr = new window.ActiveXObject("Msxml2.XMLHTTP"); }
+          try { xhr = new window.ActiveXObject("Microsoft.XMLHTTP"); }
           catch (e3) {
-            try { xhr = new window.ActiveXObject("Microsoft.XMLHTTP"); }
-            catch (e4) {
-              xhr = false;
-            }
+            xhr = false;
           }
         }
       }
@@ -210,22 +230,36 @@
     _send : function(settings, post) {
       settings = settings || {};
       settings.timeout = settings.timeout || 30000;
-      var xhr = Ajax._getXHRObject();
+      var xhr = Ajax._getXHRObject(settings.crossDomain);
       if (!xhr||!settings.url) { return; }
 
       Ajax.clear(settings);
 
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          Ajax.clear(settings);
+      settings.xhr = xhr;
+
+      if (window.XDomainRequest && (xhr instanceof window.XDomainRequest)) {
+        xhr.onload = function () {
           if (settings.afterReceive) { settings.afterReceive(xhr); }
-          if(xhr.status === 200) {
-            if (settings.success) { settings.success(xhr.responseText); }
-          } else {
-            if (settings.error) { settings.error(xhr.status); }
+          if (settings.success) { settings.success(xhr.responseText); }
+        };
+
+        xhr.onerror = xhr.ontimeout = function () {
+          if (settings.afterReceive) { settings.afterReceive(xhr); }
+          if (settings.error) { settings.error(xhr.status); }
+        };
+      } else {
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            Ajax.clear(settings);
+            if (settings.afterReceive) { settings.afterReceive(xhr); }
+            if(xhr.status === 200) {
+              if (settings.success) { settings.success(xhr.responseText); }
+            } else {
+              if (settings.error) { settings.error(xhr.status); }
+            }
           }
-        }
-      };
+        };
+      }
 
       if (settings.beforeOpen) { settings.beforeOpen(xhr); }
 
@@ -244,20 +278,28 @@
       if (settings.beforeSend) { settings.beforeSend(xhr); }
 
       var onerror = function() {
-        try { xhr.abort(); } catch (e) { /* ignore error on closing */ }
         Ajax.clear(settings);
+        try { xhr.abort(); } catch (e) { /* ignore error on closing */ }
         settings.error(304);
       };
 
       if (post) {
-        xhr.setRequestHeader("Accept", "application/json");
-        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        if (xhr.setRequestHeader) {
+          xhr.setRequestHeader("Accept", "application/json");
+          xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        }
       } else {
         settings.timeoutId = window.setTimeout(onerror, settings.timeout + 2000);
       }
 
       xhr.send(body);
       return xhr;
+    },
+
+    _clear_xhr : function(xhr) {
+      if (xhr) {
+        xhr.onreadystatechange = null;
+      }
     },
 
     _clear_script : function(script) {
@@ -272,9 +314,18 @@
       settings.timeoutId = clearTimer(settings.timeoutId);
     },
 
+    _clear_jsonp : function(settings) {
+      var callbackFunctionName = settings.data.callback;
+      if (callbackFunctionName) {
+        window[callbackFunctionName] = function() { window[callbackFunctionName] = null; };
+      }
+    },
+
     clear : function(settings) {
       Ajax._clear_timeout(settings);
+      Ajax._clear_jsonp(settings);
       Ajax._clear_script(document.getElementById(settings.scriptId));
+      Ajax._clear_xhr(settings.xhr);
     },
 
     jsonp : function(settings) {
@@ -287,10 +338,8 @@
 
       var onerror = function() {
         Ajax.clear(settings);
-        var callbackFunctionName = settings.data.callback;
-        if (callbackFunctionName) { window[callbackFunctionName] = function() { window[callbackFunctionName] = null; }; }
         var endTime = getTime();
-        settings.error(((endTime - startTime) > settings.timeout/2) ? 304 : 0);
+        settings.error(((endTime - startTime) > settings.timeout/2) ? 304 : 403);
       };
 
       var onload = function() {
@@ -298,10 +347,19 @@
         settings.load();
       };
 
+      var onsuccess = function() {
+        settings.afterSuccess = true;
+        settings.success.apply(null, arguments);
+      };
+
       script.onerror = onerror;
       script.onload = script.onreadystatechange = function(eventLoad) {
         if (!script.readyState || /loaded|complete/.test(script.readyState)) {
-          onload();
+          if (settings.afterSuccess) {
+            onload();
+          } else {
+            onerror();
+          }
         }
       };
 
@@ -310,11 +368,10 @@
 
       settings.timeoutId = window.setTimeout(onerror, settings.timeout + 2000);
       settings.scriptId = settings.scriptId || getTime();
+      settings.afterSuccess = null;
 
-      var callbackFunctionName = settings.data.callback;
-      if (callbackFunctionName) { window[callbackFunctionName] = function() { window[callbackFunctionName] = null; }; }
       settings.data.callback = settings.scriptId + "_onmessage_" + getTime();
-      window[settings.data.callback] = settings.success;
+      window[settings.data.callback] = onsuccess;
 
       script.setAttribute("src", addParamsToUrl(settings.url, extend({}, settings.data, currentTimestampParam())));
       script.setAttribute("async", "async");
@@ -377,9 +434,10 @@
   var getSubscriberUrl = function(pushstream, prefix, extraParams, withBacktrack) {
     var websocket = pushstream.wrapper.type === WebSocketWrapper.TYPE;
     var useSSL = pushstream.useSSL;
+    var port = normalizePort(useSSL, pushstream.port);
     var url = (websocket) ? ((useSSL) ? "wss://" : "ws://") : ((useSSL) ? "https://" : "http://");
     url += pushstream.host;
-    url += ((!useSSL && pushstream.port === 80) || (useSSL && pushstream.port === 443)) ? "" : (":" + pushstream.port);
+    url += (port ? (":" + port) : "");
     url += prefix;
 
     var channels = getChannelsPath(pushstream.channels, withBacktrack);
@@ -394,18 +452,13 @@
   };
 
   var getPublisherUrl = function(pushstream) {
-    var channel = "";
+    var port = normalizePort(pushstream.useSSL, pushstream.port);
     var url = (pushstream.useSSL) ? "https://" : "http://";
     url += pushstream.host;
-    url += ((pushstream.port !== 80) && (pushstream.port !== 443)) ? (":" + pushstream.port) : "";
+    url += (port ? (":" + port) : "");
     url += pushstream.urlPrefixPublisher;
-    for (var channelName in pushstream.channels) {
-      if (!pushstream.channels.hasOwnProperty || pushstream.channels.hasOwnProperty(channelName)) {
-        channel = channelName;
-        break;
-      }
-    }
-    url += "?id=" + channel;
+    url += "?id=" + getChannelsPath(pushstream.channels, false);
+
     return url;
   };
 
@@ -421,6 +474,27 @@
     var keepNumber = Math.max(domainParts.length - 1, (domain.match(/(\w{4,}\.\w{2}|\.\w{3,})$/) ? 2 : 3));
 
     return domainParts.slice(-1 * keepNumber).join('.');
+  };
+
+  var normalizePort = function (useSSL, port) {
+    port = Number(port || (useSSL ? 443 : 80));
+    return ((!useSSL && port === 80) || (useSSL && port === 443)) ? "" : port;
+  };
+
+  Utils.isCrossDomainUrl = function(url) {
+    if (!url) {
+      return false;
+    }
+
+    var parser = document.createElement('a');
+    parser.href = url;
+
+    var srcPort = normalizePort(window.location.protocol === "https:", window.location.port);
+    var dstPort = normalizePort(parser.protocol === "https:", parser.port);
+
+    return (window.location.protocol !== parser.protocol) ||
+           (window.location.hostname !== parser.hostname) ||
+           (srcPort !== dstPort);
   };
 
   var linker = function(method, instance) {
@@ -456,7 +530,7 @@
     if ((this.pushstream.readyState === PushStream.OPEN) &&
         (this.type === EventSourceWrapper.TYPE) &&
         (event.type === 'error') &&
-        (this.connection.readyState === EventSource.CONNECTING)) {
+        (this.connection.readyState === window.EventSource.CONNECTING)) {
       // EventSource already has a reconnection function using the last-event-id header
       return;
     }
@@ -604,20 +678,18 @@
 
     loadFrame: function(url) {
       this._clear_iframe();
-      try {
+
+      var ifr = null;
+      if ("ActiveXObject" in window) {
         var transferDoc = new window.ActiveXObject("htmlfile");
         transferDoc.open();
-        transferDoc.write("<html><script>document.domain=\""+(document.domain)+"\";</script></html>");
+        transferDoc.write("<html><script>document.domain='" + document.domain + "';</script><body><iframe id='" + this.iframeId + "' src='" + url + "'></iframe></body></html>");
         transferDoc.parentWindow.PushStream = PushStream;
         transferDoc.close();
-        var ifrDiv = transferDoc.createElement("div");
-        transferDoc.appendChild(ifrDiv);
-        ifrDiv.innerHTML = "<iframe src=\""+url+"\"></iframe>";
-        this.connection = ifrDiv.getElementsByTagName("IFRAME")[0];
-        this.connection.onload = linker(onerrorCallback, this);
+        ifr = transferDoc.getElementById(this.iframeId);
         this.transferDoc = transferDoc;
-      } catch (e) {
-        var ifr = document.createElement("IFRAME");
+      } else {
+        ifr = document.createElement("IFRAME");
         ifr.style.width = "1px";
         ifr.style.height = "1px";
         ifr.style.border = "none";
@@ -628,10 +700,11 @@
         ifr.PushStream = PushStream;
         document.body.appendChild(ifr);
         ifr.setAttribute("src", url);
-        ifr.onload = linker(onerrorCallback, this);
-        this.connection = ifr;
+        ifr.setAttribute("id", this.iframeId);
       }
-      this.connection.setAttribute("id", this.iframeId);
+
+      ifr.onload = linker(onerrorCallback, this);
+      this.connection = ifr;
       this.frameloadtimer = window.setTimeout(linker(onerrorCallback, this), this.pushstream.timeout);
     },
 
@@ -696,17 +769,13 @@
       this.urlWithBacktrack = getSubscriberUrl(this.pushstream, this.pushstream.urlPrefixLongpolling, {}, true);
       this.urlWithoutBacktrack = getSubscriberUrl(this.pushstream, this.pushstream.urlPrefixLongpolling, {}, false);
       this.xhrSettings.url = this.urlWithBacktrack;
-      var domain = Utils.extract_xss_domain(this.pushstream.host);
-      var currentDomain = Utils.extract_xss_domain(window.location.hostname);
-      var port = this.pushstream.port;
-      var currentPort = window.location.port ? Number(window.location.port) : (this.pushstream.useSSL ? 443 : 80);
-      this.useJSONP = (domain !== currentDomain) || (port !== currentPort) || this.pushstream.useJSONP;
+      this.useJSONP = this.pushstream._crossDomain || this.pushstream.useJSONP;
       this.xhrSettings.scriptId = "PushStreamManager_" + this.pushstream.id;
       if (this.useJSONP) {
         this.pushstream.messagesControlByArgument = true;
       }
-      this._internalListen();
-      this.opentimer = window.setTimeout(linker(onopenCallback, this), 100);
+      this._listen();
+      this.opentimer = window.setTimeout(linker(onopenCallback, this), 150);
       Log4js.info("[LongPolling] connecting to:", this.xhrSettings.url);
     },
 
@@ -739,7 +808,7 @@
       this.opentimer = clearTimer(this.opentimer);
       if (this.connection) {
         try { this.connection.abort(); } catch (e) {
-          try { Ajax.clear(this.connection); } catch (e) { /* ignore error on closing */ }
+          try { Ajax.clear(this.connection); } catch (e1) { /* ignore error on closing */ }
         }
         this.connection = null;
         this.xhrSettings.url = null;
@@ -762,12 +831,12 @@
     },
 
     onerror: function(status) {
+      this._closeCurrentConnection();
       if (this.pushstream._keepConnected) { /* abort(), called by disconnect(), call this callback, but should be ignored */
         if (status === 304) {
           this._listen();
         } else {
           Log4js.info("[LongPolling] error (disconnected by server):", status);
-          this._closeCurrentConnection();
           this.pushstream._onerror({type: ((status === 403) || (this.pushstream.readyState === PushStream.CONNECTING)) ? "load" : "timeout"});
         }
       }
@@ -861,6 +930,7 @@
     this.channelsByArgument   = settings.channelsByArgument   || false;
     this.channelsArgument     = settings.channelsArgument     || 'channels';
 
+    this._crossDomain = Utils.isCrossDomainUrl(getPublisherUrl(this));
 
     for (var i = 0; i < this.modes.length; i++) {
       try {
@@ -1038,7 +1108,7 @@
         this.wrapper.sendMessage(message);
         if (successCallback) { successCallback(); }
       } else {
-        Ajax.post({url: getPublisherUrl(this), data: message, success: successCallback, error: errorCallback});
+        Ajax.post({url: getPublisherUrl(this), data: message, success: successCallback, error: errorCallback, crossDomain: this._crossDomain});
       }
     }
   };
