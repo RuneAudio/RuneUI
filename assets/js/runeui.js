@@ -732,7 +732,6 @@ function parseQueue(data){
         var infos = line.split(': ');
         if ( 'file' === infos[0] ) {
             song.file = infos[1];
-            song.fileExt = infos[1].split('.').pop();
         }
         else if ( 'Name' === infos[0] ) {
             song.name = infos[1];
@@ -788,6 +787,7 @@ function getPlaylistCmd(){
                 $('#playlist-entries').removeClass('hide');
                 // console.time('getPlaylistPlain timer');
                 queueTracks = parseQueue(data);
+                // console.log(queueTracks);
                 // console.timeEnd('getPlaylistPlain timer');
                 $('#playlist').height(queueTracks.length * listEntryHeight);
                 setQueuePos();
@@ -2764,7 +2764,7 @@ m.module(document.getElementById('playlist'), {
 						bottom = song.artist + ' - ' + song.album;
 					} else {
 						if (song.file) {
-                            bottom = 'path: ' + song.file.split('/').pop();
+                            bottom = 'path: ' + parsePath(song.file);
                         } else {
                             console.log(song);
                         }
@@ -2772,7 +2772,7 @@ m.module(document.getElementById('playlist'), {
                     return m('li', {id: 'pl-' + song.id, 'data-queuepos': start + idx, 'class': (song.id === GUI.json.songid) ? 'active' : ''}, [
 						m('i.fa.fa-times-circle.pl-action[title="Remove song from playlist"]'),
 						m('span.sn', [
-							song.title,
+							(song.title) ? song.title : song.file.split('/').pop(),
 							m('span', song.timeFormatted)
 						]),
 						m('span.bl', bottom)
