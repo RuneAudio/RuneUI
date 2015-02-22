@@ -60,9 +60,10 @@ if ($retval[0] === 'disabled')
 $retval = sysCmd('systemctl is-enabled nginx.service');
 if ($retval[0] === 'disabled')
     sysCmd('systemctl enable nginx.service');
-$retval = sysCmd('systemctl is-enabled dhcpcd.service');
-if ($retval[0] === 'disabled')
-    sysCmd('systemctl enable dhcpcd.service');
+//$retval = sysCmd('systemctl is-enabled dhcpcd.service');
+//if ($retval[0] === 'disabled')
+//    sysCmd('systemctl enable dhcpcd.service');
+
 // stop php-fpm
 sysCmd('systemctl stop php-fpm');
 // setup /run dir

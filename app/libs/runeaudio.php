@@ -2429,6 +2429,10 @@ function wrk_getHwPlatform()
                 case 'Freescale i.MX6 Quad/DualLite (Device Tree)':
                     $arch = '07';
                     break;
+                // RaspberryPi
+                case 'BCM2709':
+                    $arch = '08';
+                    break;
                 default:
                     $arch = '--';
                     break;
@@ -2472,6 +2476,10 @@ function wrk_setHwPlatform($redis)
             break;
         case '06':
             $redis->set('hwplatform', 'Cubietruck');
+            $redis->set('hwplatformid', $arch);
+            break;
+        case '08':
+            $redis->set('hwplatform', 'RaspberryPi2');
             $redis->set('hwplatformid', $arch);
             break;
         default:

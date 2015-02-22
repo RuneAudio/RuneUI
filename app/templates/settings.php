@@ -114,6 +114,21 @@
                 </div>
             </div>
             <?php endif;?>
+            <?php if($this->hwplatformid === '08'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-arch-3.18.7-3-ARCH">Linux kernel 3.18.7-3&nbsp;&nbsp;&nbsp;ARCH&nbsp;[RuneAudio v0.3-beta]</option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <span class="help-block">Enable I&#178;S output by selecting one of the available sets of modules (in this version you have to edit /boot/config.txt), specific for each hardware. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
             <div class="form-group">
                 <label class="control-label col-sm-2" for="orionprofile">Sound Signature (optimization profiles)</label>
                 <div class="col-sm-10">
