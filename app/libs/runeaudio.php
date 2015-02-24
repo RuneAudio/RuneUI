@@ -1338,6 +1338,31 @@ runelog('wrk_opcache ', $action);
     }
 }
 
+// KEW
+// takes a netmask and returns the CIDR notation
+// in: net_NetmaskToCidr("255.255.255.0");
+// out: 24
+function net_NetmaskToCidr($netmask) {
+    $bits = 0;
+    $chunks = explode(".", $netmask);
+    foreach($chunks as $octect) {
+        $bits += strlen(str_replace("0", "", decbin($octect)));
+    }
+    return $bits;
+}
+
+// KEW
+// takes CIDR notation and returns the netmask string
+// in: net_CidrToNetmask(24);
+// out: "255.255.255.0"
+function net_CidrToNetmask($cidr) {
+    $netmask = str_split(str_pad(str_pad('', $cidr, '1'), 32, '0'), 8);
+    foreach ($netmask as &$element) {
+        $element = bindec($element);
+    }
+    return join('.', $netmask);
+}
+
 function wrk_netconfig($redis, $action, $args = null, $configonly = null)
 {
     // nics blacklist
@@ -1353,6 +1378,8 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             $interfaces = array_diff($interfaces, $excluded_nics);
             foreach ($interfaces as $interface) {
                 $ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
+                //***
+                // KEW: Do we need to assume this may be CIDR & may be Netmask notatation?
                 $netmask = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f2");
                 if (isset($netmask[0])) {
                     $netmask = netmask($netmask[0]);
@@ -1466,7 +1493,12 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
                 // STATIC configuration
                 $nic .= "AutoWired=yes\n";
                 $nic .= "IP=static\n";
-                $nic .= "Address=('".$args->ip."/".$args->netmask."')\n";
+                
+                // KEW
+                // Need address in CIDR notation 0.0.0.0/0
+                $cidr = net_NetmaskToCidr($args->netmask);
+                $nic .= "Address=('".$args->ip."/".$cidr."')\n";
+                
                 $nic .= "Gateway='".$args->gw."'\n";
                 if (!empty($args->dns2)) {
                     $nic .= "DNS=('".$args->dns1."' '".$args->dns2."')\n";
