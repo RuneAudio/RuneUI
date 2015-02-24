@@ -114,16 +114,23 @@ if (isset($template->action)) {
                 $template->addprofile = 1;
             } else {
             // we are connecting to a visible network
+                //  /network/edit/wlan0/<Some SSID>
+                
                 $template->wlans = json_decode($redis->get('wlans'));
                 foreach ($template->wlans->{$template->uri(3)} as $key => $value) {
+                    $SSID = urldecode($template->uri(4));
                     // if we are in a stored profile, retrieve his details
                     if ($template->stored) {
-                        $template->profile_{urldecode($template->uri(4))} = json_decode($redis->hGet('wlan_profiles', urldecode($template->uri(4))));
+                        //$template->profile_{urldecode($template->uri(4))} = json_decode($redis->hGet('wlan_profiles', urldecode($template->uri(4))));
+                        $template->profile_{$SSID} = json_decode($redis->hGet('wlan_profiles', $SSID));
+                        
                     }
                     // check if we are in a connected profile
-                    if ($template->uri(4) === $value->ESSID) {
+                    //if ($template->uri(4) === $value->ESSID) {
+                    if ($SSID === $value->ESSID) {
                         // retrieve SSID details
-                        $template->{$template->uri(4)} =  $value;
+                        //$template->{$template->uri(4)} =  $value;
+                        $template->{$SSID} =  $value;
                     }
                 }
             }
