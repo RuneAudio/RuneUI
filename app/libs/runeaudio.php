@@ -1402,7 +1402,11 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             $transaction->exec();
             break;
         case 'getnics':
-            $interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
+		    $gw = array();
+			$dns = array();
+			$speed = array();
+		
+		    $interfaces = sysCmd("ip addr |grep \"BROADCAST,\" |cut -d':' -f1-2 |cut -d' ' -f2");
             $interfaces = array_diff($interfaces, $excluded_nics);
             foreach ($interfaces as $interface) {
                 $ip = sysCmd("ip addr list ".$interface." |grep \"inet \" |cut -d' ' -f6|cut -d/ -f1");
@@ -1420,8 +1424,23 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
                 if (empty($type[0])) {
                     $speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d ':' -f 2 | cut -d ' ' -f 1-2");
                     $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
-                    $actinterfaces[$interface] = (object) ['ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0], 'wireless' => 1, 'currentssid' => $currentSSID[0]];
-                    $redis->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 1, 'currentssid' => $currentSSID[0])));
+                    $actinterfaces[$interface] = (object) ['ip' => $ip[0],
+                        'netmask' => $netmask,
+                        'gw' => (isset($gw[0]) ? $gw[0] : null),
+                        'dns1' => (isset($dns[0]) ? $dns[0] : null),
+                        'dns2' => (isset($dns[1]) ? $dns[1] : null),
+                        'speed' => (isset($speed[0]) ? $speed[0] : null),
+                        'wireless' => 1,
+                        'currentssid' => $currentSSID[0]];
+                    
+                    $redis->hSet('nics', $interface , json_encode(array('ip' => $ip[0],
+                        'netmask' => $netmask,
+                        'gw' => (isset($gw[0]) ? $gw[0] : null),
+                        'dns1' => (isset($dns[0]) ? $dns[0] : null),
+                        'dns2' => (isset($dns[1]) ? $dns[1] : null),
+                        'speed' => (isset($speed[0]) ? $speed[0] : null),
+                        'wireless' => 1,
+                        'currentssid' => $currentSSID[0])));
                 } else {
                     $speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
                     $actinterfaces[$interface] = (object) ['ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0], 'wireless' => 0];
@@ -1430,20 +1449,24 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             }
             return $actinterfaces;
             break;
-        case 'getstoredwlans':
-            sysCmd('/www/command/refresh_nics');
-            $wlans_profiles = json_decode($redis->Get('stored_profiles'));
-            foreach ($wlans_profiles as $profile) {
-                runelog('  Get stored wlan profiles:'.$profile);
-                if ($nicdetail->currentssid === $profile) {
-                    $connected = 1;
-                } else {
-                    $connected = 0;
-                }
+		case 'getstoredwlans':
+			$wlans = array();
+			$connected = 0;
+			sysCmd('/www/command/refresh_nics');
+			$wlans_profiles = json_decode($redis->Get('stored_profiles'));
+			foreach ($wlans_profiles as $profile) {
+				runelog('  Get stored wlan profiles:'.$profile);
+				
+                 //*** Does this work? where do we get $nicdetail??
+                 //if ($nicdetail->currentssid === $profile) {
+                 //    $connected = 1;
+                 //} else {
+                 //    $connected = 0;
+                 //}
                 $wlans[] = json_encode(array('ssid' => $profile, 'encryption' => 'on', 'connected' => $connected, 'storedprofile' => 1));
             }
             return $wlans;
-            break;
+            //break;
         case 'writecfg':
             // ArchLinux netctl config for wired ethernet
                 $nic = "Description='".$args->name." connection'\n";

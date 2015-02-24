@@ -69,6 +69,11 @@ if (isset($_POST)) {
 }
  
 waitSyWrk($redis,$jobID);
+
+ $template->addprofile = 0;
+ $template->title = "NOT SET";
+ $template->stored = 0;
+ 
 $template->nics = wrk_netconfig($redis, 'getnics');
 $template->wlan_autoconnect = $redis->Get('wlan_autoconnect');
 if ($redis->Exists(urldecode($template->uri(4)))) $template->stored = 1;

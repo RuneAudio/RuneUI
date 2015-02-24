@@ -2,7 +2,7 @@
     <h1>Network interface</h1>
     <?php if ($this->nic->wireless === 1): ?>
     <legend>Wi-Fi networks in range</legend>
-    <span class="help-block">The list of available Wi-Fi networks is automatically refreshed while you are on this page (so don't forget it open in your browser to avoid unnecessary system load).</span>
+    <span class="help-block">The list of available Wi-Fi networks is automatically refreshed while you are on this page (so be sure to close this page to avoid unnecessary system load).</span>
     <span class="help-block">Click on an entry to connect or to generate a new profile.</span>
     <fieldset>
         <div id="wifiNetworks" class="boxed">
