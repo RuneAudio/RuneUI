@@ -2,7 +2,8 @@
     <h1>Network interface</h1>
     <?php if ($this->nic->wireless === 1): ?>
     <legend>Wi-Fi networks in range</legend>
-    <span class="help-block">The list of available Wi-Fi networks is automatically refreshed while you are on this page (so don't forget it open in your browser to avoid unnecessary system load).</span>
+    <span class="help-block">The list of available Wi-Fi networks is automatically refreshed while you are on this page (so be sure to close this page to avoid unnecessary system load).</span>
+    <span class="help-block">Click on an entry to connect or to generate a new profile.</span>
     <fieldset>
         <div id="wifiNetworks" class="boxed">
             <p><a class="btn btn-lg btn-default btn-block" href="#"><i class="fa fa-cog fa-spin sx"></i>scanning for networks...</a></p>
@@ -27,6 +28,7 @@
         </div>
     </fieldset>
     <?php endif ?>
+    <?php if ($this->nic->wireless === 0): ?>
     <form class="form-horizontal" action="/network" method="post" data-parsley-validate>
         <input type="hidden" name="nic[name]" value="<?=$this->arg ?>" />
         <input type="hidden" name="nic[wireless]" value="<?=$this->nic->wireless ?>" />
@@ -102,6 +104,16 @@
                 </div>
             </div>
         </fieldset>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Reboot</label>
+            <div class="col-sm-10">
+                <label class="switch-light well" onclick="">
+                    <input id="reboot" name="nic[reboot]" type="checkbox" value="1">
+                        <span><span>NO</span><span>YES</span></span><a class="btn btn-primary"></a>
+                    </label>
+                <span class="help-block">If you experience problems, set this to <strong>YES</strong>.</span>
+            </div>
+        </div>
         <div class="form-group form-actions">
             <div class="col-sm-offset-2 col-sm-10">
                 <a href="/network" class="btn btn-default btn-lg">Cancel</a>
@@ -109,6 +121,7 @@
             </div>
         </div>
     </form>
+    <?php endif ?>
 </div>
 <div id="net-config-defaults" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="mpd-config-defaults-label" aria-hidden="true">
     <div class="modal-dialog modal-sm">
