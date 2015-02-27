@@ -1,14 +1,11 @@
 [Unit]
 Description=RuneAudio Playback Worker 
-After=network.target redis.target
+After=network.target
 
 [Service]
 ExecStart=/var/www/command/rune_PL_wrk
 TimeoutSec=0
 Restart=always
-RestartSec=1
-StartLimitInterval=30
-StartLimitBurst=20
 
 [Install]
 WantedBy=multi-user.target
