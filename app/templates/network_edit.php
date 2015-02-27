@@ -13,7 +13,7 @@
     <fieldset>
         <div class="boxed">
             <label class="switch-light switch-block well" onclick="">
-                <input id="wifiProfiles" name="features[airplay][enable]" type="checkbox" value="1"<?php if($this->wifiprofiles['enable'] !== 1): ?> checked="checked" <?php endif ?>>
+                <input id="wifiProfiles" type="checkbox" value="1" checked="checked">
                 <span><span>SHOW<i class="fa fa-chevron-down dx"></i></span><span>HIDE<i class="fa fa-chevron-up dx"></i></span></span><a class="btn btn-primary"></a>
             </label>
             <div id="wifiProfilesBox" class="hide">

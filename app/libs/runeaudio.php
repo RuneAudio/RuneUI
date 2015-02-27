@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -1216,22 +1216,23 @@ function waitSyWrk($redis, $jobID)
 
 function wrk_control($redis, $action, $data)
 {
+    $jobID = "";
     // accept $data['action'] $data['args'] from controller
     switch ($action) {
         case 'newjob':
             // generate random jobid
             $jobID = wrk_jobID();
             $wjob = array(
-                'wrkcmd' => $data['wrkcmd'],
-                'action' => $data['action'],
-                'args' => $data['args']
+                'wrkcmd' => (isset($data['wrkcmd'])? $data['wrkcmd'] : NULL),
+                'action' => (isset($data['action'])? $data['action'] : NULL),
+                'args' => (isset($data['args'])? $data['args'] : NULL)
             );
             $redis->hSet('w_queue', $jobID, json_encode($wjob));
             runelog('wrk_control data:', $redis->hGet('w_queue', $jobID));
             break;
     }
     // debug
-    runelog('[wrk] wrk_control($redis,'.$action.','.$data.') jobID=', $jobID);
+    runelog('[wrk] wrk_control($redis,'.$action.',$data) jobID='.$jobID, $data, 'wrk_control');
     return $jobID;
 }
 
@@ -1362,9 +1363,9 @@ function net_CidrToNetmask($cidr) {
 
 function wrk_netconfig($redis, $action, $args = null, $configonly = null)
 {
+	$return = array();
     // nics blacklist
     $excluded_nics = array('ifb0', 'ifb1', 'p2p0', 'bridge');
-
     $updateh = 0;
     switch ($action) {
         case 'setnics':
@@ -1386,17 +1387,36 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
                 $gw = sysCmd("route -n |grep \"0.0.0.0\" |grep \"UG\" |cut -d' ' -f10");
                 $dns = sysCmd("cat /etc/resolv.conf |grep \"nameserver\" |cut -d' ' -f2");
                 $type = sysCmd("iwconfig ".$interface." 2>&1 | grep \"no wireless\"");
-                runelog('interface type', $type[0]);
+                runelog('interface type', (isset($type[0]) ? $type[0] : NULL));
                 // if (empty(sysCmd("iwlist ".$interface." scan 2>&1 | grep \"Interface doesn't support scanning\""))) {
                 if (empty($type[0])) {
                     $speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d '=' -f 2 | cut -d ' ' -f 1-2");
                     $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
                     $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
-                    $transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 1, 'currentssid' => $currentSSID[0])));
+                    $transaction->hSet('nics',
+						$interface,
+						json_encode(array(
+							'ip' => $ip[0],
+							'netmask' => $netmask,
+							'gw' => (isset($gw[0]) ? $gw[0] : null),
+							'dns1' => (isset($dns[0]) ? $dns[0] : null),
+							'dns2' => (isset($dns[1]) ? $dns[1] : null),
+							'speed' => (isset($speed[0]) ? $speed[0] : null),
+							'wireless' => 1,
+							'currentssid' => $currentSSID[0])));
                     //// $scanwifi = 1;
                 } else {
                     $speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
-                    $transaction->hSet('nics', $interface , json_encode(array('ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0],'wireless' => 0)));
+                    $transaction->hSet('nics',
+						$interface,
+						json_encode(array(
+							'ip' => $ip[0],
+							'netmask' => $netmask,
+							'gw' => (isset($gw[0]) ? $gw[0] : null),
+							'dns1' => (isset($dns[0]) ? $dns[0] : null),
+							'dns2' => (isset($dns[1]) ? $dns[1] : null),
+							'speed' => (isset($speed[0]) ? $speed[0] : null),
+							'wireless' => 0)));
                 }
             }
             $transaction->exec();
@@ -1424,23 +1444,28 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
                 if (empty($type[0])) {
                     $speed = sysCmd("iwconfig ".$interface." 2>&1 | grep 'Bit Rate' | cut -d ':' -f 2 | cut -d ' ' -f 1-2");
                     $currentSSID = sysCmd("iwconfig ".$interface." | grep 'ESSID' | cut -d ':' -f 2 | cut -d '\"' -f 2");
-                    $actinterfaces[$interface] = (object) ['ip' => $ip[0],
-                        'netmask' => $netmask,
+                    $actinterfaces[$interface] = (object) [
+						'ip' => (isset($ip[0]) ? $ip[0] : null),
+                        'netmask' => (isset($netmask) ? $netmask : null),
                         'gw' => (isset($gw[0]) ? $gw[0] : null),
                         'dns1' => (isset($dns[0]) ? $dns[0] : null),
                         'dns2' => (isset($dns[1]) ? $dns[1] : null),
                         'speed' => (isset($speed[0]) ? $speed[0] : null),
                         'wireless' => 1,
-                        'currentssid' => $currentSSID[0]];
+                        'currentssid' => (isset($currentSSID[0]) ? $currentSSID[0] : null)
+						];
                     
-                    $redis->hSet('nics', $interface , json_encode(array('ip' => $ip[0],
-                        'netmask' => $netmask,
-                        'gw' => (isset($gw[0]) ? $gw[0] : null),
-                        'dns1' => (isset($dns[0]) ? $dns[0] : null),
-                        'dns2' => (isset($dns[1]) ? $dns[1] : null),
-                        'speed' => (isset($speed[0]) ? $speed[0] : null),
-                        'wireless' => 1,
-                        'currentssid' => $currentSSID[0])));
+                    $redis->hSet('nics', $interface,
+						json_encode(array(
+							'ip' => (isset($ip[0]) ? $ip[0] : null),
+							'netmask' => (isset($netmask) ? $netmask : null),
+							'gw' => (isset($gw[0]) ? $gw[0] : null),
+							'dns1' => (isset($dns[0]) ? $dns[0] : null),
+							'dns2' => (isset($dns[1]) ? $dns[1] : null),
+							'speed' => (isset($speed[0]) ? $speed[0] : null),
+							'wireless' => 1,
+							'currentssid' => (isset($currentSSID[0]) ? $currentSSID[0] : null)
+							)));
                 } else {
                     $speed = sysCmd("ethtool ".$interface." 2>&1 | grep -i speed | cut -d':' -f2");
                     $actinterfaces[$interface] = (object) ['ip' => $ip[0], 'netmask' => $netmask, 'gw' => $gw[0], 'dns1' => $dns[0], 'dns2' => $dns[1], 'speed' => $speed[0], 'wireless' => 0];
@@ -1457,7 +1482,7 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
 			foreach ($wlans_profiles as $profile) {
 				runelog('  Get stored wlan profiles:'.$profile);
 				
-                 //*** Does this work? where do we get $nicdetail??
+                 //*** Does this work? where do we get $nicdetail??   https://github.com/RuneAudio/RuneUI/blob/dev/app/libs/runeaudio.php#L1460
                  //if ($nicdetail->currentssid === $profile) {
                  //    $connected = 1;
                  //} else {
@@ -1624,7 +1649,7 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             } else {
                 runelog('**** no reboot requested ****', $args->name);
                 sysCmd('systemctl restart netctl-ifplugd@'.$args->name);
-                $return = '';
+                $return[] = '';
             }
         } else {
             sysCmd('systemctl reenable netctl-auto@'.$args->name);
@@ -1632,7 +1657,7 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             sysCmd('netctl-auto enable '.$args->newssid);
             sysCmd('netctl-auto switch-to '.$args->newssid);
             runelog('**** wireless => do not reboot ****', $args->name);
-            $return = '';
+            $return[] = '';
         }
     }
     // update hash if necessary
@@ -1657,19 +1682,19 @@ function wrk_wifiprofile($redis, $action, $args)
             wrk_wifiprofile($redis, 'disconnect', $args);
             $redis->Del($args->ssid);
             $redis->Del('stored_profiles');
-            sysCmd("rm /etc/netctl/".$args->ssid);
+            sysCmd("rm /etc/netctl/".escapeshellarg($args->ssid));
             sysCmdAsync("systemctl restart netctl-auto@".$args->nic);
             $return = 1;
             break;
         case 'connect':
             runelog('**** wrk_wifiprofile CONNECT ****', $args->ssid);
-            sysCmdAsync("netctl-auto switch-to ".$args->ssid);
+            sysCmdAsync("netctl-auto switch-to ".escapeshellarg($args->ssid));
             $redis->Set('wlan_autoconnect', 1);
             $return = 1;
             break;
         case 'disconnect':
             runelog('**** wrk_wifiprofile DISCONNECT ****', $args->ssid);
-            sysCmdAsync("netctl-auto disable ".$args->ssid);
+            sysCmdAsync("netctl-auto disable ".escapeshellarg($args->ssid));
             $redis->Set('wlan_autoconnect', 0);
             $return = 1;
             break;

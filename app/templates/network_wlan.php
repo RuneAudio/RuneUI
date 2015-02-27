@@ -3,14 +3,14 @@
     <form class="form-horizontal" action="/network/edit/<?=$this->uri(3) ?>" method="post" data-parsley-validate>
         <?php if($this->addprofile !== 1): ?>
         <fieldset>
-            <?php if($this->stored === 1 && $this->nic->currentssid !== $this->{urldecode($this->uri(4))}->{'ESSID'}): ?>
-            <legend><?=$this->title ?> <span class="<?php if($this->action === 'add'): ?>hide<?php endif; ?>">(<a href="#wifiprofile-delete-modal" data-toggle="modal">delete this profile</a>)</span></legend>
+            <?php if($this->stored === 1 && (!isset($this->nic->currentssid) || $this->nic->currentssid !== $this->{urldecode($this->uri(4))}->{'ESSID'})): ?>
+             <legend><?=$this->title ?> <span class="<?php if($this->action === 'add'): ?>hide<?php endif; ?>">(<a href="#wifiprofile-delete-modal" data-toggle="modal">delete this profile</a>)</span></legend>
             <?php endif; ?>
             <div class="boxed">
                 <table class="info-table">
                     <tbody>
                         <tr><th>Network SSID:</th><td><strong><?=urldecode($this->uri(4)) ?></strong></td></tr>
-                        <?php if ($this->nic->currentssid === $this->{urldecode($this->uri(4))}->{'ESSID'}): ?>
+                        <?php if (isset($this->nic->currentssid) && $this->nic->currentssid === $this->{urldecode($this->uri(4))}->{'ESSID'}): ?>
                         <tr><th>Status:</th><td><i class="fa fa-check green sx"></i>connected</td></tr>
                         <?php endif; ?>
                         <tr>
@@ -50,7 +50,7 @@
         </fieldset>
         <?php endif; ?>
         <?php endif; ?>
-        <?php if ($this->nic->currentssid !== $this->{urldecode($this->uri(4))}->{'ESSID'}): ?>
+        <?php if (!isset($this->nic->currentssid) || $this->nic->currentssid !== $this->{urldecode($this->uri(4))}->{'ESSID'}): ?>
         <fieldset>
             <?php if($this->stored !== 1): ?>
                 <legend>Security parameters</legend>
@@ -82,7 +82,7 @@
                         <?php if(isset($this->profile_{urldecode($this->uri(4))}->id)): ?>
                         <input type="hidden" name="nic[id]" value="<?=$this->profile_{urldecode($this->uri(4))}->id ?>">
                         <?php endif; ?>
-                        <input class="form-control input-lg" type="password" id="wifi-password" name="nic[key]" value="<?=$this->profile_{urldecode($this->uri(4))}->key ?>" data-trigger="change" autocomplete="off">
+                        <input class="form-control input-lg" type="password" id="wifi-password" name="nic[key]" value="<?=isset($this->profile_{urldecode($this->uri(4))}) ? $this->profile_{urldecode($this->uri(4))}->key : "" ?>" data-trigger="change" autocomplete="off">
                         <span class="help-block">Set the key of the Wi-Fi you want to connect.</span>
                         <div class="checkbox">
                             <label>
@@ -148,8 +148,10 @@
         </fieldset>
         <div class="form-group form-actions">
             <div class="col-sm-offset-2 col-sm-10">
+                <?php if($this->stored === 1 && (!isset($this->nic->currentssid) || $this->nic->currentssid !== $this->{urldecode($this->uri(4))}->{'ESSID'})): ?>
+                    <a class="btn btn-default btn-lg" href="#wifiprofile-delete-modal" data-toggle="modal">Delete</a>
+                <?php endif ?>
                 <a class="btn btn-default btn-lg" href="/network/edit/<?=$this->uri(3) ?>">Cancel</a>
-                <!-- <?php var_dump($this) ?> -->
                 <?php if($this->stored === 1): ?>
                     <!-- Connect -->
                     <button type="submit" class="btn btn-primary btn-lg" name="wifiprofile[action]" value="connect">Connect</button>

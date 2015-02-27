@@ -67,13 +67,12 @@ if (isset($_POST)) {
         }
     }
 }
- 
+
 waitSyWrk($redis,$jobID);
 
- $template->addprofile = 0;
- $template->title = "NOT SET";
- $template->stored = 0;
- 
+$template->addprofile = 0;
+$template->stored = 0;
+
 $template->nics = wrk_netconfig($redis, 'getnics');
 $template->wlan_autoconnect = $redis->Get('wlan_autoconnect');
 if ($redis->Exists(urldecode($template->uri(4)))) $template->stored = 1;
@@ -94,31 +93,31 @@ if (isset($template->action)) {
         $template->nic = json_decode($nic_connection);
         // check if we action is = 'edit' or 'wlan' (ex. http://runeaudio/network/edit/....)
         if ($template->action === 'edit') {
-                // fetch current (stored) nic configuration data
-                if ($redis->get($template->arg)) {
-                    $template->{$template->arg} = json_decode($redis->get($template->arg));
+            // fetch current (stored) nic configuration data
+            if ($redis->get($template->arg)) {
+                $template->{$template->arg} = json_decode($redis->get($template->arg));
                 // ok nic configuration not stored, but check if it is configured
-                } else if ($nic_connection == null) {
+            } else if ($nic_connection == null) {
                 // last case, nonexistant nic. route to error template
                 $template->content = 'error';
+            } 
+            // check if the current nic is wireless
+            if ($template->nic->wireless === 1) {
+                $template->wlans = json_decode($redis->get('wlans'));
+                $template->wlan_profiles = new stdClass();
+                if ($wlan_profiles = wrk_netconfig($redis, 'getstoredwlans')) {
+                    foreach ($wlan_profiles as $key => $value) {
+                        $template->wlan_profiles->{$key} = json_decode($value);
+                    }
                 } 
-                // check if the current nic is wireless
-                if ($template->nic->wireless === 1) {
-                    $template->wlans = json_decode($redis->get('wlans'));
-                    $template->wlan_profiles = new stdClass();
-                    if ($wlan_profiles = wrk_netconfig($redis, 'getstoredwlans')) {
-                        foreach ($wlan_profiles as $key => $value) {
-                            $template->wlan_profiles->{$key} = json_decode($value);
-                        }
-                    } 
-                }
-        // we are in the wlan subtemplate (ex. http://runeaudio/network/wlan/....)
+            }
+            // we are in the wlan subtemplate (ex. http://runeaudio/network/wlan/....)
         } else {
             // check if we want to store a wifi profile, that is not in range. (ex. http://runeaudio/network/wlan/add )
             if ($template->uri(4) === 'add') {
                 $template->addprofile = 1;
             } else {
-            // we are connecting to a visible network
+                // we are connecting to a visible network
                 //  /network/edit/wlan0/<Some SSID>
                 
                 $template->wlans = json_decode($redis->get('wlans'));
@@ -127,7 +126,8 @@ if (isset($template->action)) {
                     // if we are in a stored profile, retrieve his details
                     if ($template->stored) {
                         //$template->profile_{urldecode($template->uri(4))} = json_decode($redis->hGet('wlan_profiles', urldecode($template->uri(4))));
-                        $template->profile_{$SSID} = json_decode($redis->hGet('wlan_profiles', $SSID));
+                        //$template->profile_{$SSID} = json_decode($redis->hGet('wlan_profiles', $SSID));
+                        $template->profile_{$SSID} = json_decode($redis->hGet('stored_profiles', $SSID));
                         
                     }
                     // check if we are in a connected profile
@@ -138,6 +138,9 @@ if (isset($template->action)) {
                         $template->{$SSID} =  $value;
                     }
                 }
+                
+                //$template->connected = (isset($this->nic->currentssid) && $this->nic->currentssid === $this->{urldecode($this->uri(4))}->{'ESSID'});
+                
             }
         }
     }
