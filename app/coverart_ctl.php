@@ -137,11 +137,11 @@ if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $requ
     // 3.0 try to find coverart on Last.FM (Album)
     if ($output === 0) {
         $cover_url = ui_lastFM_coverart($status['currentartist'], $status['currentalbum'], $lastfm_apikey, $proxy);
+        $bufferinfo = new finfo(FILEINFO_MIME);
         if (!empty($cover_url)) {
             // debug
             runelog("coverart match: lastfm (query 1) coverURL=", $cover_url);
             $lastfm_img = curlGet($cover_url, $proxy);
-            $bufferinfo = new finfo(FILEINFO_MIME);
             $lastfm_img_mime = $bufferinfo->buffer($lastfm_img);
         } else {
             // 3.1 try to find coverart on Last.FM (Artist)
