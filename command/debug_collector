@@ -203,7 +203,12 @@ function debug_data($redis)
         $output .= $interface." netctl profile\n";
         $output .= "--------------------------------------------------------\n";
         $command = sysCmd('cat /etc/netctl/'.trim($interface));
-        $output .= implode("\n", $command)."\n\n";
+        // go through all settings and mask out the PSK
+        foreach ($command as $line) {
+            if (stripos($line, "psk=") != FALSE) $line = '    \'psk="***************"\'';
+            $output .= $line."\n";
+        }
+        $output .= "\n";
     }
     $output .= "\n";
     $output .= "###### Network wifi status (iwconfig) ######\n";
