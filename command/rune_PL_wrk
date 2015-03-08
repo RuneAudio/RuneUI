@@ -101,6 +101,11 @@ while (1) {
                 // JSON response for GUI
                 runelog('rune_PL_wrk: ui_render() response', json_encode($status));
                 ui_render('playback', json_encode($status));
+
+                // save JSON response for extensions
+                $status['actPlayer'] = "MPD";
+                $redis->set('act_player_info', json_encode($status));
+
                 // close Redis connection
                 $redis->close();
                 runelog('rune_PL_wrk: close MPD local UNIX socket');
@@ -116,6 +121,11 @@ while (1) {
                 ui_render('playback', json_encode($status));
                 runelog('rune_PL_wrk: UI JSON', $status);
                 runelog('rune_PL_wrk: close SPOP socket');
+
+                // save JSON response for extensions
+                $status['actPlayer'] = "Spotify";
+                $redis->set('act_player_info', json_encode($status));
+
                 closeSpopSocket($socket);
             } elseif ($activePlayer === 'Airplay') {
                 if ($forceupdate !== 0) {
@@ -175,6 +185,11 @@ while (1) {
                         $status['elapsed'] = "0";
                         $status['song_percent'] = "100";
                         ui_render('playback', json_encode($status));
+
+                        // save JSON response for extensions
+                        $status['actPlayer'] = "Airplay";
+                        $redis->set('act_player_info', json_encode($status));
+
                         $artwork = $status["artwork"];
                         // is there an artwork?
                         //if($artwork !== "" && is_file('/var/run/shairport/'.$artwork)) {
