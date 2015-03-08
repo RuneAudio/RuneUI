@@ -36,6 +36,10 @@ $tplfile = 0;
 runelog("\n--------------------- coverart (start) ---------------------");
 // turn off output buffering
 ob_implicit_flush(0);
+
+ob_clean();
+flush();
+			
 // --------------------- MPD ---------------------
 if ($activePlayer === 'MPD') {
     // output switch
@@ -131,6 +135,7 @@ if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $requ
             header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: 0'); // Proxies.
             header('Content-Type: ' .mime_content_type($local_cover_path));
+
             readfile($local_cover_path);
         } 
     }
