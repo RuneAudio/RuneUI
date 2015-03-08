@@ -1,17 +1,17 @@
 #!/usr/bin/php
 <?php
 /*
- * Copyright (C) 2013-2014 RuneAudio Team
+ * Copyright (C) 2013-2015 RuneAudio Team
  * http://www.runeaudio.com
  *
  * RuneUI
- * copyright (C) 2013-2014 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
+ * copyright (C) 2013-2015 - Andrea Coiutti (aka ACX) & Simone De Gregori (aka Orion)
  *
  * RuneOS
- * copyright (C) 2013-2014 - Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
+ * copyright (C) 2013-2015 - Simone De Gregori (aka Orion) & Carmelo San Giovanni (aka Um3ggh1U)
  *
  * RuneAudio website and logo
- * copyright (C) 2013-2014 - ACX webdesign (Andrea Coiutti)
+ * copyright (C) 2013-2015 - ACX webdesign (Andrea Coiutti)
  *
  * This Program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,28 +30,36 @@
  *  file: command/airplay_toggle
  *  version: 1.3
  *  coder: Simone De Gregori
- *
+ *  modified: Kevin Welsh and Frank Friedmann
  */
 // common include
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 ini_set('error_log', '/var/log/runeaudio/airplay_toggle.log');
 define('APP', '/srv/http/app/');
+include('/srv/http/app/libs/runeaudio.php');
+
 // Connect to Redis backend
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
-$activePlayer = $redis->get('activePlayer');
-include('/srv/http/app/libs/runeaudio.php');
-// toggle playback
-wrk_togglePlayback($redis, $activePlayer);
-if ($activePlayer !== 'Airplay') {
-    // set activePlayer
-    $redis->set('activePlayer', 'Airplay');
-    // send notify
-    ui_notify('AirPlay', 'The player is locket by an incoming Airplay stream.');
-} else {
-    // send notify
-    ui_notify('AirPlay', 'Airplay stream finished. Player unlocked.');
+
+// read status from /usr/lib/systemd/system/shairport.service
+$status = $argv[1]; // "on" or "off"
+
+switch($status) {
+    case "on":
+        // start Airplay
+        wrk_startAirplay($redis);
+        // send notify
+        ui_notify('AirPlay', 'Playback has been switched to an incoming Airplay stream.');
+        break;
+    case "off":
+        // stop Airplay
+        wrk_stopAirplay($redis);
+        // send notify
+        ui_notify('AirPlay', 'Airplay playback has completed. The player is now unlocked.');
+        break;
 }
+
 // update player view
 ui_libraryHome($redis);

@@ -41,7 +41,9 @@ function updateOS()
     sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/mpd.service /usr/lib/systemd/system/');
     sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/ntpd.service /usr/lib/systemd/system/');
     sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/php-fpm.service /usr/lib/systemd/system/');
+    sysCmd('cp /srv/http/app/config/_os/usr/lib/systemd/system/shairport.service /usr/lib/systemd/system/');
     sysCmd('systemctl daemon-reload');
+    sysCmd('systemctl restart shairport.service');
     
     sysCmd('rm /etc/netctl/wlan0');
 

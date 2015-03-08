@@ -204,10 +204,26 @@ if ((substr($request_coverfile, 0, 2) === '?v' OR $current_mpd_folder ===  $requ
         header('Content-Type: '.$spotify_cover_mime);
         echo $spotify_cover;
     } else {
-        // redirect to /covers NGiNX location
-        $local_cover_url =  'http://'.$_SERVER["SERVER_ADDR"].'/covers/'.$request_folder.'/'.$request_coverfile;
-        runelog("coverart: redirect to local-coverart (url): ", $local_cover_url);
-        header('Location: '.$local_cover_url, true, 301);
+        if ($activePlayer === 'Airplay') {
+            // debug
+            runelog("coverart match: shairport coverURL=/var/run/shairport/cover.jpg");
+            header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+            header('Pragma: no-cache'); // HTTP 1.0.
+            header('Expires: 0'); // Proxies.
+            if (is_file($_SERVER['HOME'].'/assets/img/airplay-cover.jpg')) {
+                header('Content-Type: ' .mime_content_type($_SERVER['HOME'].'/assets/img/airplay-cover.jpg'));
+                readfile($_SERVER['HOME'].'/assets/img/airplay-cover.jpg');
+            } else {
+                header('Content-Type: ' .mime_content_type($_SERVER['HOME'].'/assets/img/cover-default.png'));
+                readfile($_SERVER['HOME'].'/assets/img/cover-default.png');
+            }
+            $output = 1;
+        } else {
+            // redirect to /covers NGiNX location
+            $local_cover_url =  'http://'.$_SERVER["SERVER_ADDR"].'/covers/'.$request_folder.'/'.$request_coverfile;
+            runelog("coverart: redirect to local-coverart (url): ", $local_cover_url);
+            header('Location: '.$local_cover_url, true, 301);
+        }
     }
 }
 runelog("\n--------------------- coverart (end) ---------------------");

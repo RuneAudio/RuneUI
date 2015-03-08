@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
  * Copyright (C) 2013-2014 RuneAudio Team
  * http://www.runeaudio.com
@@ -271,20 +271,6 @@ function getPlayQueue($sock)
     $playqueue = readMpdResponse($sock);
     //return _parseFileListResponse($playqueue);
     return $playqueue;
-}
-
-function readShairportState($path)
-{
-
-    $nowplaying = explode("\n", file_get_contents($path));
-    foreach ($nowplaying as $line) {
-        if (strlen($line) > 0) {
-            $exp_line = explode("=", $line);
-            $shairport_status[$exp_line[0]] = $exp_line[1];
-        }
-    }
-    $status = array('currentartist' => $shairport_status['artist'], 'currentalbum' => $shairport_status['album'], 'currentsong' => $shairport_status['title'], 'coverart' => $shairport_status['artwork']);
-    return json_encode($status);
 }
 
 // Spotify support
@@ -2323,7 +2309,7 @@ function wrk_shairport($redis, $ao, $name = null)
     $acard = json_decode($redis->hget('acards', $ao));
     runelog('acard details: ', $acard);
     $file = '/usr/lib/systemd/system/shairport.service';
-    $newArray = wrk_replaceTextLine($file, '', 'ExecStart', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=/var/www/command/airplay_toggle --on-stop=/var/www/command/airplay_toggle -o alsa -- -d '.$acard->device);
+    $newArray = wrk_replaceTextLine($file, '', 'ExecStart=', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=$ON --on-stop=$OFF --meta-dir=/var/run/shairport -o alsa -- -d '.$acard->device);
     runelog('shairport.service :', $newArray);
     // Commit changes to /usr/lib/systemd/system/shairport.service
     $fp = fopen($file, 'w');
@@ -2567,6 +2553,7 @@ function wrk_setHwPlatform($redis)
     }
 }
 
+// this can be removed in next version, because it's replaced by wrk_startAirplay($redis) and wrk_stopAirplay($redis)
 function wrk_togglePlayback($redis, $activePlayer)
 {
 $stoppedPlayer = $redis->get('stoppedPlayer');
@@ -2590,7 +2577,7 @@ runelog('activePlayer = ', $activePlayer);
             // connect to SPOPD daemon
             $sock = openSpopSocket('localhost', 6602, 1);
             $status = _parseSpopStatusResponse(SpopStatus($sock));
-            runelog('SPOP status', $status);          
+            runelog('SPOP status', $status);
             if ($status['state'] === 'pause') {
                 $redis->set('stoppedPlayer', '');
             }
@@ -2605,6 +2592,105 @@ runelog('activePlayer = ', $activePlayer);
         wrk_togglePlayback($redis, $activePlayer);
     }
 runelog('endFunction!!!', $stoppedPlayer);
+}
+
+function wrk_startAirplay($redis)
+{
+    $activePlayer = $redis->get('activePlayer');
+    if ($activePlayer != 'Airplay') {
+        $redis->set('stoppedPlayer', $activePlayer);
+        if ($activePlayer === 'MPD') {
+            // connect to MPD daemon
+            $sock = openMpdSocket('/run/mpd.sock', 0);
+            $status = _parseStatusResponse(MpdStatus($sock));
+            runelog('MPD status', $status);
+            // to get MPD out of its idle-loop we discribe to a channel
+            sendMpdCommand($sock, 'subscribe Airplay');
+            sendMpdCommand($sock, 'unsubscribe Airplay');
+            if ($status['state'] === 'play') {
+                // pause playback
+                sendMpdCommand($sock, 'pause');
+                // debug
+                runelog('sendMpdCommand', 'pause');
+            }
+            closeMpdSocket($sock);
+        } elseif ($activePlayer === 'Spotify') {
+            // connect to SPOPD daemon
+            $sock = openSpopSocket('localhost', 6602, 1);
+            // to get SPOP out of its idle-loop
+            sendSpopCommand($sock, 'notify');
+            sleep(1);
+            $status = _parseSpopStatusResponse(SpopStatus($sock));
+            runelog('SPOP status', $status);
+            if ($status['state'] === 'play') {
+                sendSpopCommand($sock, 'toggle');
+                // debug
+                runelog('sendSpopCommand', 'toggle');
+            }
+            closeSpopSocket($sock);
+        }
+        $redis->set('activePlayer', 'Airplay');
+        ui_render('playback', "{\"currentartist\":\"<unknown>\",\"currentsong\":\"Airplay\",\"currentalbum\":\"<unknown>\",\"artwork\":\"\",\"genre\":\"\",\"comment\":\"\"}");
+        sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+    }
+}
+
+function wrk_stopAirplay($redis)
+{
+    $activePlayer = $redis->get('activePlayer');
+    if ($activePlayer == 'Airplay') {
+
+        $stoppedPlayer = $redis->get('stoppedPlayer');
+        runelog('stoppedPlayer = ', $stoppedPlayer);
+
+        if ($stoppedPlayer !== '') {
+            // we previously stopped playback of one player to use the Airport Stream
+            if ($stoppedPlayer === 'MPD') {
+                // connect to MPD daemon
+                $sock = openMpdSocket('/run/mpd.sock', 0);
+                $status = _parseStatusResponse(MpdStatus($sock));
+                runelog('MPD status', $status);
+                if ($status['state'] === 'pause') {
+                    // clear the stopped player if we left MPD paused
+                    $redis->set('stoppedPlayer', '');
+                }
+                //sendMpdCommand($sock, 'pause');
+                // to get MPD out of its idle-loop we discribe to a channel
+                sendMpdCommand($sock, 'subscribe Airplay');
+                sendMpdCommand($sock, 'unsubscribe Airplay');
+                closeMpdSocket($sock);
+                // debug
+                //runelog('sendMpdCommand', 'pause');
+            } elseif ($stoppedPlayer === 'Spotify') {
+                // connect to SPOPD daemon
+                $sock = openSpopSocket('localhost', 6602, 1);
+                $status = _parseSpopStatusResponse(SpopStatus($sock));
+                runelog('SPOP status', $status);
+                if ($status['state'] === 'pause') {
+                    // clear the stopped player if we left SPOP paused
+                    $redis->set('stoppedPlayer', '');
+                }
+                // to get SPOP out of its idle-loop
+                sendSpopCommand($sock, 'notify');
+                //sendSpopCommand($sock, 'toggle');
+                closeSpopSocket($sock);
+                // debug
+                //runelog('sendSpopCommand', 'toggle');
+            }
+            // set the active player back to the one we stopped
+            $redis->set('activePlayer', $stoppedPlayer);
+
+            //delete all files in shairport folder except "now_playing"
+            $dir = '/var/run/shairport/';
+            $leave_files = array('now_playing');
+            foreach( glob("$dir/*") as $file ) {
+            if( !in_array(basename($file), $leave_files) )
+                unlink($file);
+            }
+        }
+        runelog('endFunction!!!', $stoppedPlayer);
+        sysCmd('curl -s -X GET http://localhost/command/?cmd=renderui');
+    }
 }
 
 function wrk_playerID($arch)
@@ -2642,8 +2728,7 @@ function wrk_switchplayer($redis, $playerengine)
             sysCmdAsync('rune_prio nice');
             break;
     }
-if ($redis->hGet('airplay','enable') === '1') sysCmd('killall -9 shairport; systemctl start shairport');
-return $return;    
+    return $return;
 }
 
 function wrk_sysAcl()
