@@ -358,6 +358,9 @@ html, body {
             cursor: pointer;
         }
     }
+    .btn {
+        margin: 0;
+    }
 }
 #time-knob {
     margin-bottom: 30px;
@@ -397,8 +400,13 @@ html, body {
     background: @body-bg;
     border: none;
     color: @body-bg;
+    font-family: inherit !important;
+    &:hover,
+    &:focus {
+        cursor: default;
+    }
 }
-.volume {
+#volume-knob {
     .btn-toolbar {
         margin-top: 20px;
     }
@@ -407,13 +415,6 @@ html, body {
     }
     &.nomixer {
         padding-top: 0;
-    }
-}
-#volume {
-    font-family: inherit !important;
-    &:hover,
-    &:focus {
-        cursor: default;
     }
 }
 

@@ -386,11 +386,13 @@ function setPlaybackSource() {
     // update volume knob and control buttons
     if (activePlayer === 'Spotify' || activePlayer === 'Airplay') {
         $('#volume').trigger('configure', {'readOnly': true, 'fgColor': '#1A242F'}).css({'color': '#1A242F'});
-        $('.volume button').prop('disabled', true);
+        $('#volume-knob').addClass('nomixer');
+        $('#volume-knob button').prop('disabled', true);
         $('#single').addClass('disabled');
     } else {
         $('#volume').trigger('configure', {'readOnly': false, 'fgColor': '#0095D8'}).css({'color': '#0095D8'});
-        $('.volume button').prop('disabled', false);
+        $('#volume-knob').removeClass('nomixer');
+        $('#volume-knob button').prop('disabled', false);
         $('#single').removeClass('disabled');
     }
     // style the queue
@@ -426,7 +428,7 @@ function renderLibraryHome() {
     // Set active player
     setPlaybackSource();
     if (notMPD) {
-        toggleMPD =  ' inactive';
+        toggleMPD = ' inactive';
     }
     // bookmarks blocks
     for (i = 0; (bookmark = obj.bookmarks[i]); i += 1) {
@@ -2579,7 +2581,7 @@ if ($('#section-index').length) {
                 }
             });
 
-        }     
+        }
 
         // MPD
         // ----------------------------------------------------------------------------------------------------
