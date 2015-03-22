@@ -356,6 +356,15 @@ html, body {
         &:hover,
         &:focus {
             cursor: pointer;
+            &:disabled {
+                cursor: not-allowed;
+            }
+        }
+    }
+    &.nomixer > div:first-child {
+        &:hover,
+        &:focus {
+            cursor: not-allowed;
         }
     }
     .btn {
