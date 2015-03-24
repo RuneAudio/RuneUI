@@ -750,6 +750,16 @@ function getMpdDaemonDetalis()
     return $details;
 }
 
+// using an array as needles in strpos
+function strposa($haystack, $needle, $offset=0)
+{
+    if (!is_array($needle)) $needle = array($needle);
+    foreach ($needle as $query) {
+        if (strpos($haystack, $query, $offset) !== false) return true; // stop on first true result
+    }
+    return false;
+}
+
 // format Output for "playlist"
 function _parseFileListResponse($resp)
 {
@@ -762,8 +772,9 @@ function _parseFileListResponse($resp)
         $plCounter = -1;
         $browseMode = TRUE;
         while ($plistLine) {
-            // list ( $element, $value ) = explode(": ",$plistLine);
-            if (!strpos($plistLine,'@eaDir')) list ($element, $value) = explode(': ', $plistLine, 2);
+            // if (!strpos($plistLine,'@eaDir') && !strpos($plistLine,'.Trash')) list ($element, $value) = explode(': ', $plistLine, 2);
+            $blacklist = ['@eaDir', '.Trash'];
+            if (!strposa($plistLine, $blacklist)) list ($element, $value) = explode(': ', $plistLine, 2);
             if ($element === 'file' OR $element === 'playlist') {
                 $plCounter++;
                 $browseMode = FALSE;
