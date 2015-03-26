@@ -630,27 +630,16 @@ function remTrackQueue($sock, $songpos)
 function addToQueue($sock, $path, $addplay = null, $pos = null, $clear = null)
 {
     $fileext = parseFileStr($path,'.');
-    if ($fileext == 'm3u' OR $fileext == 'pls' OR $fileext == 'cue') {    
-        if (isset($addplay)) {
-            $cmdlist = "command_list_begin\n";
-            $cmdlist .= "load \"".html_entity_decode($path)."\"\n";
-            $cmdlist .= "play ".$pos."\n";
-            $cmdlist .= "command_list_end";
-            sendMpdCommand($sock, $cmdlist);
-        } else {
-            sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
-        }
+    $cmd = ($fileext == 'm3u' OR $fileext == 'pls' OR $fileext == 'cue') ? "load" : "add";    
+    if (isset($addplay) || isset($clear)) {
+        $cmdlist = "command_list_begin\n";
+        $cmdlist .= (isset($clear)) ? "clear\n" : "";               // add clear call if needed
+        $cmdlist .= $cmd." \"".html_entity_decode($path)."\"\n";
+        $cmdlist .= (isset($addplay)) ? "play ".$pos."\n" : "";     // add play call if needed
+        $cmdlist .= "command_list_end";
+        sendMpdCommand($sock, $cmdlist);
     } else {
-        if (isset($addplay) || isset($clear)) {
-            $cmdlist = "command_list_begin\n";
-            $cmdlist .= (isset($clear)) ? "clear\n" : "";               // add clear call if needed
-            $cmdlist .= "add \"".html_entity_decode($path)."\"\n";
-            $cmdlist .= (isset($addplay)) ? "play ".$pos."\n" : "";     // add play call if needed
-            $cmdlist .= "command_list_end";
-            sendMpdCommand($sock, $cmdlist);
-        } else {
-            sendMpdCommand($sock, "add \"".html_entity_decode($path)."\"");
-        }
+        sendMpdCommand($sock, $cmd." \"".html_entity_decode($path)."\"");
     }
 }
 
