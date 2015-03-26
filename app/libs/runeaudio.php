@@ -627,7 +627,7 @@ function remTrackQueue($sock, $songpos)
     return $datapath;
 }
 
-function addToQueue($sock, $path, $addplay = null, $pos = null)
+function addToQueue($sock, $path, $addplay = null, $pos = null, $clear = null)
 {
     $fileext = parseFileStr($path,'.');
     if ($fileext == 'm3u' OR $fileext == 'pls' OR $fileext == 'cue') {    
@@ -641,10 +641,11 @@ function addToQueue($sock, $path, $addplay = null, $pos = null)
             sendMpdCommand($sock, "load \"".html_entity_decode($path)."\"");
         }
     } else {
-        if (isset($addplay)) {
+        if (isset($addplay) || isset($clear)) {
             $cmdlist = "command_list_begin\n";
+            $cmdlist .= (isset($clear)) ? "clear\n" : "";               // add clear call if needed
             $cmdlist .= "add \"".html_entity_decode($path)."\"\n";
-            $cmdlist .= "play ".$pos."\n";
+            $cmdlist .= (isset($addplay)) ? "play ".$pos."\n" : "";     // add play call if needed
             $cmdlist .= "command_list_end";
             sendMpdCommand($sock, $cmdlist);
         } else {
@@ -766,15 +767,16 @@ function _parseFileListResponse($resp)
     if (is_null($resp)) {
         return null;
     } else {
+        // $start_time = microtime(TRUE);
         $plistArray = array();
         $plistLine = strtok($resp, "\n");
         // $plistFile = "";
         $plCounter = -1;
         $browseMode = TRUE;
         while ($plistLine) {
-            // if (!strpos($plistLine,'@eaDir') && !strpos($plistLine,'.Trash')) list ($element, $value) = explode(': ', $plistLine, 2);
-            $blacklist = ['@eaDir', '.Trash'];
-            if (!strposa($plistLine, $blacklist)) list ($element, $value) = explode(': ', $plistLine, 2);
+            if (!strpos($plistLine,'@eaDir') && !strpos($plistLine,'.Trash')) list ($element, $value) = explode(': ', $plistLine, 2);
+            // $blacklist = ['@eaDir', '.Trash'];
+            // if (!strposa($plistLine, $blacklist)) list ($element, $value) = explode(': ', $plistLine, 2);
             if ($element === 'file' OR $element === 'playlist') {
                 $plCounter++;
                 $browseMode = FALSE;
@@ -804,6 +806,10 @@ function _parseFileListResponse($resp)
             }
             $plistLine = strtok("\n");
         }
+        // $end_time = microtime(TRUE);
+        // if (($end_time - $start_time) > 0.1) {
+            // ui_notify_async('ELAPSED', $end_time - $start_time);
+        // }
     }
     return $plistArray;
 }

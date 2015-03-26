@@ -90,9 +90,7 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
         case 'addreplaceplay':
             if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
-                    sendMpdCommand($mpd, 'clear');
-                    addToQueue($mpd, $_POST['path']);
-                    sendMpdCommand($mpd, 'play');
+                    addToQueue($mpd, $_POST['path'], 1, 0, 1); // last argument is for the "clear" command
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Queue cleared<br> Added to queue', 'text' => $_POST['path']));
                 }
@@ -298,9 +296,7 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
         case 'albumaddreplaceplay':
             if ($activePlayer === 'MPD') {
                 if (isset($_POST['path'])) {
-                    sendMpdCommand($mpd, 'clear');
-                    addAlbumToQueue($mpd, $_POST['path']);
-                    sendMpdCommand($mpd, 'play');
+                    addAlbumToQueue($mpd, $_POST['path'], 1, 0, 1); // last argument is for the "clear" command
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Queue cleared<br> Added to queue', 'text' => $_POST['path']));
                 }
