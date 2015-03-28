@@ -134,12 +134,14 @@ while (1) {
                     sysCmdAsync('/var/www/command/ui_update_async');
                 }
                 if ($airplay_handle == FALSE) {
-                    $airplay_handle = fopen("/var/run/shairport/now_playing", "r");
+				
+				    $airplay_handle = fopen("/var/run/shairport/now_playing", "r");
                     stream_set_blocking($airplay_handle,false);
                 } else {
                     $status = array();
-                    runelog('------------------------------ read now_playing -------------------------------------');
-                    for($j = 0; $j < 6; $j++) {
+                    runelog('------------------------------ read now_playing shairport ----------------------------------');
+					
+					for($j = 0; $j < 6; $j++) {
                         $line = fgets($airplay_handle);
                         // split the line on the =
                         $parts = explode("=", $line);
@@ -172,9 +174,11 @@ while (1) {
                         // package up our data object
                         $status[$parts[0]] = $parts[1];
                     }
+				    
                     // create the JSON to send the UI
-                    if(isset($status["currentartist"]) && ($status["currentartist"] !== "" || $status["currentsong"] !== "" || $status["currentalbum"] !== "")) {
-                        $status['volume'] = "100";
+					if(isset($status["currentartist"]) && ($status["currentartist"] !== "" || $status["currentsong"] !== "" || $status["currentalbum"] !== "")) {
+                        
+						$status['volume'] = "100";
                         $status['random'] = "0";
                         $status['single'] = "0";
                         $status['consume'] = "0";
@@ -184,21 +188,28 @@ while (1) {
                         $status['time'] = "0";
                         $status['elapsed'] = "0";
                         $status['song_percent'] = "100";
-                        ui_render('playback', json_encode($status));
-
-                        // save JSON response for extensions
-                        $status['actPlayer'] = "Airplay";
-                        $redis->set('act_player_info', json_encode($status));
-
+                      
                         $artwork = $status["artwork"];
                         // is there an artwork?
-                        //if($artwork !== "" && is_file('/var/run/shairport/'.$artwork)) {
-                        //    $extension = substr(strrchr($artwork, "."), 1);
-                        //    sysCmd('mv /var/run/shairport/'.$artwork.' /srv/http/assets/img/airplay-cover.'.$extension);
-                        //    sysCmd('chmod 755 /srv/http/assets/img/airplay-cover.'.$extension);
-                        //    $artwork = "";
-                        //}
+						// search in the folder becouse artwork reference seems to be wrong
+						$latestCoverFile = sysCmd('ls -tr /var/run/shairport/cover*.jpg | tail -n 1');
+						if($artwork !== "" && is_file($latestCoverFile[0])) {
+                            // $extension = substr(strrchr($artwork, "."), 1);
+                            // sysCmd('cp /var/run/shairport/'.$artwork.' /srv/http/assets/img/airplay-cover.'.$extension);
+							// runelog('-> latest cover file!' . $latestCoverFile[0] );
+							sysCmd('cp ' . $latestCoverFile[0] . ' /srv/http/assets/img/airplay-cover.jpg');
+                            sysCmd('chmod 755 /srv/http/assets/img/airplay-cover.jpg');
+                            $artwork = "";
+                        }
+						else{
+							runelog('-> NO cover )');
+						}
+						 ui_render('playback', json_encode($status));
+						  // save JSON response for extensions
+                        $status['actPlayer'] = "Airplay";
+						$redis->set('act_player_info', json_encode($status));
                     }
+					
                     sleep(1);
                     $forceupdate = 1;
                 }
