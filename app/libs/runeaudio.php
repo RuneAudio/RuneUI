@@ -2504,6 +2504,10 @@ function wrk_getHwPlatform()
                 case 'BCM2709':
                     $arch = '08';
                     break;
+                // ODROID C1
+                case 'ODROIDC':
+                    $arch = '09';
+                    break;                    
                 default:
                     $arch = '--';
                     break;
@@ -2551,6 +2555,10 @@ function wrk_setHwPlatform($redis)
             break;
         case '08':
             $redis->set('hwplatform', 'RaspberryPi2');
+            $redis->set('hwplatformid', $arch);
+            break;
+        case '09':
+            $redis->set('hwplatform', 'ODROID-C1');
             $redis->set('hwplatformid', $arch);
             break;
         default:
