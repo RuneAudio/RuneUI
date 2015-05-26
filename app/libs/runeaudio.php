@@ -1862,6 +1862,11 @@ function wrk_audioOutput($redis, $action, $args = null)
                     }
                     // debug
                     if (isset($data['extlabel'])) runelog('wrk_audioOutput: in loop: extlabel for: '.$card, $data['extlabel']);
+                    // test if there is an option for mpd.conf set
+                    // for example ODROID C1 needs "card_option":"buffer_time\t\"0\""
+                    if (isset($details->card_option)) {
+                        $data['card_option'] = $details->card_option; 
+                    }
                 }
                 if (!isset($sub_interfaces)) {
                 $data['name'] = $card;
@@ -2171,6 +2176,11 @@ if ($action === 'reset') {
                     }
                     // $output .="\tmixer_index \t\"0\"\n";"\t\t  \t\"0\"\n";
                 }
+                // test if there is an option for mpd.conf set
+                // for example ODROID C1 needs "card_option":"buffer_time\t\"0\""
+                if (isset($card_decoded->card_option)) {
+                    $output .= "\t".$card_decoded->card_option."\n";
+                }                
                 if ($mpdcfg['dsd_usb'] === 'yes') $output .="\tdsd_usb \t\"yes\"\n";
                 $output .="\tauto_resample \t\"no\"\n";
                 $output .="\tauto_format \t\"no\"\n";
