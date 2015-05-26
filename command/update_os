@@ -49,5 +49,7 @@ function updateOS()
 
     sysCmd('cp /srv/http/app/config/_os/etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/');
 
+    sysCmd('php /srv/http/db/redis_acards_details');
+
     sysCmd('rm /srv/http/command/update_os');
 }
