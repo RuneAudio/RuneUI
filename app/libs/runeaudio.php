@@ -1507,6 +1507,7 @@ function wrk_netconfig($redis, $action, $args = null, $configonly = null)
             } else {
                 // STATIC configuration
                 $nic .= "AutoWired=yes\n";
+                $nic .= "ExcludeAuto=no\n";
                 $nic .= "IP=static\n";
                 // KEW
                 // Need address in CIDR notation 0.0.0.0/0
