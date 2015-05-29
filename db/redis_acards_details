@@ -37,6 +37,8 @@ include('/srv/http/app/config/config.php');
 // ini_set('display_errors',1);
 // error_reporting('E_ALL');
 // acards_details database
+$redis->Del('acards_details');
+$redis->hSet('acards_details', 'IQaudIODAC', '{"sysname":"snd_rpi_iqaudio_dac","extlabel":"IQaudIO Pi-DAC+ (I&#178;S)","mixer_numid":"1","mixer_control":"Digital","hwplatformid":"02","type":"i2s"}');
 $redis->hSet('acards_details', 'snd_rpi_iqaudio_dac', '{"sysname":"snd_rpi_iqaudio_dac","extlabel":"IQaudIO Pi-DAC (I&#178;S)","mixer_numid":"1","mixer_control":"Playback Digital","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'berrynosmini', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS mini (I&#178;S)","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'berrynos', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS 1543 (I&#178;S)","hwplatformid":"01","type":"i2s"}');
