@@ -37,6 +37,10 @@ include('/srv/http/app/config/config.php');
 // ini_set('display_errors',1);
 // error_reporting('E_ALL');
 // acards_details database
+$redis->Del('acards_details');
+$redis->hSet('acards_details', 'DigiHug USB Audio', '{"sysname":"DigiHug USB Audio","extlabel":"DigiHug USB DAC","mixer_numid":"1","mixer_control":"PCM","hwplatformid":"08","type":"usb"}');
+$redis->hSet('acards_details', 'snd_rpi_hifiberry_amp', '{"sysname":"snd_rpi_hifiberry_amp","extlabel":"HifiBerry Amp+ (I&#178;S)","mixer_numid":"1","mixer_control":"Master","hwplatformid":"08","type":"i2s"}');
+$redis->hSet('acards_details', 'IQaudIODAC', '{"sysname":"snd_rpi_iqaudio_dac","extlabel":"IQaudIO Pi-DAC+ (I&#178;S)","mixer_numid":"1","mixer_control":"Digital","hwplatformid":"02","type":"i2s"}');
 $redis->hSet('acards_details', 'snd_rpi_iqaudio_dac', '{"sysname":"snd_rpi_iqaudio_dac","extlabel":"IQaudIO Pi-DAC (I&#178;S)","mixer_numid":"1","mixer_control":"Playback Digital","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'berrynosmini', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS mini (I&#178;S)","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'berrynos', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS 1543 (I&#178;S)","hwplatformid":"01","type":"i2s"}');
@@ -62,6 +66,7 @@ $redis->hSet('acards_details', 'NuForce USB Audio', '{"sysname":"NuForce USB Aud
 $redis->hSet('acards_details', 'Rotel PC-USB', '{"sysname":"Rotel PC-USB","extlabel":"Rotel USB","type":"usb"}');
 $redis->hSet('acards_details', 'bcm2835 ALSA', '{"sysname":"bcm2835 ALSA","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
 $redis->hSet('acards_details', 'snd_rpi_wsp', '{"sysname":"snd_rpi_wsp","extlabel":"none","hwplatformid":"01","type":"integrated_sub"}');
+$redis->hSet('acards_details', 'AML-M8AUDIO', '{"sysname":"AML-M8AUDIO","extlabel":"ODROID HDMI","card_option":"buffer_time\t\"0\"","mixer_numid":"1","hwplatformid":"09","type":"integrated"}');
 $redis->sAdd('bcm2835 ALSA', '{"id":"1","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi Analog Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"PCM","route_cmd":"amixer -c *CARDID* cset numid=3 1 > /dev/null"}');
 $redis->sAdd('bcm2835 ALSA', '{"id":"2","sysname":"bcm2835 ALSA","extlabel":"RaspberryPi HDMI Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"PCM","route_cmd":"amixer -c *CARDID* cset numid=3 2 > /dev/null"}');
 $redis->sAdd('snd_rpi_wsp', '{"id":"1","sysname":"snd_rpi_wsp","extlabel":"Wolfson Card Line Out","hwplatformid":"01","mixer_numid":"1","mixer_control":"HPOUT2 Digital","route_cmd":"/srv/http/command/wolfson.sh *CARDID* line_out > /dev/null"}');
