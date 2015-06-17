@@ -762,6 +762,7 @@ function renderUI(text){
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
+    console.log(JSON.stringify(text[0]));
     GUI.state = GUI.json.state;
     // console.log('current song = ', GUI.json.currentsong);
     // console.log( 'GUI.state = ', GUI.state );
@@ -1035,6 +1036,7 @@ function populateDB(options){
         
     // DEBUG
     // console.log('populateDB OPTIONS: data = ' + data + ', path = ' + path + ', uplevel = ' + uplevel + ', keyword = ' + keyword +', querytype = ' + querytype);
+    console.log(JSON.stringify(data));
 
     if (plugin !== '') {
     // plugins
