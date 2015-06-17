@@ -150,6 +150,7 @@
             <li><a href="javascript:;" data-cmd="add"><i class="fa fa-plus-circle sx"></i> Add</a></li>
             <li><a href="javascript:;" data-cmd="addplay"><i class="fa fa-play sx"></i> Add and play</a></li>
             <li><a href="javascript:;" data-cmd="addreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
+            <li><a href="javascript:;" data-cmd="lastfmaddreplaceplay"><i class="fa fa-lastfm sx"></i> Last.fm playlist from this</a></li>
         </ul>
     </div>
     <div id="context-menu-dirble" class="context-menu">

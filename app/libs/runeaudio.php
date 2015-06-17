@@ -3115,6 +3115,40 @@ function ui_lastFM_coverart($artist, $album, $lastfm_apikey, $proxy)
     }
 }
 
+// populate queue with similiar tracks suggested by Last.fm
+function ui_lastFM_similar($artist, $track, $lastfm_apikey, $proxy)
+{
+	runelog('similar lastfm artist', $artist);
+	runelog('similar lastfm track', $track);
+	runelog('similar lastfm name', $proxy);
+	runelog('similar lastfm lastfm_api', $lastfm_api);
+	// This makes the call to Last.fm. The limit parameter can be adjusted to the number of tracks you want returned. 
+	// [TODO] adjustable amount of tracks in settings screen
+    $url = "http://ws.audioscrobbler.com/2.0/?method=track.getsimilar&limit=1000&api_key=".$lastfm_apikey."&artist=".urlencode($artist)."&track=".urlencode($track)."&format=json";
+    runelog('similar lastfm query URL', $url);
+	// debug
+    //echo $url;
+	// This call does not work
+    //$output = json_decode(curlGet($url, $proxy), true);
+	// But these 2 lines do
+	$content = file_get_contents($url);
+	$output = json_decode($content,true);
+    // debug
+    // debug++
+    // echo "<pre>";
+    // print_r($output);
+    // echo "</pre>";
+	foreach($output['similartracks']['track'] as $similar) {
+		$simtrack = $similar['name'];
+		$simartist = $similar['artist']['name'];
+		if (strlen($simtrack)>0 and strlen($simartist)>0) {
+			// If we have a track and an artist then make a call to mpd to add it. If it doesn't exist then it doesn't
+			// matter
+			$status = sysCmd("mpc search artist '".$simartist."' title '".$simtrack. "' | head -n1 | mpc add");
+		}
+	}
+}
+
 // push UI update to NGiNX channel
 function ui_render($channel, $data)
 {
