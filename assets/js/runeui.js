@@ -2528,6 +2528,25 @@ if ($('#section-index').length) {
                     $('#spotifyBox').removeClass('boxed-group');
                 }
             });
+            
+            // file upload
+            $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+                var input = $(this).parents('.input-group').find(':text');
+                if (input.length) {
+                    input.val(label);
+                } else {
+                    if (label) {
+                        console.log('Selected file: ', label);
+                        if (label.indexOf('backup_') > -1 && label.indexOf('.tar.gz') > -1) {
+                            $('#backup-file').html(' <i class="fa fa-check dx green"></i> ' + label + '');
+                            $('#btn-backup-upload').prop('disabled', false);
+                        } else {
+                            $('#backup-file').html(' <i class="fa fa-times dx red"></i> not a valid backup file');
+                            $('#btn-backup-upload').prop('disabled', true);
+                        }
+                    }
+                }
+            });
 
         }
         
@@ -2630,6 +2649,16 @@ if ($('#section-index').length) {
 
         }
         
+    });
+    
+    
+    // FILE UPLOAD
+    // ----------------------------------------------------------------------------------------------------
+    $(document).on('change', '.btn-file :file', function() {
+        var input = $(this),
+            numFiles = input.get(0).files ? input.get(0).files.length : 1,
+            label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+        input.trigger('fileselect', [numFiles, label]);
     });
 
 }

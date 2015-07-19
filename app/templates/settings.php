@@ -274,7 +274,7 @@
             </div> -->
             <div <?php if($this->lastfm['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="lastfmBox">
                 <div class="form-group">
-                    <label for="lastfm" class="control-label col-sm-2"><i class="fa fa fa-lastfm-square"></i> Last.fm</label>
+                    <label for="lastfm" class="control-label col-sm-2">Last.fm scrobbling</label>
                     <div class="col-sm-10">
                         <label class="switch-light well" onclick="">
                             <input id="scrobbling-lastfm" name="features[lastfm][enable]" type="checkbox" value="1"<?php if($this->lastfm['enable'] === '1'): ?> checked="checked" <?php endif ?>>
@@ -315,33 +315,28 @@
                 <label class="control-label col-sm-2">Backup player config</label>
                 <div class="col-sm-10">
                     <input class="btn btn-primary btn-lg" type="submit" name="syscmd" value="backup" id="syscmd-backup">
-					<span class="help-block">NOTE: restore feature will come in 0.4 release.</span>
+					<span class="help-block">Export a compressed archive containing all the settings of this player</span>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    <form class="form-horizontal" method="post">
+        <fieldset>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Restore player config</label>
+                <div class="col-sm-10">
+                    <p>
+                        <span id="btn-backup-browse" class="btn btn-default btn-lg btn-file">
+                            Browse... <input type="file">
+                        </span> 
+                        <span id="backup-file"></span>
+                        <span class="help-block">Restore a previously exported backup</span>
+                    </p>
+                    <button id="btn-backup-upload" name="syscmd" value="restore" class="btn btn-primary btn-lg" type="submit" disabled>Upload</button>
                 </div>
             </div>
 		</fieldset>
     </form>
-    <!--
-    <form class="form-horizontal" method="post">
-        <fieldset>
-            <div class="form-group" >
-                <label class="control-label col-sm-2" for="port">Configuration file</label>
-
-                <div class="col-sm-10">
-            
-            <div class="fileupload fileupload-new" data-provides="fileupload">
-                      <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
-                      <span class="fileupload-preview"></span>
-                      <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
-                    </div>
-
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-primary btn-lg" value="restore" name="syscmd" type="submit">Restore config</button>
-            </div>
-        </fieldset>
-    </form>
-    -->
 </div>
 <div id="modal-sysinfo" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-sysinfo-label" aria-hidden="true">
     <div class="modal-dialog">
