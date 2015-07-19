@@ -20,8 +20,8 @@
         </fieldset>
     </form>
     <form class="form-horizontal" action="" method="post" data-parsley-validate>
-    <fieldset>
-            <legend>Volume control</legend>
+        <legend>Volume control</legend>
+        <fieldset>
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="mixer-type">Volume control</label>
                 <div class="col-sm-10">
@@ -36,6 +36,13 @@
                         <strong>hardware</strong> - Volume knob enabled, controlled by <strong>hardware mixer</strong>. This option enables the volume control and let you achieve <strong>very good overall sound quality</strong>.<br>
                         <i>Note: hardware mixer must be supported directly from your sound card hardware.</i>
                     </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
+                <div class="col-sm-10">
+                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start-volume]" value="<?=$this->mpd['start-volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
         </fieldset>
@@ -149,6 +156,41 @@
                         <option value="no" <?php if($this->conf['auto_update'] == 'no'): ?> selected <?php endif ?>>disabled</option>                
                     </select>
                     <span class="help-block">This setting enables automatic update of MPD's database when files in music_directory are changed.</span>
+                </div>
+            </div>
+        </fieldset>
+        <div class="form-group form-actions">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/mpd/" class="btn btn-default btn-lg">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg" name="save" value="save">Save and apply</button>
+            </div>
+        </div>
+    </form>
+    <form class="form-horizontal" action="" method="post" data-parsley-validate>
+        <legend>Misc options</legend>
+        <fieldset>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="crossfade">Crossfade</label>
+                <div class="col-sm-10">
+                    <input class="form-control input-lg" type="number" id="crossfade" name="mpd[crossfade]" value="<?=$this->mpd['crossfade'] ?>" data-trigger="change" min="0" placeholder="0" />
+                    <span class="help-block">Sets the current amount of crossfading between songs, in seconds (0 disables crossfading).</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="global_random" class="control-label col-sm-2">Global random</label>
+                <div class="col-sm-10">
+                    <label class="switch-light well" onclick="">
+                        <input id="global_random" name="mpd[global_random][enable]" type="checkbox" value="1"<?php if($this->global_random['enable'] == 1): ?> checked="checked" <?php endif ?>>
+                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
+                    </label>
+                    <span class="help-block">(EXPERIMENTAL) Toggles the global random, which adds a random song to the queue when it reaches the end.</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="crossfade">Add random tracks</label>
+                <div class="col-sm-10">
+                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
+                    <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>
         </fieldset>
