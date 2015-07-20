@@ -120,7 +120,22 @@
                 </div>
             </div>
             <div class="form-group" >
-                <label class="col-sm-2 control-label" for="dsd-usb">Volume normalization</label>
+                <label class="col-sm-2 control-label" for="replaygain">ReplayGain</label>
+                <div class="col-sm-10">
+                    <select id="replaygain" name="conf[replaygain]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="off" <?php if($this->conf['replaygain'] == 'off'): ?> selected <?php endif ?>>off</option>    
+                        <option value="album" <?php if($this->conf['replaygain'] == 'album'): ?> selected <?php endif ?>>album</option>
+                        <option value="track" <?php if($this->conf['track'] == 'no'): ?> selected <?php endif ?>>track</option>
+                        <option value="auto" <?php if($this->conf['auto'] == 'no'): ?> selected <?php endif ?>>auto</option>
+                    </select>
+                    <span class="help-block">If specified, mpd will adjust the volume of songs played using ReplayGain tags (see <a href="http://www.replaygain.org/" target="_blank">http://www.replaygain.org/</a>). 
+                    Setting this to "album" will adjust volume using the album's ReplayGain tags, while setting it to "track" will adjust it using the track ReplayGain tags. 
+                    "auto" uses the track ReplayGain tags if random play is activated otherwise the album ReplayGain tags. 
+                    Currently only FLAC, Ogg Vorbis, Musepack, and MP3 (through ID3v2 ReplayGain tags, not APEv2) are supported.</span>
+                </div>
+            </div>
+            <div class="form-group" >
+                <label class="col-sm-2 control-label" for="volume-normalization">Volume normalization</label>
                 <div class="col-sm-10">
                     <select id="volume-normalization" name="conf[volume_normalization]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="yes" <?php if($this->conf['volume_normalization'] == 'yes'): ?> selected <?php endif ?>>enabled</option>    
