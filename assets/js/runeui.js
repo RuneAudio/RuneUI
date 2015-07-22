@@ -1704,6 +1704,14 @@ if ($('#section-index').length) {
             }
         });
         
+        // play/pause when clicking on the counter or total time inside the progress knob
+        $('#countdown-display').click(function(){
+            sendCmd('pause');
+        });
+        $('#total').click(function(){
+            sendCmd('pause');
+        });
+        
         
         // KNOBS
         // ----------------------------------------------------------------------------------------------------
