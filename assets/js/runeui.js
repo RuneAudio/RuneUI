@@ -68,20 +68,11 @@ var GUI = {
 
 // send a MPD playback control command
 function sendCmd(inputcmd) {
-    var request = new XMLHttpRequest();
-    request.open('GET', '/command/?cmd='+inputcmd, true);
-    request.onreadystatechange = function() {
-        if (this.readyState === 4){
-        // TODO: check this
-            if (this.status >= 200 && this.status < 400){
-                // Success! resp = this.responseText;
-            } else {
-                // Error
-            }
-        }
-    };
-    request.send();
-    request = null;
+    $.ajax({
+        type: 'GET',
+        url: '/command/?cmd=' + inputcmd,
+        cache: false
+    });
 }
 
 // check WebSocket support
