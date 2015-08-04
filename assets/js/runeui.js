@@ -978,9 +978,10 @@ function parseResponse(options) {
         
         case 'Dirble':
         // Dirble plugin
-            if (querytype === '') {
+            if (querytype === '' || querytype === 'childs') {
             // folders
-                content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder" data-path="';
+                var childClass = (querytype === 'childs') ? ' db-dirble-child' : '';
+                content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder' + childClass + '" data-path="';
                 content += inputArr.id;
                 content += '"><span><i class="fa fa-folder-open"></i>';
                 content += inputArr.title;
@@ -2000,10 +2001,11 @@ if ($('#section-index').length) {
                     } else if (el.hasClass('db-dirble')) {
                     // Dirble folders
                         path = GUI.currentpath + '/' + el.find('span').text();
+                        var querytype = (el.hasClass('db-dirble-child')) ? 'stations' : 'childs'
                         getDB({
                             path: path,
                             plugin: 'Dirble',
-                            querytype: 'stations',
+                            querytype: querytype,
                             args: el.data('path')
                         });
                         GUI.plugin = 'Dirble';
