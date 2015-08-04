@@ -983,16 +983,17 @@ function parseResponse(options) {
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder" data-path="';
                 content += inputArr.id;
                 content += '"><span><i class="fa fa-folder-open"></i>';
-                content += inputArr.name;
+                content += inputArr.title;
                 content += '</span></li>';
             } else if (querytype === 'stations') {
             // stations
+                if (inputArr.streams.length === 0) break; // Filter stations with no streams
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-radio" data-path="';
-                content += inputArr.name + ' | ' + inputArr.streamurl;
+                content += inputArr.name + ' | ' + inputArr.streams[0].stream;
                 content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-dirble"></i><i class="fa fa-microphone db-icon"></i>';
-                content += '<span class="sn">' + inputArr.name + ' <span>' + inputArr.bitrate + '</span></span>';
+                content += '<span class="sn">' + inputArr.name + '<span>(' + inputArr.country + ')</span></span>';
                 content += '<span class="bl">';
-                content += inputArr.website;
+                content += inputArr.website ? inputArr.website : '-no website-';
                 content += '</span></li>';
             }
         break;
@@ -1998,7 +1999,7 @@ if ($('#section-index').length) {
                         GUI.plugin = 'Spotify';
                     } else if (el.hasClass('db-dirble')) {
                     // Dirble folders
-                        path = GUI.currentpath    + '/' + el.find('span').text();
+                        path = GUI.currentpath + '/' + el.find('span').text();
                         getDB({
                             path: path,
                             plugin: 'Dirble',
