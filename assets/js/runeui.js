@@ -469,6 +469,18 @@ function renderLibraryHome() {
             content += divOpen + '<div id="home-webradio" class="home-block' + toggleMPD + '" data-path="Webradio"><i class="fa fa-microphone"></i><h3>My Webradios (' + obj.webradio + ')</h3>webradio local playlists</div>' + divClose;
         }
     }
+    if (chkKey(obj.podcast)) {
+    // podcast block
+        if (obj.podcast === 0) {
+            if (notMPD) {
+                content += divOpen + '<div id="home-podcast" class="home-block inactive"><i class="fa fa-rss"></i><h3>My Podcasts (0)</h3>podcasts</div>' + divClose;
+            } else {
+                content += divOpen + '<a id="home-podcast" class="home-block' + toggleMPD + '" href="#" data-toggle="modal" data-target="#modal-podcast-add"><i class="fa fa-rss"></i><h3>My Podcasts (0)</h3>click to add some</a>' + divClose;
+            }
+        } else {
+            content += divOpen + '<div id="home-podcast" class="home-block' + toggleMPD + '" data-plugin="Podcast" data-path="Podcast"><i class="fa fa-rss"></i><h3>My Podcasts (' + obj.podcast + ')</h3>podcasts</div>' + divClose;
+        }
+    }
     if (chkKey(obj.Spotify)) {
     // Spotify block
         if (obj.Spotify === '0') {
@@ -1008,7 +1020,27 @@ function parseResponse(options) {
                 content += inputArr.dispname + '</div></li>';
             // }
         break;
-        
+        case 'Podcast':
+            // Podcast plugin
+            if (querytype === '') {
+                // folders
+                content = '<li id="db-' + (i + 1) + '" class="db-podcast db-folderradio" data-path="';
+                content += inputArr.name + ' | ' + inputArr.url;
+                content += '"><img class="jamendo-cover" src="' + inputArr.image + '" alt=""><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-podcast-pl"></i>';
+                content += '<span class="sn">' + inputArr.name + '</span>';
+                content += '<span class="bl">';
+                content += inputArr.description;
+                content += '</span></li>';
+            } else if (querytype === 'content') {
+                content = '<li id="db-' + (i + 1) + '" class="db-podcast db-radio" data-path="';
+                content += inputArr.enclosure;
+                content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-podcast"></i><i class="fa fa-microphone db-icon"></i>';
+                content += '<span class="sn">' + inputArr.title + '</span>';
+                content += '<span class="bl">';
+                content += inputArr.description;
+                content += '</span></li>';
+            }
+            break;
     }
     return content;
 } // end parseResponse()
@@ -1090,6 +1122,30 @@ function populateDB(options){
                     i: i,
                     querytype: querytype
                 });
+            }
+            document.getElementById('database-entries').innerHTML = content;
+        }
+        if (plugin === 'Podcast') {
+            $('#database-entries').removeClass('hide');
+            $('#db-level-up').removeClass('hide');
+            $('#home-blocks').addClass('hide');
+            if (path) {
+                GUI.currentpath = path;
+            }
+            // console.log(' new GUI.currentpath = ', GUI.currentpath);
+            document.getElementById('database-entries').innerHTML = '';
+            
+            for (i = 0; (row = data[i]); i += 1) {
+                content += parseResponse({
+                    inputArr: row,
+                    respType: 'Podcast',
+                    i: i,
+                    querytype: querytype,
+                    inpath: path
+                });
+            }
+            if (querytype === '') {
+                content += '<li id="podcast-add" class="db-podcast-add"><i class="fa fa-plus-circle db-icon"></i><span class="sn"><em>add new</em></span><span class="bl">add a podcast to your library</span></li>';
             }
             document.getElementById('database-entries').innerHTML = content;
         }
@@ -1214,6 +1270,18 @@ function getDB(options){
         else if (plugin === 'Jamendo') {
         // Jamendo plugin
             $.post('/db/?cmd=jamendo', { 'querytype': (querytype === '') ? 'radio' : querytype, 'args': args }, function(data){
+                populateDB({
+                    data: data.results,
+                    path: path,
+                    plugin: plugin,
+                    querytype: querytype
+                });
+            }, 'json');
+        }
+        else if (plugin === 'Podcast') {
+        // Podcast plugin
+            args = args.split (' | ')[1];
+            $.post('/db/?cmd=podcast', { 'querytype': (querytype === '') ? 'list' : querytype, 'args': args }, function(data){
                 populateDB({
                     data: data.results,
                     path: path,
@@ -1956,7 +2024,7 @@ if ($('#section-index').length) {
             // list browsing
                 $('li.active', '#database-entries').removeClass('active');
                 el.addClass('active');
-                if (el.hasClass('db-folder')) {
+                if (el.hasClass('db-folder') || el.hasClass('db-folderradio')) {
                     path = el.data('path');
                     if (el.hasClass('db-album')) {
                     // browse by album
@@ -2020,6 +2088,17 @@ if ($('#section-index').length) {
                             // querytype: querytype,
                             // args : args
                         // });
+                    } else if (el.hasClass('db-podcast')) {
+                        // Podcast content
+                        path = GUI.currentpath  + '/' + el.find('span').text();
+                        getDB({
+                            path: path,
+                            browsemode: GUI.browsemode,
+                            plugin: 'Podcast',
+                            querytype: 'content',
+                            args: el.data('path')
+                        });
+                        GUI.plugin = 'Podcast';
                     } else {
                     // browse by file (default)
                         browsemode = el.data('browsemode');
@@ -2038,6 +2117,8 @@ if ($('#section-index').length) {
                     // console.log('getDB path = ', path);
                 } else if (el.hasClass('db-webradio-add')) {
                     $('#modal-webradio-add').modal();
+                } else if (el.hasClass('db-podcast-add')) {
+                    $('#modal-podcast-add').modal();
                 }
             }
         });
@@ -2195,7 +2276,27 @@ if ($('#section-index').length) {
                     var parameters = path.split(' | ');
                     $.post('/db/?cmd=addradio', { 'radio[label]' : parameters[0], 'radio[url]' : parameters[1] });
                     break;
-                    
+                case 'podedit':
+                    $('#modal-podcast-edit').modal();
+                    $.post('/db/?cmd=readpodcast', {
+                        filename: path
+                    }, function(data){
+                        // get parsed content of .pls file and populate the form fields
+                        var name = $('#podcast-edit-name');
+                        name.val(data.name);
+                        name.data('file-name', data.name);
+                        $('#podcast-edit-url').val(data.url);
+                    }, 'json');
+                    break;
+                case 'poddelete':
+                    $('#modal-podcast-delete').modal();
+                    path = path.split(' | ')[0];
+                    $('#podcast-delete-name').text(path.replace('Podcast/', ''));
+                    break;
+                case 'podsave':
+                    var parameters = path.split(' | ');
+                    $.post('/db/?cmd=addpodcast', { 'podcast[label]' : parameters[0], 'podcast[url]' : parameters[1] });
+                    break;
                 default:
                     getDB({
                         cmd: dataCmd,
@@ -2244,7 +2345,43 @@ if ($('#section-index').length) {
             }, 'json');
         });
         
+        // add podcast
+        $('#podcast-add-button').click(function(){
+            var podcastname = $('#podcast-add-name').val();
+            var podcasturl = $('#podcast-add-url').val();
+            if (podcastname === '' || podcasturl === '') {
+                renderMSG([{'title': 'Missing fields', 'text': 'Please fill both fields to continue', 'icon': 'fa fa-warning'}]);
+            } else {
+                $.post('/db/?cmd=addpodcast', { 'podcast[label]' : podcastname, 'podcast[url]' : podcasturl }, function(data){
+                    // console.log('SENT');
+                }, 'json');
+                $('#modal-podcast-add').modal('hide');
+                $('#podcast-add-name').val('');
+                $('#podcast-add-url').val('');
+            }
+        });
         
+        // edit podcast
+        $('#podcast-edit-button').click(function(){
+            var name = $('#podcast-edit-name');
+            $.post('/db/?cmd=editpodcast', {
+                'podcast[newlabel]': name.val(),
+                'podcast[label]': name.data('file-name'),
+                'podcast[url]': $('#podcast-edit-url').val()
+            }, function(data){
+                // console.log('editedpodcast', data);
+            }, 'json');
+        });
+        
+        // delete podcast
+        $('#podcast-delete-button').click(function(){
+        // console.log( $('#podcast-delete-name').text() );
+            var podcastname = $('#podcast-delete-name').text();
+            $.post('/db/?cmd=deletepodcast', { 'podcast[label]' : podcastname }, function(data){
+                // console.log('SENT');
+            }, 'json');
+        });
+
         // GENERAL
         // ----------------------------------------------------------------------------------------------------
         
@@ -2318,7 +2455,18 @@ if ($('#section-index').length) {
             $.post('/settings/', { 'syscmd' : 'reboot' });
             toggleLoader();
         });
-        
+        // sleep mode modal
+        $('#overlay-sleep-open').click(function() {
+            $('#modal-sleep-start').modal();
+            $('.touchspin').TouchSpin({
+                min: 1,
+                max: 60,
+                boostat: 5,
+                maxboostedstep: 5
+            });
+
+        });
+
         // social share overlay
         overlayTrigger('#overlay-social');
         // play source overlay
@@ -2346,7 +2494,12 @@ if ($('#section-index').length) {
                 }
             }
         });
-        
+        // sleep mode start
+        $('#sleep-start-button').click(function() {
+            var time = $('#sleep-mode-time').val();
+            $.ajax({url: '/command/?sleepmodestart=' + time});
+            $('#modal-sleep-start').modal('hide');
+        });
     });
     
 } else {
@@ -2402,13 +2555,24 @@ if ($('#section-index').length) {
             toggleLoader();
         });
         
-        
         // COMMON
         // ----------------------------------------------------------------------------------------------------
         
         // Bootstrap-select
         $('.selectpicker').selectpicker();
         
+        // Clockpicker
+        $('.clockpicker').clockpicker({
+            autoclose: true
+        });
+        
+        // Touchspin
+        $('.touchspin').TouchSpin({
+            min: 0,
+            max: 999,
+            boostat: 10,
+            maxboostedstep: 10
+        });
 
         // SOURCES
         // ----------------------------------------------------------------------------------------------------

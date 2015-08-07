@@ -26,6 +26,7 @@
                     <img id="cover-art" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="transparent-square">
                     <button id="overlay-social-open" class="btn btn-default" type="button" title="Share this track"><i class="fa fa-share"></i></button>
                     <!--<a href="#" id="overlay-playsource-open" class="btn btn-default" title="Play source">MPD</a>-->
+                    <button id="overlay-sleep-open" class="btn btn-default" type="button" title="Sleep mode"><i class="fa fa-moon-o"></i></button>
                 </div>
                 <?php endif ?>
                 <div id="volume-knob" class="col-sm-<?=$this->colspan ?> <?=$this->volume['divclass'] ?>">
@@ -199,6 +200,18 @@
             <li><a href="javascript:;" data-cmd="albumaddreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
         </ul>
     </div>
+    <div id="context-menu-podcast-pl" class="context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:;" data-cmd="poddelete"><i class="fa fa-trash-o sx"></i> Delete</a></li>
+        </ul>
+    </div>
+    <div id="context-menu-podcast" class="context-menu">
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="javascript:;" data-cmd="add"><i class="fa fa-plus-circle sx"></i> Add</a></li>
+            <li><a href="javascript:;" data-cmd="addplay"><i class="fa fa-play sx"></i> Add and play</a></li>
+            <li><a href="javascript:;" data-cmd="addreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
+        </ul>
+    </div>
 </div>
 <div id="modal-pl-save" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-pl-save-label" aria-hidden="true">
     <div class="modal-dialog">
@@ -311,6 +324,89 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
                 <button id="webradio-delete-button" type="button" class="btn btn-primary btn-lg" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-podcast-add" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-podcast-add-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title" id="modal-pl-podcast-add">Add new podcast</h3>
+            </div>
+            <div class="modal-body">
+                <label for="podcast-add-name">Podcast name</label>
+                <input id="podcast-add-name" name="podcast[label]" class="form-control" type="text" placeholder="Enter podcast name">
+                <br>
+                <label for="podcast-add-url">Podcast url</label>
+                <input id="podcast-add-url" name="podcast[label]" class="form-control" type="text" placeholder="Enter podcast url">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
+                <button id="podcast-add-button" type="button" class="btn btn-primary btn-lg">Add to Library</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-podcast-edit" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-podcast-edit-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title" id="modal-pl-podcast-edit">Edit podcast</h3>
+            </div>
+            <div class="modal-body">
+                <input id="podcast-edit-oldname" name="podcast[oldlabel]" class="form-control" type="hidden" value="">
+                <label for="podcast-edit-name">Podcast name</label>
+                <input id="podcast-edit-name" name="podcast[label]" class="form-control" type="text" placeholder="Enter podcast name">
+                <br>
+                <label for="podcast-edit-url">Podcast url</label>
+                <input id="podcast-edit-url" name="podcast[label]" class="form-control" type="text" placeholder="Enter podcast url">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
+                <button id="podcast-edit-button" type="button" class="btn btn-primary btn-lg" data-dismiss="modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-podcast-delete" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-podcast-delete-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title" id="modal-pl-podcast-delete">Delete the podcast</h3>
+            </div>
+            <div class="modal-body">
+                <p><strong id="podcast-delete-name">Podcast.pls</strong><br>
+                Delete this entry from your Library?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
+                <button id="podcast-delete-button" type="button" class="btn btn-primary btn-lg" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-sleep-start" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-sleep-start-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title" id="modal-pl-sleep-start"><i class="fa fa-moon-o"></i> Sleep mode</h3>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <label for="sleep-mode-time" class="control-label col-xs-3">Enter time</label>
+                    <div class="col-xs-4">
+                        <input id="sleep-mode-time" class="form-control input-lg touchspin" type="text" placeholder="Time" value="15" size="2" maxlength="2" readonly style="cursor: pointer">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
+                <button id="sleep-start-button" type="button" class="btn btn-primary btn-lg">Start count down</button>
             </div>
         </div>
     </div>

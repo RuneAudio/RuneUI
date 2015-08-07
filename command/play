@@ -1,0 +1,5 @@
+#!/bin/sh
+mpc stop
+mpc clear
+mpc load "$1"
+mpc play

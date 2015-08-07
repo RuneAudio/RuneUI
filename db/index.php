@@ -33,6 +33,7 @@
  */
 // common include
 include($_SERVER['HOME'].'/app/config/config.php');
+include($_SERVER['HOME'].'/app/libs/LastRSS.php');
 ini_set('display_errors', -1);
 error_reporting('E_ALL');
 // check current player backend
@@ -328,6 +329,59 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     // send MPD response to UI
                     ui_mpd_response($mpd, array('title' => 'Queue cleared<br> Added to queue', 'text' => $_POST['path']));
                 }
+            }
+            break;
+        case 'podcast':
+            if ($activePlayer === 'MPD') {
+                if (isset($_POST['querytype'])) {
+                    if ($_POST['querytype'] === 'list') {
+                        $plistArray = array();
+                        foreach ($redis->hGetall('podcasts') as $name => $podcast) {
+                            $podcast = json_decode($podcast);
+                            $pod = null;
+                            $pod->name = $podcast->title;
+                            $pod->description = $podcast->description;
+                            $pod->url = $podcast->url;
+                            $pod->image = $podcast->image;
+                            array_push($plistArray, $pod);
+                        }
+                        $result->results = $plistArray;
+                        echo json_encode($result);
+                    }
+                    if ($_POST['querytype'] === 'content' && !empty($_POST['args'])) {
+
+                        $rss = new lastRSS;
+                        $rss->cache_dir = '/tmp';
+                        $rss->cache_time = 3600; // one hour
+                        
+                        $plistArray = array();
+                        //$path = explode('-', $_POST['path']);
+                        if ($rs = $rss->get($_POST['args'])) {
+                            foreach ($rs['items'] as $item) {
+                                runelog($item[title]);
+                                $elem = null;
+                                $elem->title = $item[title];
+                                $elem->description = $item[description] ?: $item[summary] ?: "";
+                                $elem->enclosure = $item[enclosure] ?: $item[guid] ?: $item[link];
+                                
+                                array_push($plistArray, $elem);
+                            }
+                        }
+                        
+                        $result->results = $plistArray;
+                        echo json_encode($result);
+                    }
+                }
+            }
+            break;
+        case 'addpodcast':
+            if ($activePlayer === 'MPD') {
+                wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'podcast', 'action' => 'add', 'args' => $_POST['podcast']));
+            }
+            break;
+        case 'deletepodcast':
+            if ($activePlayer === 'MPD') {
+                wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'podcast', 'action' => 'delete', 'args' => $_POST['podcast']));
             }
             break;
     }

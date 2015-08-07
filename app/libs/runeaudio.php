@@ -35,7 +35,6 @@
 // Predefined MPD & SPOP Response messages
 // define("MPD_GREETING", "OK MPD 0.18.0\n");
 // define("SPOP_GREETING", "spop 0.0.1\n");
-
 function openMpdSocket($path, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
 {
@@ -1177,7 +1176,8 @@ function runelog($title, $data = null, $function_name = null)
     } else {
         $function_name = '';
     }
-    if ($debug_level !== '0') {
+    if ($debug_level !== '0')
+    {
         if(is_array($data) OR is_object($data)) {
             if (is_array($data)) error_log($function_name.'### '.$title.' ### $data type = array',0);
             if (is_object($data)) error_log($function_name.'### '.$title.' ### $data type = object',0);
@@ -2917,6 +2917,69 @@ function deleteRadio($mpd,$redis,$data)
     return $return;
 }
 
+// podcast management
+function addPodcast($mpd, $redis, $data)
+{
+    if ($data->label !== '' && $data->url !== '') {
+        //Retrieve podcast information
+        $rss = new lastRSS;
+        $rss->cache_dir = '/tmp';
+        $rss->cache_time = 3600; // one hour
+                            
+        if ($rs = $rss->get($data->url))
+        {
+            // store podcast record in redis
+            //$redis->hSet('podcasts', $data->label, $data->url);
+            $podcast = null;
+            $podcast->title = $rs['title'];
+            $podcast->description = $rs['description'] ?: "";
+            $podcast->url = $data->url;
+            $podcast->image = $rs['image_url'];
+
+            $redis->hSet('podcasts', $data->label, json_encode($podcast));
+            //$redis->hSet('podcasts', $data->label, $data->url);
+            // create new file
+            $file = '/mnt/MPD/Podcast/'.$data->label.'.pod';
+            $newpls = "[podcast]\n";
+            $newpls .= "NumberOfEntries=1\n";
+            $newpls .= "File1=".$data->url."\n";
+            $newpls .= "Title1=".$data->label;
+            // Commit changes to .pod file
+            $fp = fopen($file, 'w');
+            $return = fwrite($fp, $newpls);
+            fclose($fp);
+        }
+        else
+        {
+            $return = false;
+        }
+    } else {
+        $return = false;
+    }
+    return $return;
+}
+
+function deletePodcast($mpd,$redis,$data)
+{
+    if ($data->label !== '') {
+        //debug
+        runelog('deletePodcast (data)', $data);
+        // delete .pod file
+        $label = $data->label;
+        $file = '/mnt/MPD/Podcast/'.$data->label.'.pod';
+        runelog('deletePodcast (label)', $label);
+        runelog('deletePodcast (file)', $file);
+        $return = unlink($file);
+        if ($return) {
+            // delete podcast record in redis
+            $redis->hDel('podcasts', $label);
+        }
+    } else {
+        $return = false;
+    }
+    return $return;
+}
+
 function ui_notify($title = null, $text, $type = null, $permanotice = null)
 {
     if (is_object($permanotice)) {
@@ -3058,6 +3121,8 @@ function ui_libraryHome($redis)
     // Webradios
     $webradios = count($redis->hKeys('webradios'));
     // runelog('webradios: ',$webradios);
+    //Podcasts
+    $podcasts = countDirs('/mnt/MPD/Podcast');
     // Dirble
     $proxy = $redis->hGetall('proxy');
     $dirblecfg = $redis->hGetAll('dirble');
@@ -3079,7 +3144,7 @@ function ui_libraryHome($redis)
     // runelog('bookmarks: ',$bookmarks);
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
     // $jsonHome = json_encode(array_merge($bookmarks, array(0 => array('networkMounts' => $networkmounts)), array(0 => array('USBMounts' => $usbmounts)), array(0 => array('webradio' => $webradios)), array(0 => array('Spotify' => $spotify)), array(0 => array('Dirble' => $dirble->amount)), array(0 => array('ActivePlayer' => $activePlayer))));
-    $jsonHome = json_encode(array('bookmarks' => $bookmarks, 'localStorages' => $localStorages, 'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'Spotify' => $spotify, 'Dirble' => $dirble->amount, 'ActivePlayer' => $activePlayer));
+    $jsonHome = json_encode(array('bookmarks' => $bookmarks, 'localStorages' => $localStorages, 'networkMounts' => $networkmounts, 'USBMounts' => $usbmounts, 'webradio' => $webradios, 'podcast' => $podcasts, 'Spotify' => $spotify, 'Dirble' => $dirble->amount, 'ActivePlayer' => $activePlayer));
     // Encode UI response
     runelog('libraryHome JSON: ', $jsonHome);
     ui_render('library', $jsonHome);
