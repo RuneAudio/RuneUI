@@ -818,14 +818,6 @@ $redis->pconnect('/tmp/redis.sock');
                     $mpd = openMpdSocket('/run/mpd.sock');
                     if ($job->action === 'add') {
                         runelog('service: PODCAST add');
-                        $rss = new lastRSS;
-                        $rss->cache_dir = '/tmp';
-                        $rss->cache_time = 3600; // one hour
-                        if ($rs = $rss->get($job->args->url))
-                        {
-                            ui_notify_async('Podcast', $rs['title']. ' found', $jobID);
-                        }
-
                         if (addPodcast($mpd, $redis, $job->args)) {
                             ui_notify_async('Podcast', $job->args->label.' added to the library', $jobID);
                         }
