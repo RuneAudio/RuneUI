@@ -55,6 +55,7 @@ $redis->hSet('acards_details', 'bcm2835 ALSA', '{"sysname":"bcm2835 ALSA","extla
 $redis->hSet('acards_details', 'SA9023 USB Audio', '{"sysname":"SA9023 USB Audio","extlabel":"HiFimeDIY SABRE U2","mixer_numid":"4","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'UAC1 DAC', '{"sysname":"UAC1 DAC","extlabel":"ObjectiveDAC (ODAC)","mixer_numid":"3","mixer_control":"PCM","type":"usb"}');
 $redis->hSet('acards_details', 'USB Sound Device', '{"sysname":"USB Sound Device","extlabel":"Cmedia CM2606","mixer_numid":"7","mixer_control":"Speaker","type":"usb"}');
+$redis->hSet('acards_details', 'C-Media USB Headphone Set', '{"sysname":"C-Media USB Headphone Set","extlabel":"C-Media USB Headphone Set","mixer_numid":"7","mixer_control":"Headphone","type":"usb"}');
 $redis->hSet('acards_details', 'Geek Out HD Audio 1V0', '{"sysname":"Geek Out HD Audio 1V0","extlabel":"LH Labs Geek Out 720","mixer_numid":"3","mixer_control":"LH Labs Clock Selector","type":"usb"}');
 $redis->hSet('acards_details', 'Hugo', '{"sysname":"Hugo","extlabel":"Chord Hugo","mixer_numid":"4","mixer_control":"Hugo","type":"usb"}');
 $redis->hSet('acards_details', 'Devialet USB Audio 2.0', '{"sysname":"Devialet USB Audio 2.0","extlabel":"Devialet Audio","mixer_numid":"3","mixer_control":"Devialet Clock Selector","type":"usb"}');
