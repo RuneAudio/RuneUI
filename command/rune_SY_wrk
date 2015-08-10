@@ -38,6 +38,7 @@ ini_set('display_errors', '1');
 error_reporting(E_ALL);
 ini_set('error_log', '/var/log/runeaudio/rune_SY_wrk.log');
 define('APP', '/srv/http/app/');
+include_once('/srv/http/app/libs/LastRSS.php');
 include('/srv/http/app/libs/runeaudio.php');
 
 // if os updates are needed
@@ -809,6 +810,30 @@ $redis->pconnect('/tmp/redis.sock');
                     foreach ($job->args as $raw_notification) {
                         wrk_notify($redis, 'raw', $raw_notification);
                     }
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+                case 'podcast':
+                    runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    $mpd = openMpdSocket('/run/mpd.sock');
+                    if ($job->action === 'add') {
+                        runelog('service: PODCAST add');
+                        if (addPodcast($mpd, $redis, $job->args)) {
+                            ui_notify_async('Podcast', $job->args->label.' added to the library', $jobID);
+                        }
+                        else
+                        {
+                            ui_notify_async('Podcast', 'Unable to add specified podcast. Please verify the input.', $jobID);   
+                        }
+                    }
+                    else if ($job->action === 'delete') {
+                        runelog('service: PODCAST delete');
+                        if (deletePodcast($mpd, $redis, $job->args)) {
+                            ui_notify_async('Podcast', $job->args->label.' deleted', $jobID);
+                        }
+                    }
+                    ui_libraryHome($redis, $mpd);
+                    closeMpdSocket($mpd);
                     $redis->sRem('w_lock', $jobID);
                     break;
             } // end switch

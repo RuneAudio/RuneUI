@@ -53,6 +53,13 @@ if (isset($_GET['switchplayer']) && $_GET['switchplayer'] !== '') {
     } else {
         ui_notify('Spotify not enabled', 'Enable and configure it under the Settings screen');
     }
+} elseif (isset($_GET['sleepmodestart']) && $_GET[''] !== '') {
+    $time = $_GET['sleepmodestart'];
+    sysCmd('echo /var/www/command/stop | at now + '.$time.' minutes');
+    $end = new DateTime();
+    $end->add(new DateInterval('PT'.$time.'M'));
+    $redis->hSet('sleepmodeend', $end);
+    ui_notify('Sleep mode started', 'The playback will stop in '.$time.' minutes.');
 } elseif (isset($_GET['cmd']) && $_GET['cmd'] !== '') {
     // debug
     // runelog('MPD command: ',$_GET['cmd']);
