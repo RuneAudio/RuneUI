@@ -753,7 +753,7 @@ function renderUI(text){
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
-    console.log(JSON.stringify(text[0]));
+    // console.log(JSON.stringify(text[0]));
     GUI.state = GUI.json.state;
     // console.log('current song = ', GUI.json.currentsong);
     // console.log( 'GUI.state = ', GUI.state );
@@ -988,7 +988,9 @@ function parseResponse(options) {
                 content += '</span></li>';
             } else if (querytype === 'stations') {
             // stations
-                if (inputArr.streams.length === 0) break; // Filter stations with no streams
+                if (inputArr.streams.length === 0) {
+                    break; // Filter stations with no streams
+                }
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-radio" data-path="';
                 content += inputArr.name + ' | ' + inputArr.streams[0].stream;
                 content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-dirble"></i><i class="fa fa-microphone db-icon"></i>';
@@ -1725,13 +1727,18 @@ if ($('#section-index').length) {
         });
 
         // volume knob
+        var dynVolumeKnob = $('#volume').data('dynamic');
         $('#volume').knob({
             inline: false,
             change: function (value) {
-                //setvol(value);    // disabled until perfomance issues are solved (mouse wheel is not working now)
+                if (dynVolumeKnob) {
+                    setvol(value);
+                }
             },
             release: function (value) {
-                setvol(value);
+                if (!dynVolumeKnob) {
+                    setvol(value);
+                }
             },
             draw: function() {
                 // "tron" case
@@ -2001,7 +2008,7 @@ if ($('#section-index').length) {
                     } else if (el.hasClass('db-dirble')) {
                     // Dirble folders
                         path = GUI.currentpath + '/' + el.find('span').text();
-                        var querytype = (el.hasClass('db-dirble-child')) ? 'stations' : 'childs'
+                        var querytype = (el.hasClass('db-dirble-child')) ? 'stations' : 'childs';
                         getDB({
                             path: path,
                             plugin: 'Dirble',
