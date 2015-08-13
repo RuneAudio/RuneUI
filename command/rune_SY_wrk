@@ -71,6 +71,11 @@ sysCmd('chmod 777 /run');
 // Connect to Redis backend
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
+
+if (null !== $redis->get('dynVolumeKnob')) {
+    $redis->set('dynVolumeKnob', '1');
+}
+
 // read activePlayer state
 $activePlayer = $redis->get('activePlayer');
 if ($activePlayer === 'MPD') {
