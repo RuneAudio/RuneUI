@@ -47,6 +47,7 @@ var GUI = {
     currentpath: '',
     currentsong: null,
     json: 0,
+    lastvol: 0,
     libraryhome: '',
     mode: 'websocket',
     noticeUI: {},
@@ -1731,13 +1732,17 @@ if ($('#section-index').length) {
         $('#volume').knob({
             inline: false,
             change: function (value) {
-                if (dynVolumeKnob) {
-                    setvol(value);
+                var vol = parseInt(value);
+                if (dynVolumeKnob && vol !== GUI.lastvol) {
+                    GUI.lastvol = vol;
+                    setvol(vol);
                 }
             },
             release: function (value) {
-                if (!dynVolumeKnob) {
-                    setvol(value);
+                var vol = parseInt(value);
+                if (!dynVolumeKnob && vol !== GUI.lastvol) {
+                    GUI.lastvol = vol;
+                    setvol(vol);
                 }
             },
             draw: function() {
