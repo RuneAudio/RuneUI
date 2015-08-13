@@ -635,32 +635,32 @@ function updateGUI() {
 }
 
 // render the playing queue from the data response 
-function getPlaylistPlain(data){
+function getPlaylistPlain(data) {
     var current = parseInt(GUI.json.song) + 1;
     var state = GUI.json.state;
     var content = '', time = '', artist = '', album = '', title = '', name='', str = '', filename = '', path = '', id = 0, songid = '', bottomline = '', totaltime = '', pos = 0;
     var i, line, lines = data.split('\n'), infos=[];
     for (i = 0; (line = lines[i]); i += 1) {
         infos = line.split(': ');
-        if ( 'Time' === infos[0] ) {
+        if ('Time' === infos[0]) {
             time = parseInt(infos[1]);
         }
-        else if ( 'Artist' === infos[0] ) {
+        else if ('Artist' === infos[0]) {
             artist = infos[1];
         }
-        else if ( 'Title' === infos[0] ) {
+        else if ('Title' === infos[0]) {
             title = infos[1];
         }
-        else if ( 'Name' === infos[0] ) {
+        else if ('Name' === infos[0]) {
             name = infos[1];
         }
-        else if ( 'Album' === infos[0] ) {
+        else if ('Album' === infos[0]) {
             album = infos[1];
         }
-        else if ( 'file' === infos[0] ) {
+        else if ('file' === infos[0]) {
             str = infos[1];
         }
-        else if ( 'Id' === infos[0] ) {
+        else if ('Id' === infos[0]) {
             songid = infos[1];
             if (title === '' || album === '') {
                 path = parsePath(str);
@@ -721,7 +721,8 @@ function getPlaylistCmd(){
                 $('#pl-count').removeClass('hide').html('0 entries');
             }
             loadingSpinner('pl', 'hide');
-        }
+        },
+        cache: false
     });
 }
 
@@ -810,7 +811,8 @@ function getPlaylists(){
         url: '/command/?cmd=listplaylists',
         success: function(data){
             renderPlaylists(data);
-        }
+        },
+        cache: false
     });
 }
 
@@ -1412,7 +1414,10 @@ function listWLANs(text) {
     }
     document.getElementById('wifiNetworks').innerHTML = inrange;
     document.getElementById('wifiStored').innerHTML = stored;
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({
+        url: '/command/?cmd=wifiscan',
+        cache: false
+    });
 }
 
 // draw the NICs details table
@@ -1523,7 +1528,10 @@ function wlansChannel(){
     pushstream.onmessage = listWLANs;
     pushstream.addChannel('wlans');
     pushstream.connect();
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({
+        url: '/command/?cmd=wifiscan',
+        cache: false
+    });
 }
 
 // open the NIC details channel
@@ -2157,7 +2165,8 @@ if ($('#section-index').length) {
                         url: '/command/?cmd=rm%20%22' + path + '%22',
                         success: function(data){
                             getPlaylists(data);
-                        }
+                        },
+                        cache: false
                     });
                     break;
                     
@@ -2338,7 +2347,10 @@ if ($('#section-index').length) {
         // play source manual switch
         $('#playsource-mpd').click(function(){
             if ($(this).hasClass('inactive')) {
-                $.ajax({url: '/command/?switchplayer=MPD'});
+                $.ajax({
+                    url: '/command/?switchplayer=MPD',
+                    cache: false
+                });
                 // close switch buttons layer
                 $('#overlay-playsource-close').trigger('click');
             }
@@ -2346,7 +2358,10 @@ if ($('#section-index').length) {
         $('#playsource-spotify').click(function(){
             if ($(this).hasClass('inactive')) {
                 if (GUI.libraryhome.Spotify === '1') {
-                    $.ajax({url: '/command/?switchplayer=Spotify'});
+                    $.ajax({
+                        url: '/command/?switchplayer=Spotify',
+                        cache: false
+                    });
                     // close switch buttons layer
                     $('#overlay-playsource-close').trigger('click');
                 } else {
@@ -2630,7 +2645,10 @@ if ($('#section-index').length) {
                 $.ajax({
                     type: 'POST',
                     url: '/mpd/',
-                    data: { ao: output }
+                    data: {
+                        ao: output
+                    },
+                    cache: false
                 });
             });
             
