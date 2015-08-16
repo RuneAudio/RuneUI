@@ -196,13 +196,13 @@ function debug_data($redis)
     unset($command);
     $command = sysCmd("netctl list | cut -d ' ' -f 2,3");
     foreach ($command as $interface) {
-        $command = sysCmd('netctl status '.trim($interface));
+        $command = sysCmd('netctl status "'.trim($interface).'"');
         $output .= $interface." netctl status\n";
         $output .= "--------------------------------------------------------\n";
         $output .= implode("\n",$command)."\n\n";
         $output .= $interface." netctl profile\n";
         $output .= "--------------------------------------------------------\n";
-        $command = sysCmd('cat /etc/netctl/'.trim($interface));
+        $command = sysCmd('cat /etc/netctl/"'.trim($interface).'"');
         // go through all settings and mask out the PSK
         foreach ($command as $line) {
             if (stripos($line, "psk=") != FALSE) $line = '    \'psk="***************"\'';
