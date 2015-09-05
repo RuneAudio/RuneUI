@@ -141,7 +141,7 @@
                         <option value="yes" <?php if($this->conf['volume_normalization'] == 'yes'): ?> selected <?php endif ?>>enabled</option>    
                         <option value="no" <?php if($this->conf['volume_normalization'] == 'no'): ?> selected <?php endif ?>>disabled</option>
                     </select>
-                    <span class="help-block">If yes, mpd will normalize the volume of songs as they play. The default is no</span>
+                    <span class="help-block">If yes, mpd will normalize the volume of songs as they play. The default is no. NOTE: Enabling this feature means your audio will no longer be bit perfect.</span>
                 </div>
             </div>
             <div class="form-group" >
