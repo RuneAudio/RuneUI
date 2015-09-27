@@ -3243,7 +3243,7 @@ function curlGet($url, $proxy = null)
         }
     }
     @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 400);
-    @curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    @curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     @curl_setopt($ch, CURLOPT_HEADER, 0);
     @curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     $response = curl_exec($ch);
