@@ -989,7 +989,7 @@ function parseResponse(options) {
                 content += '"><span><i class="fa fa-folder-open"></i>';
                 content += inputArr.title;
                 content += '</span></li>';
-            } else if (querytype === 'stations') {
+            } else if (querytype === 'search' || querytype === 'stations' || querytype === 'childs-stations') {
             // stations
                 if (inputArr.streams.length === 0) {
                     break; // Filter stations with no streams
@@ -1065,10 +1065,34 @@ function populateDB(options){
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
             if (path) {
-                GUI.currentpath = path;
+                if (querytype === 'search') {
+                    GUI.currentpath = 'Dirble';
+                } else {
+                    GUI.currentpath = path;
+                }
             }
-            document.getElementById('database-entries').innerHTML = '';
+            if (querytype === 'childs-stations') {
+                content = document.getElementById('database-entries').innerHTML;
+            } else {
+                document.getElementById('database-entries').innerHTML = '';
+            }
             // console.log(data);
+            
+            data.sort(function(a, b){
+                if (querytype === 'childs' || querytype === 'categories') {
+                    nameA=a.title.toLowerCase(), nameB=b.title.toLowerCase();
+                } else if (querytype === 'childs-stations' || querytype === 'stations') {
+                    nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+                } else {
+                    return 0;
+                }
+                if (nameA < nameB) //sort string ascending
+                    return -1;
+                if (nameA > nameB)
+                    return 1;
+                return 0; //default return value (no sorting)
+            });
+
             for (i = 0; (row = data[i]); i += 1) {
                 content += parseResponse({
                     inputArr: row,
@@ -1169,7 +1193,9 @@ function populateDB(options){
     } else {
         customScroll('db', 0, 0);
     }
-    loadingSpinner('db', 'hide');
+    if (querytype != 'childs') {
+        loadingSpinner('db', 'hide');
+    }
 } // end populateDB()
 
 // launch the right AJAX call for Library rendering
@@ -1206,15 +1232,36 @@ function getDB(options){
         }
         else if (plugin === 'Dirble') {
         // Dirble plugin
-            $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function(data){
-                populateDB({
-                    data: data,
-                    path: path,
-                    plugin: plugin,
-                    querytype: querytype,
-                    uplevel: uplevel
-                });
-            }, 'json');
+            if (querytype === 'childs') {
+                $.post('/db/?cmd=dirble', { 'querytype': 'childs', 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: 'childs',
+                        uplevel: uplevel
+                    });
+                }, 'json');
+                $.post('/db/?cmd=dirble', { 'querytype': 'childs-stations', 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: 'childs-stations',
+                        uplevel: uplevel
+                    });
+                }, 'json');            
+            } else {
+                $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: querytype,
+                        uplevel: uplevel
+                    });
+                }, 'json');
+            }
         }
         else if (plugin === 'Jamendo') {
         // Jamendo plugin
@@ -1231,14 +1278,26 @@ function getDB(options){
     // normal browsing
         if (cmd === 'search') {
             var keyword = $('#db-search-keyword').val();
-            $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function(data) {
-                populateDB({
-                    data: data,
-                    path: path,
-                    uplevel: uplevel,
-                    keyword: keyword
-                });
-            }, 'json');
+            if (path.match(/Dirble/)) {
+                $.post('/db/?cmd=dirble', { 'querytype': 'search', 'args': keyword }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: 'Dirble',
+                        querytype: 'search',
+                        uplevel: uplevel
+                    });
+                }, 'json');
+            } else {
+                $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function(data) {
+                    populateDB({
+                        data: data,
+                        path: path,
+                        uplevel: uplevel,
+                        keyword: keyword
+                    });
+                }, 'json');
+            }
         } else if (cmd === 'browse') {
             $.post('/db/?cmd=browse', { 'path': path, 'browsemode': GUI.browsemode }, function(data) {
                 populateDB({

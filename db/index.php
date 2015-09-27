@@ -173,6 +173,10 @@ if (isset($_GET['cmd']) && !empty($_GET['cmd'])) {
                     if ($_POST['querytype'] === 'childs' && isset($_POST['args'])) {
                         echo curlGet($dirblecfg['baseurl'].'/category/'.$_POST['args'].'/childs'.$token, $proxy);
                     }
+                    // Get childStations by primaryid
+                    if ($_POST['querytype'] === 'childs-stations' && isset($_POST['args'])) {
+                        echo curlGet($dirblecfg['baseurl'].'/category/'.$_POST['args'].'/stations'.$token, $proxy);
+                    }
                     // Get stations by primaryid
                     if ($_POST['querytype'] === 'stations' && isset($_POST['args'])) {
                         echo curlGet($dirblecfg['baseurl'].'/category/'.$_POST['args'].'/stations'.$token, $proxy);
