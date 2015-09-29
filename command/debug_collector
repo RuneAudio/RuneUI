@@ -137,7 +137,10 @@ function debug_data($redis)
     // } else {
     // $output .= $streaminfo;
     // }
-    $output .= "\n";
+    $command = implode("\n", sysCmd('mpc version'));
+    $output .= "###### mpd version ######\n";
+    $output .= $command;
+    $output .= "\n\n";
     $output .= "###### mpd.conf ######\n";
     $output .= file_get_contents('/etc/mpd.conf');
     $output .= "\n";
