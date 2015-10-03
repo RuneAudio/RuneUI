@@ -214,9 +214,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label" for="crossfade">Add random tracks</label>
+                <label class="col-sm-2 control-label" for="addrandom">Add random tracks</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
+                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="1" data-trigger="change" min="1" placeholder="0" />
                     <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>

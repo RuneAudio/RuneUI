@@ -58,12 +58,17 @@
         if (isset($_POST['mpd']['start_volume'])) {
             $redis->get('mpd_start_volume') == $_POST['mpd']['start_volume'] || $redis->set('mpd_start_volume', $_POST['mpd']['start_volume']);
         }
+        if (isset($_POST['mpd']['crossfade'])) {
+            sysCmd('mpc crossfade '.$_POST['mpd']['crossfade']);
+        }
     }
  }
 waitSyWrk($redis, $jobID);
 // collect system status
 $template->realtime_volume = $redis->get('dynVolumeKnob');
 $template->mpd['start_volume'] = $redis->get('mpd_start_volume');
+$crossfade = explode(": ", sysCmd('mpc crossfade')[0]);
+$template->mpd['crossfade'] = $crossfade[1];
 // check integrity of /etc/network/interfaces
 if(!hashCFG('check_mpd', $redis)) {
     $template->mpdconf = file_get_contents('/etc/mpd.conf');
