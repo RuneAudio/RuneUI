@@ -48,8 +48,18 @@
     if (isset($_POST['mpdconf'])) {
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
     }
+    // ----- FEATURES -----
+    if (isset($_POST['mpd'])) {
+        if ($_POST['mpd']['realtime_volume'] == "yes") {
+            $redis->get('dynVolumeKnob') == 1 || $redis->set('dynVolumeKnob', 1);
+        } else {
+            $redis->get('dynVolumeKnob') == 0 || $redis->set('dynVolumeKnob', 0);
+        }
+    }
  }
 waitSyWrk($redis, $jobID);
+// collect system status
+$template->realtime_volume = $redis->get('dynVolumeKnob');
 // check integrity of /etc/network/interfaces
 if(!hashCFG('check_mpd', $redis)) {
     $template->mpdconf = file_get_contents('/etc/mpd.conf');

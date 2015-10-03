@@ -45,6 +45,18 @@
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
+            <div class="form-group" >
+                <label class="col-sm-2 control-label" for="realtime-volume">Realtime volume</label>
+                <div class="col-sm-10">
+                    <select id="realtime-volume" name="mpd[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>enabled</option>
+                        <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>disabled</option>
+                    </select>
+                    <span class="help-block">This setting specifies the behavior then the volume knob is turned.<br>
+                    <strong>enabled</strong> -  volume changes immediately.<br>
+                    <strong>disabled</strong> - volume changes then releasing the knob.</span>
+                </div>
+            </div>
         </fieldset>
         <fieldset>
             <legend>General music daemon options</legend>
