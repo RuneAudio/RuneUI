@@ -72,12 +72,16 @@ sysCmd('chmod 777 /run');
 $redis = new Redis();
 $redis->connect('/tmp/redis.sock');
 
-if (null !== $redis->get('dynVolumeKnob')) {
+if (FALSE === $redis->get('dynVolumeKnob')) {
     $redis->set('dynVolumeKnob', '1');
 }
 
-if (null !== $redis->get('usb_db_autorebuild')) {
+if (FALSE === $redis->get('usb_db_autorebuild')) {
     $redis->set('usb_db_autorebuild', '1');
+}
+
+if (FALSE === $redis->get('mpd_start_volume')) {
+    $redis->set('mpd_start_volume', '-1');
 }
 
 // read activePlayer state
@@ -207,6 +211,11 @@ if ($redis->get('i2smodule') !== 'none') {
 if ($activePlayer === 'MPD') {
     sysCmd('systemctl start mpd');
     usleep(500000);
+    // set mpd start volume
+    $mpd_volume = $redis->get('mpd_start_volume');
+    if ($mpd_volume !== '-1') {
+        sysCmd('mpc volume '.$mpd_volume);
+    }
     // start upmpdcli
     if ($redis->hGet('dlna', 'enable') === '1') {
         runelog("service: UPMPDCLI start");

@@ -55,11 +55,15 @@
         } else {
             $redis->get('dynVolumeKnob') == 0 || $redis->set('dynVolumeKnob', 0);
         }
+        if (isset($_POST['mpd']['start_volume'])) {
+            $redis->get('mpd_start_volume') == $_POST['mpd']['start_volume'] || $redis->set('mpd_start_volume', $_POST['mpd']['start_volume']);
+        }
     }
  }
 waitSyWrk($redis, $jobID);
 // collect system status
 $template->realtime_volume = $redis->get('dynVolumeKnob');
+$template->mpd['start_volume'] = $redis->get('mpd_start_volume');
 // check integrity of /etc/network/interfaces
 if(!hashCFG('check_mpd', $redis)) {
     $template->mpdconf = file_get_contents('/etc/mpd.conf');

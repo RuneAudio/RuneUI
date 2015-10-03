@@ -41,7 +41,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start-volume]" value="<?=$this->mpd['start-volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
