@@ -76,6 +76,10 @@ if (null !== $redis->get('dynVolumeKnob')) {
     $redis->set('dynVolumeKnob', '1');
 }
 
+if (null !== $redis->get('usb_db_autorebuild')) {
+    $redis->set('usb_db_autorebuild', '1');
+}
+
 // read activePlayer state
 $activePlayer = $redis->get('activePlayer');
 if ($activePlayer === 'MPD') {
