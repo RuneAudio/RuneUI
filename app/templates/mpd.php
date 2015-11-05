@@ -20,8 +20,8 @@
         </fieldset>
     </form>
     <form class="form-horizontal" action="" method="post" data-parsley-validate>
-        <legend>Volume control</legend>
         <fieldset>
+            <legend>Volume control</legend>
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="mixer-type">Volume control</label>
                 <div class="col-sm-10">
@@ -41,23 +41,29 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
                 <div class="col-sm-10">
-                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpd[start-volume]" value="<?=$this->mpd['start-volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
             <div class="form-group" >
-                <label class="col-sm-2 control-label" for="realtime-volume">Realtime volume</label>
+                <label class="col-sm-2 control-label" for="realtime-volume">Volume knob</label>
                 <div class="col-sm-10">
                     <select id="realtime-volume" name="mpd[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
-                        <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>enabled</option>
-                        <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>disabled</option>
-                    </select>         
-                    <span class="help-block">This setting specifies the behavior then the volume knob is turned.<br>
-                    <strong>enabled</strong> -  volume changes immediately.<br>
-                    <strong>disabled</strong> - volume changes then releasing the knob.</span>
+                        <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>realtime</option>
+                        <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>on release</option>
+                    </select>
+                    <span class="help-block">This setting specifies the behavior of the UI's volume knob when it's turned.<br>
+                    <strong>realtime</strong> - volume changes continuously while the knob is dragged.<br>
+                    <strong>on release</strong> - volume changes when the knob is released.</span>
                 </div>
             </div>
         </fieldset>
+        <div class="form-group form-actions">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/mpd/" class="btn btn-default btn-lg">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg" name="save" value="save">Save and apply</button>
+            </div>
+        </div>
         <fieldset>
             <legend>General music daemon options</legend>
             <div class="form-group" >
@@ -214,9 +220,13 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-2 control-label" for="crossfade">Add random tracks</label>
+                <label class="col-sm-2 control-label" for="addrandom">Add random tracks</label>
                 <div class="col-sm-10">
+<<<<<<< HEAD
                     <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
+=======
+                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="1" data-trigger="change" min="1" placeholder="0" />
+>>>>>>> d935c7f1c8d8cd72d3736ef5c84d16c860f4eb62
                     <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>

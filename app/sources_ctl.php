@@ -52,8 +52,19 @@ if (isset($_POST)) {
         if ($_POST['action'] == 'delete') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfg', 'action' => 'delete', 'args' => $_POST['mount']));
         if ($_POST['action'] == 'reset') $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'sourcecfgman', 'action' => 'reset' ));
     }
+    // ----- FEATURES -----
+    if (isset($_POST['sources'])) {
+        if ($_POST['sources']['db_autorebuild'] == 1) {
+            $redis->get('usb_db_autorebuild') == 1 || $redis->set('usb_db_autorebuild', 1);
+        } else {
+            $redis->get('usb_db_autorebuild') == 0 || $redis->set('usb_db_autorebuild', 0);
+        }
+    }
 }
 waitSyWrk($redis, $jobID);
+// collect system status
+$template->db_autorebuild = $redis->get('usb_db_autorebuild');
+
 $source = netMounts($redis, 'read');
 if($source !== true) { 
     foreach ($source as $mp) {
