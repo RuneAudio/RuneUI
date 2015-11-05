@@ -41,8 +41,20 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start-volume]" value="<?=$this->mpd['start-volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpd[start-volume]" value="<?=$this->mpd['start-volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
+                </div>
+            </div>
+            <div class="form-group" >
+                <label class="col-sm-2 control-label" for="realtime-volume">Realtime volume</label>
+                <div class="col-sm-10">
+                    <select id="realtime-volume" name="mpd[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>enabled</option>
+                        <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>disabled</option>
+                    </select>         
+                    <span class="help-block">This setting specifies the behavior then the volume knob is turned.<br>
+                    <strong>enabled</strong> -  volume changes immediately.<br>
+                    <strong>disabled</strong> - volume changes then releasing the knob.</span>
                 </div>
             </div>
         </fieldset>
@@ -51,7 +63,7 @@
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="port">Port</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="port" name="conf[port]" value="<?=$this->conf['port'] ?>" data-trigger="change" disabled>
+                    <input class="form-control osk-trigger input-lg" type="text" id="port" name="conf[port]" value="<?=$this->conf['port'] ?>" data-trigger="change" disabled>
                     <span class="help-block">This setting is the TCP port that is desired for the daemon to get assigned to.</span>
                 </div>
             </div>
@@ -147,7 +159,7 @@
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="port">Audio buffer size</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="audio-buffer-size" name="conf[audio_buffer_size]" value="<?=$this->conf['audio_buffer_size'] ?>" data-trigger="change" min="512" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="audio-buffer-size" name="conf[audio_buffer_size]" value="<?=$this->conf['audio_buffer_size'] ?>" data-trigger="change" min="512" />
                     <span class="help-block">This specifies the size of the audio buffer in kibibytes. The default is 2048, large enough for nearly 12 seconds of CD-quality audio.</span>
                 </div>
             </div>
@@ -187,7 +199,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="crossfade">Crossfade</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="crossfade" name="mpd[crossfade]" value="<?=$this->mpd['crossfade'] ?>" data-trigger="change" min="0" placeholder="0" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="crossfade" name="mpd[crossfade]" value="<?=$this->mpd['crossfade'] ?>" data-trigger="change" min="0" placeholder="0" />
                     <span class="help-block">Sets the current amount of crossfading between songs, in seconds (0 disables crossfading).</span>
                 </div>
             </div>
@@ -204,7 +216,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="crossfade">Add random tracks</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
                     <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>

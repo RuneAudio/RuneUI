@@ -36,6 +36,12 @@
 // define("MPD_GREETING", "OK MPD 0.18.0\n");
 // define("SPOP_GREETING", "spop 0.0.1\n");
 
+function is_localhost() {
+    $whitelist = array( '127.0.0.1', '::1' );
+    if( in_array( $_SERVER['REMOTE_ADDR'], $whitelist) )
+        return true;
+}
+
 function openMpdSocket($path, $type = null)
 // connection types: 0 = normal (blocking), 1 = burst mode (blocking), 2 = burst mode 2 (non blocking)
 {

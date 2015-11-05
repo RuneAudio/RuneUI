@@ -37,5 +37,7 @@ sleep 1
 systemctl stop mpd
 systemctl stop spopd
 sleep 1
+echo 1 > /sys/class/backlight/rpi_backlight/bl_power
+sleep 1
 umount -aft nfs
 umount -aft cifs

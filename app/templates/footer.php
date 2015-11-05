@@ -42,6 +42,9 @@
 <!-- DEV mode ACTIVE -->
 <script src="<?=$this->asset('/js/runeui.js')?>"></script>
 <?php endif; ?>
+<?php if (is_localhost()): ?>
+    <script src="<?=$this->asset('/js/vendor/jquery.onScreenKeyboard.js')?>"></script>
+<?php endif ?>
 <script src="<?=$this->asset('/js/vendor/pnotify.custom.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/openwebapp.js')?>"></script>

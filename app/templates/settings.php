@@ -13,14 +13,14 @@
             <div class="form-group" id="environment">
                 <label class="control-label col-sm-2" for="hostname">Player hostname</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="hostname" name="hostname" value="<?php echo $this->hostname; ?>" placeholder="runeaudio" autocomplete="off">
+                    <input class="form-control osk-trigger input-lg" type="text" id="hostname" name="hostname" value="<?php echo $this->hostname; ?>" placeholder="runeaudio" autocomplete="off">
                     <span class="help-block">Set the player hostname. This will change the address used to reach the RuneUI.</span>
                 </div>
             </div>
             <div class="form-group">
                 <label class="control-label col-sm-2" for="ntpserver">NTP server</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
+                    <input class="form-control osk-trigger input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
                     <span class="help-block">Set your reference time sync server <i>(NTP server)</i>.</span>
                 </div>
             </div>
@@ -51,21 +51,21 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-user">Host</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="proxy_host" name="features[proxy][host]" value="<?php echo $this->proxy['host']; ?>" data-trigger="change" placeholder="<host IP or FQDN>:<port>">
+                            <input class="form-control osk-trigger input-lg" type="text" id="proxy_host" name="features[proxy][host]" value="<?php echo $this->proxy['host']; ?>" data-trigger="change" placeholder="<host IP or FQDN>:<port>">
                             <span class="help-block">Insert HTTP Proxy host<i> (format: proxy_address:port)</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-user">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="proxy_user" name="features[proxy][user]" value="<?php echo $this->proxy['user']; ?>" data-trigger="change" placeholder="user">
+                            <input class="form-control osk-trigger input-lg" type="text" id="proxy_user" name="features[proxy][user]" value="<?php echo $this->proxy['user']; ?>" data-trigger="change" placeholder="user">
                             <span class="help-block">Insert your HTTP Proxy <i>username</i> (leave blank for anonymous authentication)</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-pass">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="proxy_pass" name="features[proxy][pass]" value="<?php echo $this->proxy['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="proxy_pass" name="features[proxy][pass]" value="<?php echo $this->proxy['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your HTTP Proxy <i>password</i> (case sensitive) (leave blank for anonymous authentication)</span>
                         </div>
                     </div>
@@ -176,7 +176,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="airplay-name">AirPlay name</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="airplay_name" name="features[airplay][name]" value="<?php echo $this->airplay['name']; ?>" data-trigger="change" placeholder="runeaudio">
+                            <input class="form-control osk-trigger input-lg" type="text" id="airplay_name" name="features[airplay][name]" value="<?php echo $this->airplay['name']; ?>" data-trigger="change" placeholder="runeaudio">
                             <span class="help-block">AirPlay broadcast name</span>
                         </div>
                     </div>
@@ -198,14 +198,14 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="spotify-usr">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="spotify_user" name="features[spotify][user]" value="<?php echo $this->spotify['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="text" id="spotify_user" name="features[spotify][user]" value="<?php echo $this->spotify['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
                             <span class="help-block">Insert your Spotify <i>username</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="spotify-pasw">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your Spotify <i>password</i> (case sensitive)</span>
                         </div>
                     </div>
@@ -226,10 +226,20 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="dlna-name">UPnP / DLNA name</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="dlna_name" name="features[dlna][name]" value="<?php echo $this->dlna['name']; ?>" data-trigger="change" placeholder="runeaudio">
+                            <input class="form-control osk-trigger input-lg" type="text" id="dlna_name" name="features[dlna][name]" value="<?php echo $this->dlna['name']; ?>" data-trigger="change" placeholder="runeaudio">
                             <span class="help-block">UPnP / DLNA broadcast name</span>
                         </div>
                     </div>
+                </div>
+            </div>
+			<div class="form-group">
+                <label for="local-browser" class="control-label col-sm-2">Local browser</label>
+                <div class="col-sm-10">
+                    <label class="switch-light well" onclick="">
+                        <input name="features[local_browser]" type="checkbox" value="1"<?php if($this->local_browser == 1): ?> checked="checked" <?php endif ?>>
+                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
+                    </label>
+                    <span class="help-block">Start a local browser on HDMI or TFT.</span>
                 </div>
             </div>
             <div class="form-group">
@@ -287,14 +297,14 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="lastfm-usr">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="lastfm_user" name="features[lastfm][user]" value="<?php echo $this->lastfm['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="text" id="lastfm_user" name="features[lastfm][user]" value="<?php echo $this->lastfm['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
                             <span class="help-block">Insert your Last.fm <i>username</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="lastfm-pasw">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="lastfm_pass" name="features[lastfm][pass]" value="<?php echo $this->lastfm['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="lastfm_pass" name="features[lastfm][pass]" value="<?php echo $this->lastfm['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your Last.fm <i>password</i> (case sensitive)</span>
                         </div>
                     </div>

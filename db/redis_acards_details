@@ -46,7 +46,7 @@ $redis->hSet('acards_details', 'berrynosmini', '{"sysname":"snd_rpi_hifiberry_da
 $redis->hSet('acards_details', 'berrynos', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"BerryNOS 1543 (I&#178;S)","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'snd_rpi_hifiberry_dac', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"HiFiBerry DAC (I&#178;S)","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'snd_rpi_hifiberry_digi', '{"sysname":"snd_rpi_hifiberry_digi","extlabel":"HiFiBerry Digi (I&#178;S)","hwplatformid":"01","type":"i2s"}');
-$redis->hSet('acards_details', 'snd_rpi_hifiberry_dacplus', '{"sysname":"snd_rpi_hifiberry_dacplus","extlabel":"HiFiBerry DAC+ (I&#178;S)","mixer_numid":"1","mixer_control":"Playback Digital","hwplatformid":"01","type":"i2s"}');
+$redis->hSet('acards_details', 'snd_rpi_hifiberry_dacplus', '{"sysname":"snd_rpi_hifiberry_dacplus","extlabel":"HiFiBerry DAC+ (I&#178;S)","mixer_numid":"1","mixer_control":"Digital","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'raspyplay3', '{"sysname":"snd_rpi_hifiberry_dac","extlabel":"RaspyPlay3 (I&#178;S)","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'raspyplay4', '{"sysname":"snd_rpi_iqaudio_dac","extlabel":"RaspyPlay4 (I&#178;S)","mixer_numid":"1","mixer_control":"Playback Digital","hwplatformid":"01","type":"i2s"}');
 $redis->hSet('acards_details', 'XMOS USB Audio 2.0', '{"sysname":"XMOS USB Audio 2.0","extlabel":"XMOS AK4399 USB-Audio DAC","mixer_numid":"3","mixer_control":"XMOS Clock Selector","type":"usb"}');

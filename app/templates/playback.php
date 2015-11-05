@@ -44,7 +44,7 @@
         <div class="btnlist btnlist-top">
             <form id="db-search" class="form-inline" action="javascript:getDB({cmd: 'search', path: GUI.currentpath, browsemode: GUI.browsemode});">
                 <div class="input-group">
-                    <input id="db-search-keyword" class="form-control" type="text" value="" placeholder="search in DB...">
+                    <input id="db-search-keyword" class="form-control osk-trigger" type="text" value="" placeholder="search in DB...">
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="submit" title="Search"><i class="fa fa-search"></i></button>
                     </span>
@@ -82,7 +82,7 @@
         <div class="btnlist btnlist-top">
             <form id="pl-search" class="form-inline" method="post" onSubmit="return false;" role="form">
                 <div class="input-group">
-                    <input id="pl-filter" class="form-control ttip" type="text" value="" placeholder="search in queue..." data-placement="bottom" data-toggle="tooltip" data-original-title="Type here to search on the fly">
+                    <input id="pl-filter" class="form-control osk-trigger ttip" type="text" value="" placeholder="search in queue..." data-placement="bottom" data-toggle="tooltip" data-original-title="Type here to search on the fly">
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="button" title="Search"><i class="fa fa-search"></i></button>
                     </span>

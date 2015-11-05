@@ -111,6 +111,11 @@ if (isset($_POST)) {
             // create worker job (stop upmpdcli)
             $redis->hGet('dlna','enable') === '0' || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'dlna', 'action' => 'stop', 'args' => $_POST['features']['dlna']['name']));
         }
+        if ($_POST['features']['local_browser'] == 1) {
+            $redis->get('local_browser') == 1 || $redis->set('local_browser', 1);
+        } else {
+            $redis->get('local_browser') == 0 || $redis->set('local_browser', 0);
+        }
         if ($_POST['features']['udevil'] == 1) {
             // create worker job (start udevil)
             $redis->get('udevil') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'udevil', 'action' => 'start'));
@@ -173,6 +178,7 @@ $template->timezone = $redis->get('timezone');
 $template->orionprofile = $redis->get('orionprofile');
 $template->airplay = $redis->hGetAll('airplay');
 $template->dlna = $redis->hGetAll('dlna');
+$template->local_browser = $redis->get('local_browser');
 $template->udevil = $redis->get('udevil');
 $template->coverart = $redis->get('coverart');
 $template->globalrandom = $redis->get('globalrandom');
