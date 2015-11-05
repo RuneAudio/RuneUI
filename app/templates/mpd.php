@@ -41,7 +41,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="start-volume" name="mpd[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpd[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
@@ -222,11 +222,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="addrandom">Add random tracks</label>
                 <div class="col-sm-10">
-<<<<<<< HEAD
                     <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
-=======
-                    <input class="form-control input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="1" data-trigger="change" min="1" placeholder="0" />
->>>>>>> d935c7f1c8d8cd72d3736ef5c84d16c860f4eb62
                     <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>
