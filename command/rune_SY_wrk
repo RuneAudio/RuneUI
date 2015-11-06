@@ -265,12 +265,14 @@ $start4 = microtime(true);
 $starttime = ($start4-$start3)+$firstlap;
 runelog('WORKER rune_SY_wrk.php STARTED in '.$starttime.' seconds.');
 ui_notify_async('system worker', 'rune_SY_wrk started in '.$starttime.' seconds.');
+// call xinit for local browser
+if ($redis->get('local_browser') === '1') {
+    sysCmdAsync('/usr/bin/sudo /usr/bin/xinit');
+}
 // close startup Redis connection
 $redis->close();
 // refresh nics status and collect debug data
 sysCmdAsync('/var/www/command/refresh_nics ; /var/www/command/debug_collector');
-// call xinit for local browser
-sysCmdAsync('/usr/bin/sudo /usr/bin/xinit');
 runelog('WORKER MAIN LOOP ---');
 // WORKER MAIN LOOP --- //
 $all_mounted = 0;
