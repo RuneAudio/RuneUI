@@ -48,7 +48,7 @@ if ($activePlayer !== 'Airplay') {
     // set activePlayer
     $redis->set('activePlayer', 'Airplay');
     // send notify
-    ui_notify('AirPlay', 'The player is locket by an incoming Airplay stream.');
+    ui_notify('AirPlay', 'The player is locked by an incoming Airplay stream.');
 } else {
     // send notify
     ui_notify('AirPlay', 'Airplay stream finished. Player unlocked.');
