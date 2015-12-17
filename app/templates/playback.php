@@ -209,7 +209,7 @@
             </div>
             <div class="modal-body">
                 <label for="pl-save-name">Give a name to this playlist</label>
-                <input id="pl-save-name" class="form-control" type="text" placeholder="Enter playlist name">
+                <input id="pl-save-name" class="form-control osk-trigger" type="text" placeholder="Enter playlist name">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
@@ -263,10 +263,10 @@
             </div>
             <div class="modal-body">
                 <label for="webradio-add-name">Radio name</label>
-                <input id="webradio-add-name" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio name">
+                <input id="webradio-add-name" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio name">
                 <br>
                 <label for="webradio-add-url">Radio url</label>
-                <input id="webradio-add-url" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio url">
+                <input id="webradio-add-url" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio url">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
@@ -285,10 +285,10 @@
             <div class="modal-body">
                 <input id="webradio-edit-oldname" name="radio[oldlabel]" class="form-control" type="hidden" value="">
                 <label for="webradio-edit-name">Radio name</label>
-                <input id="webradio-edit-name" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio name">
+                <input id="webradio-edit-name" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio name">
                 <br>
                 <label for="webradio-edit-url">Radio url</label>
-                <input id="webradio-edit-url" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio url">
+                <input id="webradio-edit-url" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio url">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>

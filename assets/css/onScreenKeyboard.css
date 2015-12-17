@@ -6,7 +6,7 @@
 	overflow: hidden;
 	padding: 1%;
 	margin: 0;
-	z-index: 100;
+	z-index: 2000;
 }
 
 	#osk-container > li {
