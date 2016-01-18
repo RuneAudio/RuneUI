@@ -1212,6 +1212,28 @@ function waitSyWrk($redis, $jobID)
     }
 }
 
+function getmac($nicname)
+{
+    $mac = file_get_contents('/sys/class/net/'.$nicname.'/address');
+    $mac = strtolower($mac);
+    runelog('getmac('.$nicname.'): ', $mac);
+    return trim($mac);
+}
+
+function wrk_avahiconfig($hostname)
+{
+    if (!file_exists('/etc/avahi/services/runeaudio.service')) {
+        runelog('avahi service descriptor not present, initializing...');
+        sysCmd('/usr/bin/cp /var/www/app/config/defaults/avahi_runeaudio.service /etc/avahi/services/runeaudio.service');
+    }
+    $file = '/etc/avahi/services/runeaudio.service';
+    $newArray = wrk_replaceTextLine($file, [],'replace-wildcards', '<name replace-wildcards="yes">RuneAudio ['.$hostname.'] ['.getmac('eth0').']</name>');
+    // Commit changes to /etc/avahi/services/runeaudio.service
+    $fp = fopen($file, 'w');
+    fwrite($fp, implode("", $newArray));
+    fclose($fp);
+}
+
 function wrk_control($redis, $action, $data)
 {
     $jobID = "";
@@ -1235,7 +1257,7 @@ function wrk_control($redis, $action, $data)
 }
 
 // search a string in a file and replace with another string the whole line.
-function wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel, $lineoffset)
+function wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel = null, $lineoffset = null)
 {
     runelog('wrk_replaceTextLine($file, $inputArray, $strfind, $strrepl, $linelabel, $lineoffset)','');
     runelog('wrk_replaceTextLine $file', $file);
@@ -2319,8 +2341,12 @@ function wrk_mpdPlaybackStatus($redis = null, $action = null)
     } else {
         $status = sysCmd("mpc status | grep '\[' | cut -d '[' -f 2 | cut -d ']' -f 1");
         // debug
-        runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
-        return $status[0];
+        if (!empty($status[0])) {
+            runelog('wrk_mpdPlaybackStatus (current state):', $status[0]);
+            return $status[0];
+        } else {
+            return false;
+        }
     }
 }
 
@@ -2359,7 +2385,7 @@ function wrk_shairport($redis, $ao, $name = null)
     sysCmdAsync('sleep 1 && rune_prio nice');
 }
 
-function wrk_sourcemount($redis, $action, $id)
+function wrk_sourcemount($redis, $action, $id = null)
 {
     switch ($action) {
         case 'mount':
@@ -2803,6 +2829,8 @@ function wrk_changeHostname($redis, $newhostname)
         $redis->hSet('airplay','name', $newhostname);
         if ($redis->hGet('airplay','enable') === '1') sysCmd('systemctl restart shairport');
     }
+    // update AVAHI serice data
+    wrk_avahiconfig($newhostname);
     // rewrite mpd.conf file
     wrk_mpdconf('/etc', $redis);
     // restart MPD
@@ -2950,7 +2978,7 @@ function ui_notify_async($title = null, $text, $type = null, $permanotice = null
     }
     $output = json_encode($output);
     runelog('notify (async) JSON string: ', $output);
-    sysCmdAsync('/var/www/command/ui_notify.php \''.$output.'\' '.$jobID);
+    sysCmdAsync('/var/www/command/ui_notify.php \''.$output);
 }
 
 function wrk_notify($redis, $action, $notification, $jobID = null)

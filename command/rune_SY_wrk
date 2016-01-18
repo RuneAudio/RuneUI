@@ -174,6 +174,7 @@ if ($playerid_db === '') {
     $start3 = microtime(true);
     // check HOSTNAME << TODO: integrate in wrk_sysEnvCheck >>
     $hn = sysCmd('hostname');
+    wrk_avahiconfig($hn[0]);
     $redis->set('hostname', $hn[0]);
     // check ENV files
     if ($arch !== '--') {
