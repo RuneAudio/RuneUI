@@ -210,10 +210,10 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="global_random" class="control-label col-sm-2">Global random</label>
+                <label class="control-label col-sm-2" for="globalrandom">Global random</label>
                 <div class="col-sm-10">
                     <label class="switch-light well" onclick="">
-                        <input id="global_random" name="mpd[global_random][enable]" type="checkbox" value="1"<?php if($this->global_random['enable'] == 1): ?> checked="checked" <?php endif ?>>
+                        <input name="mpd[globalrandom]" type="checkbox" value="1"<?php if($this->mpd['globalrandom'] == 1): ?> checked="checked" <?php endif ?>>
                         <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
                     </label>
                     <span class="help-block">(EXPERIMENTAL) Toggles the global random, which adds a random song to the queue when it reaches the end.</span>
@@ -222,7 +222,7 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="addrandom">Add random tracks</label>
                 <div class="col-sm-10">
-                    <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="0" data-trigger="change" min="1" placeholder="0" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="<?=$this->mpd['addrandom'] ?>" data-trigger="change" min="1" placeholder="0" />
                     <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>

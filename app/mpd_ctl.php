@@ -62,12 +62,23 @@
         if (isset($_POST['mpd']['crossfade'])) {
             sysCmd('mpc crossfade '.$_POST['mpd']['crossfade']);
         }
+		
+		if ($_POST['mpd']['globalrandom'] == "1") {
+            $redis->get('globalrandom') == 1 || $redis->set('globalrandom', 1);
+        } else {
+            $redis->get('globalrandom') == 0 || $redis->set('globalrandom', 0);
+        }
+		if (isset($_POST['mpd']['addrandom'])) {
+            $redis->get('addrandom') == $_POST['mpd']['addrandom'] || $redis->set('addrandom', $_POST['mpd']['addrandom']);
+        }
     }
  }
 waitSyWrk($redis, $jobID);
 // collect system status
 $template->realtime_volume = $redis->get('dynVolumeKnob');
 $template->mpd['start_volume'] = $redis->get('mpd_start_volume');
+$template->mpd['globalrandom'] = $redis->get('globalrandom');
+$template->mpd['addrandom'] = $redis->get('addrandom');
 $crossfade = explode(": ", sysCmd('mpc crossfade')[0]);
 $template->mpd['crossfade'] = $crossfade[1];
 // check integrity of /etc/network/interfaces
