@@ -119,7 +119,7 @@
                 <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
                 <div class="col-sm-10">
                     <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
-                        <option value="linux-arch-3.18.7-3-ARCH">Linux kernel 3.18.7-3&nbsp;&nbsp;&nbsp;ARCH&nbsp;[RuneAudio v0.3-beta]</option>
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
                     </select>
                     <span class="help-block">There are no other kernels available at the moment!</span>
                 </div>
