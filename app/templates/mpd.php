@@ -41,14 +41,14 @@
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
                 <div class="col-sm-10">
-                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpd[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpdvol[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
                     <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
                 </div>
             </div>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="realtime-volume">Volume knob</label>
                 <div class="col-sm-10">
-                    <select id="realtime-volume" name="mpd[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
+                    <select id="realtime-volume" name="mpdvol[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>realtime</option>
                         <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>on release</option>
                     </select>
@@ -216,7 +216,7 @@
                         <input name="mpd[globalrandom]" type="checkbox" value="1"<?php if($this->mpd['globalrandom'] == 1): ?> checked="checked" <?php endif ?>>
                         <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
                     </label>
-                    <span class="help-block">(EXPERIMENTAL) Toggles the global random, which adds a random song to the queue when it reaches the end.</span>
+                    <span class="help-block">(EXPERIMENTAL) Toggles the global random, which adds a random song to the queue when it reaches the end. Changes will take effect after you restart your device.</span>
                 </div>
             </div>
             <div class="form-group">
