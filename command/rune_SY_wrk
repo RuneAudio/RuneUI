@@ -270,6 +270,12 @@ ui_notify_async('system worker', 'rune_SY_wrk started in '.$starttime.' seconds.
 if ($redis->get('local_browser') === '1') {
     sysCmdAsync('/usr/bin/sudo /usr/bin/xinit');
 }
+
+// start globalrandom if configured
+if ('1' === $redis->get('globalrandom')) {
+    sysCmd('systemctl start ashuffle.service');
+}
+
 // close startup Redis connection
 $redis->close();
 // refresh nics status and collect debug data
