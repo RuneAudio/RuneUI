@@ -49,16 +49,17 @@
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
     }
     // ----- FEATURES -----
-    if (isset($_POST['mpd'])) {
-        if ($_POST['mpd']['realtime_volume'] == "yes") {
+    if (isset($_POST['mpdvol'])) {
+        if ($_POST['mpdvol']['realtime_volume'] == "yes") {
             $redis->get('dynVolumeKnob') == 1 || $redis->set('dynVolumeKnob', 1);
         } else {
             $redis->get('dynVolumeKnob') == 0 || $redis->set('dynVolumeKnob', 0);
         }
-
-        if (isset($_POST['mpd']['start_volume'])) {
-            $redis->get('mpd_start_volume') == $_POST['mpd']['start_volume'] || $redis->set('mpd_start_volume', $_POST['mpd']['start_volume']);
+        if (isset($_POST['mpdvol']['start_volume'])) {
+            $redis->get('mpd_start_volume') == $_POST['mpdvol']['start_volume'] || $redis->set('mpd_start_volume', $_POST['mpdvol']['start_volume']);
         }
+	}
+	if (isset($_POST['mpd'])) {	
         if (isset($_POST['mpd']['crossfade'])) {
             sysCmd('mpc crossfade '.$_POST['mpd']['crossfade']);
         }
