@@ -276,6 +276,9 @@ if ('1' === $redis->get('globalrandom')) {
     sysCmd('systemctl start ashuffle.service');
 }
 
+// turn wifi power saving off
+    sysCmd('iwconfig wlan0 power off');
+
 // close startup Redis connection
 $redis->close();
 // refresh nics status and collect debug data
