@@ -37,6 +37,7 @@ ini_set('display_errors', '1');
 ini_set('error_reporting', -1);
 ini_set('error_log', '/var/log/runeaudio/rune_PL_wrk.log');
 include('/var/www/app/libs/runeaudio.php');
+error_reporting(E_ALL & ~E_NOTICE);
 // reset worker logfile
 sysCmd('echo "--------------- start: rune_PL_wrk ---------------" > /var/log/runeaudio/rune_PL_wrk.log');
 runelog('WORKER rune_PL_wrk START');
