@@ -35,7 +35,7 @@
 // common include
 $start = microtime(true);
 ini_set('display_errors', '1');
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_NOTICE);
 ini_set('error_log', '/var/log/runeaudio/rune_SY_wrk.log');
 define('APP', '/srv/http/app/');
 include('/srv/http/app/libs/runeaudio.php');
