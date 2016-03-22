@@ -2348,13 +2348,23 @@ if ($('#section-index').length) {
             $.scrollTo(0 , 500);
         });
         $('#pl-prevPage').click(function(){
-            var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop - $(window).height();
+	    var pageHeight = $(window).height() - document.getElementById("pl-manage").offsetHeight
+	                                        - document.getElementById("menu-bottom").offsetHeight
+	                                        - document.getElementById("menu-top").offsetHeight
+	                                        - document.getElementById("pl-search").offsetHeight
+	                                        - document.getElementById("pl-1").offsetHeight;
+	    var scrollTop = $(window).scrollTop();
+            var scrolloffset = scrollTop - pageHeight;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-nextPage').click(function(){
-            var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop + $(window).height();
+	    var pageHeight = $(window).height() - document.getElementById("pl-manage").offsetHeight
+	                                        - document.getElementById("menu-bottom").offsetHeight
+	                                        - document.getElementById("menu-top").offsetHeight
+	                                        - document.getElementById("pl-search").offsetHeight
+	                                        - document.getElementById("pl-1").offsetHeight;
+	    var scrollTop = $(window).scrollTop();
+            var scrolloffset = scrollTop + pageHeight;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-lastPage').click(function(){
