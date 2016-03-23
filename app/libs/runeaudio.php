@@ -2551,6 +2551,10 @@ function wrk_getHwPlatform()
                 case 'ODROIDC':
                     $arch = '09';
                     break;                    
+                // ODROID C2
+                case 'ODROID-C2':
+                    $arch = '10';
+                    break;  
                 default:
                     $arch = '--';
                     break;
@@ -2602,6 +2606,10 @@ function wrk_setHwPlatform($redis)
             break;
         case '09':
             $redis->set('hwplatform', 'ODROID-C1');
+            $redis->set('hwplatformid', $arch);
+            break;
+        case '10':
+            $redis->set('hwplatform', 'ODROID-C2');
             $redis->set('hwplatformid', $arch);
             break;
         default:
