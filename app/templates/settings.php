@@ -129,6 +129,38 @@
                 </div>
             </div>
             <?php endif;?>
+            <!-- <div 
+            <?php if($this->hwplatformid === '09'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <span class="help-block">Enable I&#178;S output by editing /boot/boot.ini. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
+            </div> -->
+            <?php if($this->hwplatformid === '10'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <span class="help-block">Enable I&#178;S output by editing /boot/boot.ini. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
             <div class="form-group">
                 <label class="control-label col-sm-2" for="orionprofile">Sound Signature (optimization profiles)</label>
                 <div class="col-sm-10">
