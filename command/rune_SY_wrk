@@ -574,7 +574,7 @@ $redis->pconnect('/tmp/redis.sock');
                             //$notification->title = 'Network config';
                             //$notification->text = 'Config changed successfully, reboot reqired';
                             //wrk_notify($redis, 'kernelswitch', $notification, $jobID);
-                            sysCmd('/var/www/command/rune_shutdown');
+                            sysCmd('/var/www/command/rune_shutdown reboot');
                             sysCmd('systemctl reboot');
                             //$redis->sRem('w_lock', $jobID);
                         }
@@ -637,7 +637,7 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     // send notfy to UI
                     ui_notify_async('Shutdown', 'system shutdown in progress...', $jobID);
-                    sysCmd('/var/www/command/rune_shutdown');
+                    sysCmd('/var/www/command/rune_shutdown poweroff');
                     sysCmdAsync('poweroff');
                     $redis->sRem('w_lock', $jobID);
                     break;
@@ -646,7 +646,7 @@ $redis->pconnect('/tmp/redis.sock');
                     $redis->sAdd('w_lock', $jobID);
                     // send notfy to UI
                     ui_notify_async('Reboot', 'system reboot in progress...', $jobID);
-                    sysCmd('/var/www/command/rune_shutdown');
+                    sysCmd('/var/www/command/rune_shutdown reboot');
                     sysCmdAsync('reboot');
                     $redis->sRem('w_lock', $jobID);
                     break;
