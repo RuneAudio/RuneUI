@@ -95,8 +95,9 @@ fi
 modKschedLatency () {
     local "${@}"
     # RaspberryPi
-    if ((${hw} == "01")) 
+    if (($((10#${hw})) == "1"))
     then
+	    echo "RaspberryPi"
         echo ${s01} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s01}
         sndusb_profile nrpacks=${u01}
@@ -104,72 +105,81 @@ modKschedLatency () {
         echo -n performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
     fi
     # CuBox
-    if ((${hw} == "02")) 
+    if (($((10#${hw})) == "2"))
     then
+	    echo "CuBox"
         echo ${s02} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s02}
         sndusb_profile nrpacks=${u02}
         echo "USB nrpacks="${u02}
     fi
     # UDOO
-    if ((${hw} == "03")) 
+    if (($((10#${hw})) == "3"))
     then
-        echo ${s03} > /proc/sys/kernel/sched_latency_ns
+        echo "UDOO"
+		echo ${s03} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s03}
         sndusb_profile nrpacks=${u03}
         echo "USB nrpacks="${u03}
     fi
     # BeagleBoneBlack
-    if ((${hw} == "04")) 
+    if (($((10#${hw})) == "4"))
     then
+	    echo "BeagleBoneBlack"
         echo ${s04} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s04}
         sndusb_profile nrpacks=${u04}
         echo "USB nrpacks="${u04}
     fi
     # Compulab Utilite
-    if ((${hw} == "05")) 
+    if (($((10#${hw})) == "5"))
     then
+	    echo "Utilite"
         echo ${s04} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s04}
         sndusb_profile nrpacks=${u04}
         echo "USB nrpacks="${u04}
     fi
     # Cubietruck
-    if ((${hw} == "06")) 
+    if (($((10#${hw})) == "6"))
     then
+	    echo "Cubietruck"
         echo ${s06} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s06}
         sndusb_profile nrpacks=${u06}
         echo "USB nrpacks="${u06}
     fi
     # Cubox-i
-    if ((${hw} == "07")) 
+    if (($((10#${hw})) == "7"))
     then
+		echo "Cubox-i"
         echo ${s07} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s07}
         sndusb_profile nrpacks=${u07}
         echo "USB nrpacks="${u07}
     fi
     # RaspberryPi2/3
-    if ((${hw} == "08")) 
+    if (($((10#${hw})) == "8")) 
     then
+	    echo "RaspberryPi2/3"
         echo ${s08} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s08}
         # sndusb_profile nrpacks=${u08}    nrpacks not supported anymore on newer kernels
         # echo "USB nrpacks="${u08}
     fi
     # ODROID C1
-    if ((${hw} == "09")) 
+    if (($((10#${hw})) == "9"))
     then
+	    echo "ODROIDC1"
         echo ${s09} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s09}
         # sndusb_profile nrpacks=${u09}    nrpacks not supported anymore on newer kernels
         # echo "USB nrpacks="${u09}
     fi
     # ODROID C2
-    if ((${hw} == "10")) 
+    if (($((10#${hw})) == "10")) 
     then
+		echo "ODROIDC2"
         echo ${s10} > /proc/sys/kernel/sched_latency_ns
         echo "sched_latency_ns = "${s10}
         # sndusb_profile nrpacks=${u10}    nrpacks not supported anymore on newer kernels
