@@ -3082,6 +3082,7 @@ function ui_status($mpd, $status)
             $status['currentalbum'] = '';
         }
     }
+    $status['file'] = $curTrack[0]['file'];
     $status['radioname'] = $curTrack[0]['Name'];
     return $status;
 }

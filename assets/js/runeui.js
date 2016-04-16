@@ -568,13 +568,14 @@ function refreshState() {
 
 // update the Playback UI
 function updateGUI() {
+    console.log(GUI.json);
     var volume = GUI.json.volume;
     var radioname = GUI.json.radioname;
     var currentartist = GUI.json.currentartist;
     var currentsong = GUI.json.currentsong;
     var currentalbum = GUI.json.currentalbum;
     // set radio mode if stream is present
-    GUI.stream = ((radioname !== null && radioname !== undefined && radioname !== '') ? 'radio' : '');
+    GUI.stream = isUrl(GUI.json.file) ? 'radio' : '';
     // check MPD status and refresh the UI info
     refreshState();
     if ($('#section-index').length) {
@@ -623,7 +624,7 @@ function updateGUI() {
         GUI.currentsong = currentsong;
         var currentalbumstring = currentartist + ' - ' + currentalbum;
         if (GUI.currentalbum !== currentalbumstring) {
-            if (radioname === null || radioname === undefined || radioname === '') {
+            if (GUI.stream !== 'radio') {
                 var covercachenum = Math.floor(Math.random()*1001);
                 $('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
             } else {
@@ -770,6 +771,7 @@ function renderUI(text){
         if (GUI.stream !== 'radio') {
             refreshKnob();
         } else {
+            window.clearInterval(GUI.currentKnob);
             $('#time').val(0, false).trigger('update');
         }
         // console.log('GUI.json.playlist = ' + GUI.json.playlist + ', GUI.playlist = ', GUI.playlist);
@@ -1034,7 +1036,7 @@ function populateDB(options){
         
     // DEBUG
     // console.log('populateDB OPTIONS: data = ' + data + ', path = ' + path + ', uplevel = ' + uplevel + ', keyword = ' + keyword +', querytype = ' + querytype);
-    console.log(JSON.stringify(data));
+    // console.log(JSON.stringify(data));
 
     if (plugin !== '') {
     // plugins
@@ -1693,6 +1695,12 @@ function visChange() {
         GUI.visibility = 'visible';
         // console.log('Visibility: visible');
     }
+}
+
+// check if a string is a url
+function isUrl(s) {
+    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+    return regexp.test(s);
 }
 
 
