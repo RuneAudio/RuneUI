@@ -2408,7 +2408,11 @@ if ($('#section-index').length) {
             $.post('/settings/', { 'syscmd' : 'reboot' });
             toggleLoader();
         });
-        
+        // local display off
+        $('#syscmd-display_off').click(function(){
+            $.post('/settings/', { 'syscmd' : 'display_off' });
+        });
+		
         // social share overlay
         overlayTrigger('#overlay-social');
         // play source overlay
