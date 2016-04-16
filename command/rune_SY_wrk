@@ -575,7 +575,7 @@ $redis->pconnect('/tmp/redis.sock');
                             //$notification->text = 'Config changed successfully, reboot reqired';
                             //wrk_notify($redis, 'kernelswitch', $notification, $jobID);
                             sysCmd('/var/www/command/rune_shutdown reboot');
-                            sysCmd('systemctl reboot');
+                            sysCmdAsync('systemctl reboot');
                             //$redis->sRem('w_lock', $jobID);
                         }
                     }
@@ -648,6 +648,12 @@ $redis->pconnect('/tmp/redis.sock');
                     ui_notify_async('Reboot', 'system reboot in progress...', $jobID);
                     sysCmd('/var/www/command/rune_shutdown reboot');
                     sysCmdAsync('reboot');
+                    $redis->sRem('w_lock', $jobID);
+                    break;
+				case 'display_off':
+                runelog('wrk_SY: ', $job->wrkcmd);
+                    $redis->sAdd('w_lock', $jobID);
+                    sysCmd('export DISPLAY=:0; xset dpms force off');
                     $redis->sRem('w_lock', $jobID);
                     break;
                 // case 'restore':
