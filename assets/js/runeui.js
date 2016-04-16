@@ -568,7 +568,6 @@ function refreshState() {
 
 // update the Playback UI
 function updateGUI() {
-    console.log(GUI.json);
     var volume = GUI.json.volume;
     var radioname = GUI.json.radioname;
     var currentartist = GUI.json.currentartist;
