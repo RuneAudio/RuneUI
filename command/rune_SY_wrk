@@ -650,7 +650,7 @@ $redis->pconnect('/tmp/redis.sock');
                     sysCmdAsync('reboot');
                     $redis->sRem('w_lock', $jobID);
                     break;
-				case 'display_off':
+		case 'display_off':
                 runelog('wrk_SY: ', $job->wrkcmd);
                     $redis->sAdd('w_lock', $jobID);
                     sysCmd('export DISPLAY=:0; xset dpms force off');
