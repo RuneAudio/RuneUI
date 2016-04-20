@@ -222,6 +222,10 @@ function debug_data($redis)
     // $command = sysCmd('iwlist scan');
     // $output .= implode("\n",$command)."\n\n";
     // unset($command);
+    $output .= "###### List all USB devices (lsusb) ######\n";
+    $command = sysCmd('lsusb');
+    $output .= implode("\n", $command)."\n\n";
+    unset($command);
     $output .= "###### Kernel status (dmesg) ######\n";
     $command = sysCmd('dmesg');
     $output .= implode("\n", $command)."\n\n";
