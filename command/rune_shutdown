@@ -31,7 +31,7 @@
 #  coder: Simone De Gregori
 #
 
-if [ $1 = "poweroff" ] ; then
+if [ $1 == "poweroff" ] ; then
   echo "power off RuneAudio"
 else
   echo "reboot RuneAudio"
