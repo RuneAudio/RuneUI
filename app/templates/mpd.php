@@ -143,8 +143,8 @@
                     <select id="replaygain" name="conf[replaygain]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="off" <?php if($this->conf['replaygain'] == 'off'): ?> selected <?php endif ?>>off</option>    
                         <option value="album" <?php if($this->conf['replaygain'] == 'album'): ?> selected <?php endif ?>>album</option>
-                        <option value="track" <?php if($this->conf['track'] == 'no'): ?> selected <?php endif ?>>track</option>
-                        <option value="auto" <?php if($this->conf['auto'] == 'no'): ?> selected <?php endif ?>>auto</option>
+                        <option value="track" <?php if($this->conf['replaygain'] == 'track'): ?> selected <?php endif ?>>track</option>
+                        <option value="auto" <?php if($this->conf['replaygain'] == 'auto'): ?> selected <?php endif ?>>auto</option>
                     </select>
                     <span class="help-block">If specified, mpd will adjust the volume of songs played using ReplayGain tags (see <a href="http://www.replaygain.org/" target="_blank">http://www.replaygain.org/</a>). 
                     Setting this to "album" will adjust volume using the album's ReplayGain tags, while setting it to "track" will adjust it using the track ReplayGain tags. 
