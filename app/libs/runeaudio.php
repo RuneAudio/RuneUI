@@ -2358,7 +2358,7 @@ function wrk_shairport($redis, $ao, $name = null)
     $acard = json_decode($redis->hget('acards', $ao));
     runelog('acard details: ', $acard);
     $file = '/usr/lib/systemd/system/shairport.service';
-    $newArray = wrk_replaceTextLine($file, '', 'ExecStart=', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=$ON --on-stop=$OFF --meta-dir=/var/run/shairport -o alsa -- -d '.$acard->device);
+    $newArray = wrk_replaceTextLine($file, '', 'ExecStart=', 'ExecStart=/usr/bin/shairport -w --name='.$name.' --on-start=$ON --on-stop=$OFF --meta-dir=/var/run/shairport -o alsa -- -d plug'.$acard->device);
     runelog('shairport.service :', $newArray);
     // Commit changes to /usr/lib/systemd/system/shairport.service
     $fp = fopen($file, 'w');
