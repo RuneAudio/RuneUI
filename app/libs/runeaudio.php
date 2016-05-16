@@ -1930,7 +1930,9 @@ function wrk_i2smodule($redis, $args)
             sysCmd('rmmod snd_soc_hifiberry_dac').usleep(300000);
             sysCmd('rmmod snd_soc_hifiberry_dacplus').usleep(300000);
             sysCmd('rmmod snd_soc_wm8804').usleep(300000);
+			sysCmd('rmmod snd_soc_odroid_dac').usleep(300000);
             sysCmd('rmmod snd_soc_pcm512x').usleep(300000);
+            sysCmd('rmmod snd_soc_pcm5102').usleep(300000);
             sysCmd('rmmod snd_soc_pcm5102a');
             break;
         case 'berrynos':
@@ -1989,7 +1991,11 @@ function wrk_i2smodule($redis, $args)
             sysCmd('modprobe snd_soc_pcm512x').usleep(300000);
             sysCmd('modprobe snd_soc_iqaudio_dac');
             break;
-    }
+        case 'odroidhifishield':
+			sysCmd('modprobe snd_soc_odroid_dac').usleep(300000);
+            sysCmd('modprobe snd_soc_pcm5102').usleep(300000);
+            break;
+	}
     $redis->set('i2smodule', $args);
     wrk_mpdconf($redis, 'refresh');
 }

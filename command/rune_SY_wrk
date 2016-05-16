@@ -205,7 +205,10 @@ if ($redis->get('i2smodule') !== 'none') {
         case '01':
             if ($kernel !== 'linux-rune-3.6.11-18-ARCH+') $loadi2s = true;
             break;
-    }
+        case '10':
+            $loadi2s = true;
+            break;
+	}
     if ($loadi2s === true) wrk_i2smodule($redis, $redis->get('i2smodule'));
 }
 // start player backend
