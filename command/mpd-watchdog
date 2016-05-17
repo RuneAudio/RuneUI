@@ -1,0 +1,111 @@
+#!/bin/sh
+#
+# mpd-watchdog - monitor mpd while playing internet streams
+#
+# Copyright (c) 2013, 2015 Thomas Kemmer <tkemmer@computer.org>
+#
+# Based on http://mpd.wikia.com/wiki/Hack:stream-monitor
+#
+PROGRAM="$(basename "$0")"
+INTERVAL=10
+LOGLEVEL=1
+LOGGER="log_stderr"
+MPDHOST=localhost
+MPDPORT=6600
+
+USAGE=$(cat <<EOF
+Usage: $PROGRAM [OPTION]...
+Monitor mpd while playing internet streams.
+
+  -h HOST       MPD server host [$MPDHOST]
+  -i INTERVAL   monitoring interval in seconds [$INTERVAL]
+  -p PORT       MPD server port [$MPDPORT]
+  -s            write log output to syslog
+  -v            produce more verbose output
+EOF
+)
+
+log_stderr() {
+    shift
+    echo "$0:" "$@" >&2
+}
+
+log_syslog() {
+    loglevel="$1"
+    shift
+    logger -t "$PROGRAM" -p "user.$loglevel" "$@"
+}
+
+log() {
+    case $1 in
+        alert|crit|emerg|err|error|warn|warning)
+            $LOGGER "$@"
+            ;;
+        notice)
+            [ $LOGLEVEL -gt 0 ] && $LOGGER "$@"
+            ;;
+        info)
+            [ $LOGLEVEL -gt 1 ] && $LOGGER "$@"
+            ;;
+        debug)
+            [ $LOGLEVEL -gt 2 ] && $LOGGER "$@"
+            ;;
+        *)
+            echo "$0: invalid log level: $1"
+            ;;
+    esac
+}
+
+mpc_status() {
+    $MPC status 2>/dev/null | grep -B1 '^\[playing\]' | tr '\n' ' '
+}
+
+while getopts "h::i:p:sv" opt; do
+    case $opt in
+        h)
+            MPDHOST=$OPTARG
+            ;;
+        i)
+            INTERVAL=$OPTARG
+            ;;
+        p)
+            MPDPORT=$OPTARG
+            ;;
+        s)
+            LOGGER="log_syslog"
+            ;;
+        v)
+            LOGLEVEL=$(($LOGLEVEL + 1))
+            ;;
+        *)
+            echo "$USAGE" >&2
+            exit 2
+            ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+MPC="mpc -h $MPDHOST -p $MPDPORT"
+
+trap 'log notice "terminating..." ; exit' INT QUIT KILL TERM
+
+log notice "starting..."
+
+prev_status=$(mpc_status)
+
+while sleep $INTERVAL; do
+    status=$(mpc_status)
+
+    if [ -n "$status" ]; then
+        log info "$status"
+        if [ "$prev_status" = "$status" ]; then
+            log warning "restarting mpd"
+            $MPC stop && $MPC play || log err "error restarting mpd"
+        fi
+    else
+        log debug "mpd not running/playing"
+    fi
+
+    prev_status="$status"
+done

@@ -620,16 +620,25 @@ function updateGUI() {
             $('#single').removeClass('btn-primary');
         }
         
-        GUI.currentsong = currentsong;
-        var currentalbumstring = currentartist + ' - ' + currentalbum;
-        if (GUI.currentalbum !== currentalbumstring) {
-            if (GUI.stream !== 'radio') {
-                var covercachenum = Math.floor(Math.random()*1001);
-                $('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
-            } else {
-                $('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
-            }
-        }
+		GUI.currentsong = currentsong;
+		var currentalbumstring = currentartist + ' - ' + currentalbum;
+		if (GUI.currentalbum !== currentalbumstring) {
+			if (GUI.stream !== 'radio') {
+				var covercachenum = Math.floor(Math.random()*1001);
+				$('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
+			
+				$.ajax({
+				   url: '/lyric/',
+				   success: function(data){
+					  $('#cover-art').attr('title',data);
+				   },
+				   cache: false
+				});
+			
+			} else {
+				$('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
+			}
+		}
         GUI.currentalbum = currentalbumstring;
     }
 }
