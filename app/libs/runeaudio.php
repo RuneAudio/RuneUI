@@ -2215,8 +2215,10 @@ if ($action === 'reset') {
                 // for example ODROID C1 needs "card_option":"buffer_time\t\"0\""
                 if (isset($card_decoded->card_option)) {
                     $output .= "\t".$card_decoded->card_option."\n";
-                }                
+                }
                 if ($mpdcfg['dsd_usb'] === 'yes') $output .="\tdsd_usb \t\"yes\"\n";
+				if ($mpdcfg['dsd_usb'] === 'DSDNATIVE') $output .="\tdsd_native \t\"yes\"\n\tdsd_native_type \t\"2\"\n";
+                if ($mpdcfg['dsd_usb'] === 'DSDDOP') $output .="\tdsd_usb \t\"yes\"\n";
                 $output .="\tauto_resample \t\"no\"\n";
                 $output .="\tauto_format \t\"no\"\n";
                 if ($ao === $main_acard_name) $output .="\tenabled \t\"yes\"\n";

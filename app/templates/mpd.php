@@ -129,13 +129,24 @@
             </div>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="dsd-usb">DSD support</label>
-                <div class="col-sm-10">
+                <?php if($this->hwplatformid === '08' || $this->hwplatformid === '10'): ?>
+				<div class="col-sm-10">
+                    <select id="dsd-usb" name="conf[dsd_usb]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="DSDNATIVE" <?php if($this->conf['dsd_usb'] == 'DSDNATIVE'): ?> selected <?php endif ?>>DSD (native)</option>
+                        <option value="DSDDOP" <?php if($this->conf['dsd_usb'] == 'DSDDOP'): ?> selected <?php endif ?>>DSD (DOP)</option>
+                        <option value="no" <?php if($this->conf['dsd_usb'] == 'no'): ?> selected <?php endif ?>>disabled</option>
+                    </select>
+                    <span class="help-block">Enable DSD audio support.</span>
+                </div>
+                <?php else:?>
+				<div class="col-sm-10">
                     <select id="dsd-usb" name="conf[dsd_usb]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="yes" <?php if($this->conf['dsd_usb'] == 'yes'): ?> selected <?php endif ?>>enabled</option>
                         <option value="no" <?php if($this->conf['dsd_usb'] == 'no'): ?> selected <?php endif ?>>disabled</option>
                     </select>
                     <span class="help-block">Enable DSD audio support.</span>
                 </div>
+                <?php endif;?>
             </div>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="replaygain">ReplayGain</label>

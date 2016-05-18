@@ -76,6 +76,7 @@
  }
 waitSyWrk($redis, $jobID);
 // collect system status
+$template->hwplatformid = $redis->get('hwplatformid');
 $template->realtime_volume = $redis->get('dynVolumeKnob');
 $template->mpd['start_volume'] = $redis->get('mpd_start_volume');
 $template->mpd['globalrandom'] = $redis->get('globalrandom');
