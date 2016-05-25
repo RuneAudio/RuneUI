@@ -348,6 +348,11 @@ function sortOrder(id) {
     sendCmd('moveid ' + id + ' ' + pos);
 }
 
+// sort list by inner HTML
+function sortByInnerHtml(a, b){
+    return a.innerHTML.toLowerCase() > b.innerHTML.toLowerCase() ? 1 : -1;
+}
+
 // loading spinner display/hide
 function loadingSpinner(section, hide) {
     if (hide === 'hide') {
@@ -821,6 +826,8 @@ function getPlaylists(){
         url: '/command/?cmd=listplaylists',
         success: function(data){
             renderPlaylists(data);
+            var list = $("#pl-editor");
+            list.children().sort(sortByInnerHtml).appendTo(list);
         },
         cache: false
     });
