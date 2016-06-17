@@ -1443,6 +1443,7 @@ function nicsDetails(text) {
 // open the Playback UI refresh channel
 function playbackChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode,
@@ -1473,6 +1474,7 @@ function playbackChannel(){
 // open the playing queue channel
 function queueChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode
@@ -1489,6 +1491,7 @@ function queueChannel(){
 // open the library channel
 function libraryChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode
@@ -1501,6 +1504,7 @@ function libraryChannel(){
 // open the notify messages channel
 function notifyChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode
@@ -1513,6 +1517,7 @@ function notifyChannel(){
 // open the in range Wi-Fi networks list channel
 function wlansChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode
@@ -1526,6 +1531,7 @@ function wlansChannel(){
 // open the NIC details channel
 function nicsChannel(){
     var pushstream = new PushStream({
+        useSSL: window.location.protocol === "https:",
         host: window.location.hostname,
         port: window.location.port,
         modes: GUI.mode
