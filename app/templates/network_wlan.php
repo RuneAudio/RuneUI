@@ -177,6 +177,7 @@
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
         <fieldset>
             <legend>Actual interface properties</legend>
             <div class="boxed">
@@ -186,8 +187,11 @@
                         <tr><th>Type:</th><td><?php if ($this->nic->wireless === 1): ?>wireless<?php else: ?>wired ethernet<?php endif ?></td></tr>
                         <tr><th>Status:</th><td><?php if ($this->nic->speed !== ' Unknown!' && $this->nic->speed !== null): ?><i class="fa fa-check green sx"></i>connected<?php else: ?><i class="fa fa-times red sx"></i>no network connected<?php endif; ?></td></tr>
                         <?php if(isset($this->nic->currentssid) && $this->nic->currentssid !== 'off/any'): ?><tr><th>Associated SSID:</th><td><strong><?=$this->nic->currentssid ?></strong></td></tr><?php endif; ?>
-                        <tr><th>Assigned IP:</th><td><?php if ($this->nic->ip !== null): ?><strong><?php echo $this->nic->ip; ?></strong><?php else: ?>none<?php endif; ?></td></tr>
-                        <tr><th>Speed:</th><td><?php if ($this->nic->speed !== ' Unknown!' && $this->nic->speed !== null): ?><?=$this->nic->speed ?><?php else: ?>unknown<?php endif; ?></td></tr>
+                        <tr><th>IP:</th><td><?php if ($this->nic->ip !== null): ?><strong><?php echo $this->nic->ip; ?></strong><?php else: ?>none<?php endif; ?></td></tr>
+						<tr><th>GW:</th><td><?php if ($this->nic->gw !== null): ?><strong><?php echo $this->nic->gw; ?></strong><?php else: ?>none<?php endif; ?></td></tr>
+                        <tr><th>DNS1:</th><td><?php if ($this->nic->dns1 !== null): ?><strong><?php echo $this->nic->dns1; ?></strong><?php else: ?>none<?php endif; ?></td></tr>
+						<tr><th>DNS2:</th><td><?php if ($this->nic->dns2 !== null): ?><strong><?php echo $this->nic->dns2 ?></strong><?php else: ?>none<?php endif; ?></td></tr>
+						<tr><th>Speed:</th><td><?php if ($this->nic->speed !== ' Unknown!' && $this->nic->speed !== null): ?><?=$this->nic->speed ?><?php else: ?>unknown<?php endif; ?></td></tr>
                     </tbody>
                     <!--
                     <tfoot>
@@ -197,7 +201,6 @@
                 </table>
             </div>
         </fieldset>
-        <?php endif; ?>
     </form>
 </div>
 <div id="wifiprofile-delete-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="wifiprofile-delete-modal-label" aria-hidden="true">
