@@ -126,20 +126,20 @@
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="nic[gw]">Gateway</label>
                         <div class="col-sm-10">
-                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="gateway" name="nic[gw]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->gw ?>" placeholder="<?=$this->nic_stored->gw ?>" data-parsley-trigger="change"<?php else: ?>value="<?=$this->nic->gw ?>" placeholder="<?=$this->nic->gw ?>" data-parsley-trigger="change"<?php endif; ?> required />
+                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="gateway" name="nic[gw]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->gw ?>" placeholder="<?=$this->nic_stored->gw ?>" data-parsley-trigger="change"<?php else: ?>value="0.0.0.0" placeholder="<?=$this->nic->gw ?>" data-parsley-trigger="change"<?php endif; ?> required />
                             <span class="help-block">Manually set the gateway.</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="nic[dns1]">Primary DNS</label>
                         <div class="col-sm-10">
-                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="dns1" name="nic[dns1]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->dns1 ?>" placeholder="<?=$this->nic_stored->dns1 ?>" data-parsley-trigger="change"<?php else: ?>value="<?=$this->nic->dns1 ?>" placeholder="<?=$this->nic->dns1 ?>" data-parsley-trigger="change"<?php endif; ?> >
+                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="dns1" name="nic[dns1]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->dns1 ?>" placeholder="<?=$this->nic_stored->dns1 ?>" data-parsley-trigger="change"<?php else: ?>value="8.8.8.8" placeholder="<?=$this->nic->dns1 ?>" data-parsley-trigger="change"<?php endif; ?> >
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="nic[dns2]">Secondary DNS</label>
                         <div class="col-sm-10">
-                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="dns2" name="nic[dns2]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->dns2 ?>" placeholder="<?=$this->nic_stored->dns2 ?>" data-parsley-trigger="change"<?php else: ?>value="<?=$this->nic->dns2 ?>" placeholder="<?=$this->nic->dns2 ?>" data-parsley-trigger="change"<?php endif; ?> >
+                            <input class="form-control osk-trigger input-lg" type="text" pattern="((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$" id="dns2" name="nic[dns2]" <?php if (isset($this->nic_stored)): ?>value="<?=$this->nic_stored->dns2 ?>" placeholder="<?=$this->nic_stored->dns2 ?>" data-parsley-trigger="change"<?php else: ?>value="8.8.4.4" placeholder="<?=$this->nic->dns2 ?>" data-parsley-trigger="change"<?php endif; ?> >
                             <span class="help-block">Manually set the primary and secondary DNS.</span>
                         </div>
                     </div>
