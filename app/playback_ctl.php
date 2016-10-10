@@ -49,5 +49,6 @@ if ($redis->get('volume') == 1 && $template->activePlayer !== 'Spotify') {
     $template->volume['disabled'] = 1;
     $template->volume['divclass'] = 'nomixer';
 }
+$template->volume['dynamic'] = $redis->get('dynVolumeKnob');
 $template->dev = $redis->get;
 $template->spotify = $redis->hGet('spotify', 'enable');

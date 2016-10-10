@@ -48,8 +48,41 @@
     if (isset($_POST['mpdconf'])) {
         $jobID = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdcfgman', 'args' => $_POST['mpdconf']));
     }
+    // ----- FEATURES -----
+    if (isset($_POST['mpdvol'])) {
+        if ($_POST['mpdvol']['realtime_volume'] == "yes") {
+            $redis->get('dynVolumeKnob') == 1 || $redis->set('dynVolumeKnob', 1);
+        } else {
+            $redis->get('dynVolumeKnob') == 0 || $redis->set('dynVolumeKnob', 0);
+        }
+        if (isset($_POST['mpdvol']['start_volume'])) {
+            $redis->get('mpd_start_volume') == $_POST['mpdvol']['start_volume'] || $redis->set('mpd_start_volume', $_POST['mpdvol']['start_volume']);
+        }
+	}
+	if (isset($_POST['mpd'])) {	
+        if (isset($_POST['mpd']['crossfade'])) {
+            sysCmd('mpc crossfade '.$_POST['mpd']['crossfade']);
+        }
+		
+		if ($_POST['mpd']['globalrandom'] == "1") {
+            $redis->get('globalrandom') == 1 || $redis->set('globalrandom', 1);
+        } else {
+            $redis->get('globalrandom') == 0 || $redis->set('globalrandom', 0);
+        }
+		if (isset($_POST['mpd']['addrandom'])) {
+            $redis->get('addrandom') == $_POST['mpd']['addrandom'] || $redis->set('addrandom', $_POST['mpd']['addrandom']);
+        }
+    }
  }
 waitSyWrk($redis, $jobID);
+// collect system status
+$template->hwplatformid = $redis->get('hwplatformid');
+$template->realtime_volume = $redis->get('dynVolumeKnob');
+$template->mpd['start_volume'] = $redis->get('mpd_start_volume');
+$template->mpd['globalrandom'] = $redis->get('globalrandom');
+$template->mpd['addrandom'] = $redis->get('addrandom');
+$crossfade = explode(": ", sysCmd('mpc crossfade')[0]);
+$template->mpd['crossfade'] = $crossfade[1];
 // check integrity of /etc/network/interfaces
 if(!hashCFG('check_mpd', $redis)) {
     $template->mpdconf = file_get_contents('/etc/mpd.conf');

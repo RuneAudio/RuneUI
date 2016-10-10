@@ -11,7 +11,11 @@
     <p>List of active network interfaces. Click on an entry to configure the corresponding connection.</p>
     <form id="network-interface-list" class="button-list" method="post">
     <?php foreach ($this->nics as $key => $value): ?>
-        <p><a href="/network/edit/<?=$key ?>" class="btn btn-lg btn-default btn-block"> <i class="fa <?php if ($value->ip !== null): ?>fa-check green<?php else: ?>fa-times red<?php endif; ?> sx"></i> <strong><?=$key ?> </strong>&nbsp;&nbsp;&nbsp;<span>[<?php if ($value->ip !== null): ?><?=$value->ip ?><?php else: ?>no IP assigned<?php endif; ?>]</span></a></p>
+        <?php if ($value->wireless !== 1): ?>
+            <p><a href="/network/edit/<?=$key ?>" class="btn btn-lg btn-default btn-block"> <i class="fa <?php if ($value->ip !== null): ?>fa-check green<?php else: ?>fa-times red<?php endif; ?> sx"></i> <strong><?=$key ?> </strong>&nbsp;&nbsp;&nbsp;<span>[<?php if ($value->ip !== null): ?><?=$value->ip ?><?php else: ?>no IP assigned<?php endif; ?>]</span></a></p>
+        <?php else: ?>
+            <p><a href="/network/edit/<?=$key ?>" class="btn btn-lg btn-default btn-block"> <i class="fa <?php if ($value->ip !== null): ?>fa-check green<?php else: ?>fa-times red<?php endif; ?> sx"></i> <strong><?=$key ?> </strong>&nbsp;&nbsp;&nbsp;<span>[<?php if ($value->ip !== null): ?><?=$value->ip ?>] [<?=($value->currentssid) ?><?php else: ?>no IP assigned<?php endif; ?>]</span></a></p>
+        <?php endif; ?>
     <?php endforeach; ?>
     </form>
 </div>

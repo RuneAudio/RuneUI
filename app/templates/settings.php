@@ -13,14 +13,14 @@
             <div class="form-group" id="environment">
                 <label class="control-label col-sm-2" for="hostname">Player hostname</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="hostname" name="hostname" value="<?php echo $this->hostname; ?>" placeholder="runeaudio" autocomplete="off">
+                    <input class="form-control osk-trigger input-lg" type="text" id="hostname" name="hostname" value="<?php echo $this->hostname; ?>" placeholder="runeaudio" autocomplete="off">
                     <span class="help-block">Set the player hostname. This will change the address used to reach the RuneUI.</span>
                 </div>
             </div>
             <div class="form-group">
                 <label class="control-label col-sm-2" for="ntpserver">NTP server</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
+                    <input class="form-control osk-trigger input-lg" type="text" id="ntpserver" name="ntpserver" value="<?php echo $this->ntpserver; ?>" placeholder="pool.ntp.org" autocomplete="off">
                     <span class="help-block">Set your reference time sync server <i>(NTP server)</i>.</span>
                 </div>
             </div>
@@ -51,21 +51,21 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-user">Host</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="proxy_host" name="features[proxy][host]" value="<?php echo $this->proxy['host']; ?>" data-trigger="change" placeholder="<host IP or FQDN>:<port>">
+                            <input class="form-control osk-trigger input-lg" type="text" id="proxy_host" name="features[proxy][host]" value="<?php echo $this->proxy['host']; ?>" data-trigger="change" placeholder="<host IP or FQDN>:<port>">
                             <span class="help-block">Insert HTTP Proxy host<i> (format: proxy_address:port)</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-user">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="proxy_user" name="features[proxy][user]" value="<?php echo $this->proxy['user']; ?>" data-trigger="change" placeholder="user">
+                            <input class="form-control osk-trigger input-lg" type="text" id="proxy_user" name="features[proxy][user]" value="<?php echo $this->proxy['user']; ?>" data-trigger="change" placeholder="user">
                             <span class="help-block">Insert your HTTP Proxy <i>username</i> (leave blank for anonymous authentication)</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="proxy-pass">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="proxy_pass" name="features[proxy][pass]" value="<?php echo $this->proxy['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="proxy_pass" name="features[proxy][pass]" value="<?php echo $this->proxy['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your HTTP Proxy <i>password</i> (case sensitive) (leave blank for anonymous authentication)</span>
                         </div>
                     </div>
@@ -109,6 +109,57 @@
                         <?php else: ?>
                         <option value="wolfsonaudiocard"  selected >Wolfson Audio Card</option>
                         <?php endif ?>
+                    </select>
+                    <span class="help-block">Enable I&#178;S output selecting one of the available sets of modules, specific for each hardware. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
+            <?php if($this->hwplatformid === '08'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <span class="help-block">Enable I&#178;S output by selecting one of the available sets of modules (in this version you have to edit /boot/config.txt), specific for each hardware. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
+            <!-- <div 
+            <?php if($this->hwplatformid === '09'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <span class="help-block">Enable I&#178;S output by editing /boot/boot.ini. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
+                </div>
+            </div>
+            <?php endif;?>
+            </div> -->
+            <?php if($this->hwplatformid === '10'): ?>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="i2smodule">Linux Kernel</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="kernel" data-style="btn-default btn-lg">
+                        <option value="linux-ARCH"><?php echo $this->kernel; ?></option>
+                    </select>
+                    <span class="help-block">There are no other kernels available at the moment!</span>
+                </div>
+                <label class="control-label col-sm-2" for="i2smodule">I&#178;S kernel modules</label>
+                <div class="col-sm-10">
+                    <select class="selectpicker" name="i2smodule" data-style="btn-default btn-lg">
+                        <option value="none" <?php if($this->i2smodule === 'none'): ?> selected <?php endif ?>>I&#178;S disabled (default)</option>
+                        <option value="odroidhifishield" <?php if($this->i2smodule === 'odroidhifishield'): ?> selected <?php endif ?>>ODROID HiFi Shield</option>
                     </select>
                     <span class="help-block">Enable I&#178;S output selecting one of the available sets of modules, specific for each hardware. Once set, the output interface will appear in the <a href="/mpd/">MPD configuration select menu</a>, and modules will also auto-load from the next reboot.</span>
                 </div>
@@ -161,7 +212,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="airplay-name">AirPlay name</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="airplay_name" name="features[airplay][name]" value="<?php echo $this->airplay['name']; ?>" data-trigger="change" placeholder="runeaudio">
+                            <input class="form-control osk-trigger input-lg" type="text" id="airplay_name" name="features[airplay][name]" value="<?php echo $this->airplay['name']; ?>" data-trigger="change" placeholder="runeaudio">
                             <span class="help-block">AirPlay broadcast name</span>
                         </div>
                     </div>
@@ -183,14 +234,14 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="spotify-usr">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="spotify_user" name="features[spotify][user]" value="<?php echo $this->spotify['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="text" id="spotify_user" name="features[spotify][user]" value="<?php echo $this->spotify['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
                             <span class="help-block">Insert your Spotify <i>username</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="spotify-pasw">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your Spotify <i>password</i> (case sensitive)</span>
                         </div>
                     </div>
@@ -211,10 +262,20 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="dlna-name">UPnP / DLNA name</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="dlna_name" name="features[dlna][name]" value="<?php echo $this->dlna['name']; ?>" data-trigger="change" placeholder="runeaudio">
+                            <input class="form-control osk-trigger input-lg" type="text" id="dlna_name" name="features[dlna][name]" value="<?php echo $this->dlna['name']; ?>" data-trigger="change" placeholder="runeaudio">
                             <span class="help-block">UPnP / DLNA broadcast name</span>
                         </div>
                     </div>
+                </div>
+            </div>
+			<div class="form-group">
+                <label for="local-browser" class="control-label col-sm-2">Local browser</label>
+                <div class="col-sm-10">
+                    <label class="switch-light well" onclick="">
+                        <input name="features[local_browser]" type="checkbox" value="1"<?php if($this->local_browser == 1): ?> checked="checked" <?php endif ?>>
+                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
+                    </label>
+                    <span class="help-block">Start a local browser on HDMI or TFT.</span>
                 </div>
             </div>
             <div class="form-group">
@@ -259,7 +320,7 @@
             </div> -->
             <div <?php if($this->lastfm['enable'] === '1'): ?>class="boxed-group"<?php endif ?> id="lastfmBox">
                 <div class="form-group">
-                    <label for="lastfm" class="control-label col-sm-2"><i class="fa fa fa-lastfm-square"></i> Last.fm</label>
+                    <label for="lastfm" class="control-label col-sm-2">Last.fm scrobbling</label>
                     <div class="col-sm-10">
                         <label class="switch-light well" onclick="">
                             <input id="scrobbling-lastfm" name="features[lastfm][enable]" type="checkbox" value="1"<?php if($this->lastfm['enable'] === '1'): ?> checked="checked" <?php endif ?>>
@@ -272,14 +333,14 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="lastfm-usr">Username</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="text" id="lastfm_user" name="features[lastfm][user]" value="<?php echo $this->lastfm['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="text" id="lastfm_user" name="features[lastfm][user]" value="<?php echo $this->lastfm['user']; ?>" data-trigger="change" placeholder="user" autocomplete="off">
                             <span class="help-block">Insert your Last.fm <i>username</i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="lastfm-pasw">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control input-lg" type="password" id="lastfm_pass" name="features[lastfm][pass]" value="<?php echo $this->lastfm['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="lastfm_pass" name="features[lastfm][pass]" value="<?php echo $this->lastfm['pass']; ?>" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your Last.fm <i>password</i> (case sensitive)</span>
                         </div>
                     </div>
@@ -292,28 +353,6 @@
             </div>
         </fieldset>
     </form>
-    <form class="form-horizontal" action="" method="post" role="form">
-        <fieldset>
-            <legend>Compatibility fixes</legend>
-            <p>For people suffering problems with some receivers and DACs.</p>
-            <div class="form-group">
-                <label for="cmediafix" class="control-label col-sm-2">CMedia fix</label>
-                <div class="col-sm-10">
-                    <label class="switch-light well" onclick="">
-                        <input name="cmediafix[1]" type="checkbox" value="1"<?php if($this->cmediafix == 1): ?> checked="checked" <?php endif ?>>
-                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
-                    </label>
-                    <span class="help-block">For those who have a CM6631 receiver and experiment issues (noise, crackling) between tracks with different sample rates and/or bit depth.<br> 
-                    A "dirty" fix that should avoid the problem, do NOT use if everything works normally.</span>
-                </div>
-            </div>
-            <div class="form-group form-actions">
-                <div class="col-sm-offset-2 col-sm-10">
-                    <button class="btn btn-primary btn-lg" value="1" name="cmediafix[0]" type="submit">Apply fixes</button>
-                </div>
-            </div>
-        </fieldset>
-    </form>
     <form class="form-horizontal" method="post">
         <fieldset>
             <legend>Backup / Restore configuration</legend>
@@ -322,33 +361,28 @@
                 <label class="control-label col-sm-2">Backup player config</label>
                 <div class="col-sm-10">
                     <input class="btn btn-primary btn-lg" type="submit" name="syscmd" value="backup" id="syscmd-backup">
-					<span class="help-block">NOTE: restore feature will come in 0.4 release.</span>
+					<span class="help-block">Export a compressed archive containing all the settings of this player</span>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    <form class="form-horizontal" method="post">
+        <fieldset>
+            <div class="form-group">
+                <label class="control-label col-sm-2">Restore player config</label>
+                <div class="col-sm-10">
+                    <p>
+                        <span id="btn-backup-browse" class="btn btn-default btn-lg btn-file">
+                            Browse... <input type="file">
+                        </span> 
+                        <span id="backup-file"></span>
+                        <span class="help-block">Restore a previously exported backup</span>
+                    </p>
+                    <button id="btn-backup-upload" name="syscmd" value="restore" class="btn btn-primary btn-lg" type="submit" disabled>Upload</button>
                 </div>
             </div>
 		</fieldset>
     </form>
-    <!--
-    <form class="form-horizontal" method="post">
-        <fieldset>
-            <div class="form-group" >
-                <label class="control-label col-sm-2" for="port">Configuration file</label>
-
-                <div class="col-sm-10">
-            
-            <div class="fileupload fileupload-new" data-provides="fileupload">
-                      <span class="btn btn-file"><span class="fileupload-new">restore</span><span class="fileupload-exists">Change</span><input type="file" /></span>
-                      <span class="fileupload-preview"></span>
-                      <a href="#" class="close fileupload-exists" data-dismiss="fileupload" style="float: none">×</a>
-                    </div>
-
-                </div>
-            </div>
-            <div class="form-actions">
-                <button class="btn btn-primary btn-lg" value="restore" name="syscmd" type="submit">Restore config</button>
-            </div>
-        </fieldset>
-    </form>
-    -->
 </div>
 <div id="modal-sysinfo" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-sysinfo-label" aria-hidden="true">
     <div class="modal-dialog">

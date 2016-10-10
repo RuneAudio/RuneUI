@@ -111,6 +111,11 @@ if (isset($_POST)) {
             // create worker job (stop upmpdcli)
             $redis->hGet('dlna','enable') === '0' || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'dlna', 'action' => 'stop', 'args' => $_POST['features']['dlna']['name']));
         }
+        if ($_POST['features']['local_browser'] == 1) {
+            $redis->get('local_browser') == 1 || $redis->set('local_browser', 1);
+        } else {
+            $redis->get('local_browser') == 0 || $redis->set('local_browser', 0);
+        }
         if ($_POST['features']['udevil'] == 1) {
             // create worker job (start udevil)
             $redis->get('udevil') == 1 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'udevil', 'action' => 'start'));
@@ -147,16 +152,11 @@ if (isset($_POST)) {
             $redis->hGet('spotify','enable') == 0 || $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'spotify', 'action' => 'stop'));
         }
     }
-    // ----- C-MEDIA FIX -----
-    if (isset($_POST['cmediafix'][1])){
-        $redis->get('cmediafix') == 1 || $redis->set('cmediafix', 1);
-    } else {
-        $redis->get('cmediafix') == 0 || $redis->set('cmediafix', 0);
-    }
     // ----- SYSTEM COMMANDS -----
     if (isset($_POST['syscmd'])){
         if ($_POST['syscmd'] === 'reboot') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'reboot'));
         if ($_POST['syscmd'] === 'poweroff') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'poweroff'));
+        if ($_POST['syscmd'] === 'display_off') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'display_off'));
         if ($_POST['syscmd'] === 'mpdrestart') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'mpdrestart'));
         if ($_POST['syscmd'] === 'backup') $jobID[] = wrk_control($redis, 'newjob', $data = array('wrkcmd' => 'backup'));
     }
@@ -179,11 +179,11 @@ $template->timezone = $redis->get('timezone');
 $template->orionprofile = $redis->get('orionprofile');
 $template->airplay = $redis->hGetAll('airplay');
 $template->dlna = $redis->hGetAll('dlna');
+$template->local_browser = $redis->get('local_browser');
 $template->udevil = $redis->get('udevil');
 $template->coverart = $redis->get('coverart');
 $template->globalrandom = $redis->get('globalrandom');
 $template->lastfm = $redis->hGetAll('lastfm');
-$template->cmediafix = $redis->get('cmediafix');
 $template->proxy = $redis->hGetAll('proxy');
 $template->spotify = $redis->hGetAll('spotify');
 $template->hwplatformid = $redis->get('hwplatformid');

@@ -30,18 +30,12 @@
  *
  */
 
-
+ 
 
 // Structure
 // --------------------------------------------------------------
 
 html, body {
-    height: 100%;
-}
-#wrap {
-    margin: 0 auto -180px;
-    min-height: 100%;
-    height: auto !important;
     height: 100%;
 }
 #section-index {
@@ -356,7 +350,19 @@ html, body {
         &:hover,
         &:focus {
             cursor: pointer;
+            &:disabled {
+                cursor: not-allowed;
+            }
         }
+    }
+    &.nomixer > div:first-child {
+        &:hover,
+        &:focus {
+            cursor: not-allowed;
+        }
+    }
+    .btn {
+        margin: 0;
     }
 }
 #time-knob {
@@ -379,6 +385,9 @@ html, body {
     font-size: @countdown-height;
     font-weight: bold;
     text-align: center;
+    &:hover {
+        cursor: pointer;
+    }
 }
 #total {
     position: absolute;
@@ -391,14 +400,22 @@ html, body {
     font-family: "Lucida Grande", Tahoma, Verdana, Arial, sans-serif;
     font-weight: normal;
     text-align: center;
+    &:hover {
+        cursor: pointer;
+    }
 }
 #time,
 #volume {
     background: @body-bg;
     border: none;
     color: @body-bg;
+    font-family: inherit !important;
+    &:hover,
+    &:focus {
+        cursor: default;
+    }
 }
-.volume {
+#volume-knob {
     .btn-toolbar {
         margin-top: 20px;
     }
@@ -407,13 +424,6 @@ html, body {
     }
     &.nomixer {
         padding-top: 0;
-    }
-}
-#volume {
-    font-family: inherit !important;
-    &:hover,
-    &:focus {
-        cursor: default;
     }
 }
 
@@ -1515,6 +1525,26 @@ h1, h2 {
 .btn.disabled, .btn[disabled], fieldset[disabled] .btn {
     background: darken(@btn-default-bg, 10%);
 }
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
 label {
     font-weight: normal;
 }

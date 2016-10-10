@@ -29,7 +29,7 @@
                 </div>
                 <?php endif ?>
                 <div id="volume-knob" class="col-sm-<?=$this->colspan ?> <?=$this->volume['divclass'] ?>">
-                    <input id="volume" value="100" data-width="230" data-height="230" data-bgColor="#f00" data-thickness=".25" data-skin="tron" data-cursor="true" data-angleArc="250" data-angleOffset="-125" data-readOnly="<?=$this->volume['readonly'] ?>" data-fgColor="<?=$this->volume['color'] ?>" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?>>
+                    <input id="volume" value="100" data-width="230" data-height="230" data-bgColor="#f00" data-thickness=".25" data-skin="tron" data-cursor="true" data-angleArc="250" data-angleOffset="-125" data-readOnly="<?=$this->volume['readonly'] ?>" data-fgColor="<?=$this->volume['color'] ?>" data-dynamic="<?=$this->volume['dynamic'] ?>" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?>>
                     <div class="btn-group">
                         <button id="volumedn" class="btn btn-default btn-lg btn-cmd btn-volume" type="button" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?> title="Volume down" data-cmd="volumedn"><i class="fa fa-volume-down"></i></button>
                         <button id="volumemute" class="btn btn-default btn-lg btn-cmd btn-volume" type="button" <?php if (isset($this->volume['disabled'])): ?> disabled="disabled" <?php endif ?> title="Volume mute/unmute" data-cmd="volumemute"><i class="fa fa-volume-off"></i> <i class="fa fa-exclamation"></i></button>
@@ -44,7 +44,7 @@
         <div class="btnlist btnlist-top">
             <form id="db-search" class="form-inline" action="javascript:getDB({cmd: 'search', path: GUI.currentpath, browsemode: GUI.browsemode});">
                 <div class="input-group">
-                    <input id="db-search-keyword" class="form-control" type="text" value="" placeholder="search in DB...">
+                    <input id="db-search-keyword" class="form-control osk-trigger" type="text" value="" placeholder="search in DB...">
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="submit" title="Search"><i class="fa fa-search"></i></button>
                     </span>
@@ -82,7 +82,7 @@
         <div class="btnlist btnlist-top">
             <form id="pl-search" class="form-inline" method="post" onSubmit="return false;" role="form">
                 <div class="input-group">
-                    <input id="pl-filter" class="form-control ttip" type="text" value="" placeholder="search in queue..." data-placement="bottom" data-toggle="tooltip" data-original-title="Type here to search on the fly">
+                    <input id="pl-filter" class="form-control osk-trigger ttip" type="text" value="" placeholder="search in queue..." data-placement="bottom" data-toggle="tooltip" data-original-title="Type here to search on the fly">
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="button" title="Search"><i class="fa fa-search"></i></button>
                     </span>
@@ -150,6 +150,7 @@
             <li><a href="javascript:;" data-cmd="add"><i class="fa fa-plus-circle sx"></i> Add</a></li>
             <li><a href="javascript:;" data-cmd="addplay"><i class="fa fa-play sx"></i> Add and play</a></li>
             <li><a href="javascript:;" data-cmd="addreplaceplay"><i class="fa fa-share-square-o sx"></i> Add, replace and play</a></li>
+            <li><a href="javascript:;" data-cmd="lastfmaddreplaceplay"><i class="fa fa-lastfm sx"></i> Last.fm playlist from this</a></li>
         </ul>
     </div>
     <div id="context-menu-dirble" class="context-menu">
@@ -208,7 +209,7 @@
             </div>
             <div class="modal-body">
                 <label for="pl-save-name">Give a name to this playlist</label>
-                <input id="pl-save-name" class="form-control" type="text" placeholder="Enter playlist name">
+                <input id="pl-save-name" class="form-control osk-trigger" type="text" placeholder="Enter playlist name">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
@@ -262,10 +263,10 @@
             </div>
             <div class="modal-body">
                 <label for="webradio-add-name">Radio name</label>
-                <input id="webradio-add-name" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio name">
+                <input id="webradio-add-name" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio name">
                 <br>
                 <label for="webradio-add-url">Radio url</label>
-                <input id="webradio-add-url" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio url">
+                <input id="webradio-add-url" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio url">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>
@@ -284,10 +285,10 @@
             <div class="modal-body">
                 <input id="webradio-edit-oldname" name="radio[oldlabel]" class="form-control" type="hidden" value="">
                 <label for="webradio-edit-name">Radio name</label>
-                <input id="webradio-edit-name" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio name">
+                <input id="webradio-edit-name" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio name">
                 <br>
                 <label for="webradio-edit-url">Radio url</label>
-                <input id="webradio-edit-url" name="radio[label]" class="form-control" type="text" placeholder="Enter webradio url">
+                <input id="webradio-edit-url" name="radio[label]" class="form-control osk-trigger" type="text" placeholder="Enter webradio url">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default btn-lg" data-dismiss="modal">Close</button>

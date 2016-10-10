@@ -9,8 +9,12 @@
                 <button id="syscmd-poweroff" name="syscmd" value="poweroff" class="btn btn-primary btn-lg btn-block" data-dismiss="modal"><i class="fa fa-power-off sx"></i> Power off</button>
                 &nbsp;
                 <button id="syscmd-reboot" name="syscmd" value="reboot" class="btn btn-primary btn-lg btn-block" data-dismiss="modal"><i class="fa fa-refresh sx"></i> Reboot</button>
-            </div>
-            <div class="modal-footer">
+				<?php if (is_localhost()): ?>
+					&nbsp;
+					<button id="syscmd-display_off" name="syscmd" value="display_off" class="btn btn-primary btn-lg btn-block" data-dismiss="modal"><i class="fa fa-display sx"></i> Display off</button>
+				<?php endif ?>
+			</div>
+			<div class="modal-footer">
                 <button class="btn btn-default btn-lg" data-dismiss="modal" aria-hidden="true">Cancel</button>
             </div>
         </div>
@@ -42,6 +46,9 @@
 <!-- DEV mode ACTIVE -->
 <script src="<?=$this->asset('/js/runeui.js')?>"></script>
 <?php endif; ?>
+<?php if (is_localhost()): ?>
+    <script src="<?=$this->asset('/js/vendor/jquery.onScreenKeyboard.js')?>"></script>
+<?php endif ?>
 <script src="<?=$this->asset('/js/vendor/pnotify.custom.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js')?>"></script>
 <script src="<?=$this->asset('/js/vendor/openwebapp.js')?>"></script>

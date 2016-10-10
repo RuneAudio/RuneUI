@@ -87,6 +87,7 @@ waitSyWrk($redis, $jobID);
 $template->debug = $redis->get('debug');
 $template->playerid = $redis->get('playerid');
 $template->opcache = $redis->get('opcache');
+$template->gitbranch = $redis->hGet('git', 'branch');
 // debug
 // var_dump($template->dev);
 // var_dump($template->debug);

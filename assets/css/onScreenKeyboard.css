@@ -1,0 +1,128 @@
+/*-----[Keyboard structure]---------------------------------------------------*/
+
+#osk-container {
+	visibility: hidden;
+	position: fixed;
+	overflow: hidden;
+	padding: 1%;
+	margin: 0;
+	z-index: 2000;
+}
+
+	#osk-container > li {
+		float: left;
+		width: 5.81395349%;
+		height: 3em;
+		margin: 0 0.726744186% 5px 0;
+		line-height: 3em;
+		text-align: center;
+		list-style-type: none;
+		cursor: pointer;
+		-webkit-user-select: none;
+		 -khtml-user-select: none;
+		   -moz-user-select: -moz-none;
+			-ms-user-select: none;
+				user-select: none;
+	}
+
+	#osk-container > .osk-capslock,
+	#osk-container > .osk-tab,
+	#osk-container > .osk-shift {
+		clear: left;
+	}
+
+	#osk-container > .osk-dragger {
+		display: none;
+		width: 100%;
+		cursor: move;
+	}
+
+		#osk-container > .osk-dragger:hover {
+			position: static;
+		}
+
+	#osk-container > .osk-tab,
+	#osk-container > .osk-backspace {
+		width: 14.9709302%;
+	}
+
+	#osk-container > .osk-capslock {
+		width: 13.6337209%;
+	}
+
+	#osk-container > .osk-return {
+		width: 13.6918605%;
+	}
+
+	#osk-container > .osk-shift {
+		width: 16.2381395%;
+	}
+
+	#osk-container > .osk-hide {
+		width: 17.5581396%;
+	}
+
+	#osk-container > .osk-space {
+		clear: left;
+		width: 100%;
+		margin: 0;
+	}
+
+	#osk-container > .osk-last-item {
+		margin-right: 0 !important;
+	}
+
+	#osk-container .osk-on {
+		display: none;
+	}
+
+	#osk-container > .osk-uppercase {
+		text-transform: uppercase;
+	}
+
+	#osk-container > .osk-disabled {
+		cursor: default;
+	}
+
+	#osk-container > .osk-disabled:hover {
+		position: static;
+	}
+
+	#osk-container > li:hover {
+		position: relative;
+		top: 1px;
+	}
+
+/*-----[Customisable styles]--------------------------------------------------*/
+
+#osk-container {
+	width: 86%;     /* Account for 2% padding and a vertical scroll bar */
+       left: 7% !important;
+	min-width: 500px;
+	max-width: 1200px;
+	background: #2B3C4E;
+       color: #fff;
+	border-radius: 5%;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+       font-size: 22px;
+}
+
+#osk-container > li {
+	background: #34495E;
+	border-radius: 10%;
+	-moz-transition: 0.5s;
+}
+
+#osk-container > .osk-dragger {
+	background: transparent;
+	color: #AAA;
+}
+
+#osk-container > .osk-disabled {
+	background: #34495E;
+	color: #111;
+}
+
+.osk-focused {
+	background: #10161C !important;
+}

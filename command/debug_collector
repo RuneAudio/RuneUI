@@ -137,7 +137,10 @@ function debug_data($redis)
     // } else {
     // $output .= $streaminfo;
     // }
-    $output .= "\n";
+    $command = implode("\n", sysCmd('mpc version'));
+    $output .= "###### mpd version ######\n";
+    $output .= $command;
+    $output .= "\n\n";
     $output .= "###### mpd.conf ######\n";
     $output .= file_get_contents('/etc/mpd.conf');
     $output .= "\n";
@@ -196,14 +199,19 @@ function debug_data($redis)
     unset($command);
     $command = sysCmd("netctl list | cut -d ' ' -f 2,3");
     foreach ($command as $interface) {
-        $command = sysCmd('netctl status '.trim($interface));
+        $command = sysCmd('netctl status "'.trim($interface).'"');
         $output .= $interface." netctl status\n";
         $output .= "--------------------------------------------------------\n";
         $output .= implode("\n",$command)."\n\n";
         $output .= $interface." netctl profile\n";
         $output .= "--------------------------------------------------------\n";
-        $command = sysCmd('cat /etc/netctl/'.trim($interface));
-        $output .= implode("\n", $command)."\n\n";
+        $command = sysCmd('cat /etc/netctl/"'.trim($interface).'"');
+        // go through all settings and mask out the PSK
+        foreach ($command as $line) {
+            if (stripos($line, "psk=") != FALSE) $line = '    \'psk="***************"\'';
+            $output .= $line."\n";
+        }
+        $output .= "\n";
     }
     $output .= "\n";
     $output .= "###### Network wifi status (iwconfig) ######\n";
@@ -214,6 +222,10 @@ function debug_data($redis)
     // $command = sysCmd('iwlist scan');
     // $output .= implode("\n",$command)."\n\n";
     // unset($command);
+    $output .= "###### List all USB devices (lsusb) ######\n";
+    $command = sysCmd('lsusb');
+    $output .= implode("\n", $command)."\n\n";
+    unset($command);
     $output .= "###### Kernel status (dmesg) ######\n";
     $command = sysCmd('dmesg');
     $output .= implode("\n", $command)."\n\n";

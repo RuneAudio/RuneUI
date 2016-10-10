@@ -44,9 +44,9 @@ if (isset($_GET['action'])) {
             OpCacheCtl('primeall', '/srv/http/');
             break;
         case 'reset':
+            runelog('cacheCTL RESET');
             OpCacheCtl('reset', '/srv/http/');
             opcache_reset();
-            runelog('cacheCTL RESET');
             echo "PHP OPCACHE CLEARED";
             break;
         case 'debug':

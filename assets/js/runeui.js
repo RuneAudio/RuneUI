@@ -47,6 +47,7 @@ var GUI = {
     currentpath: '',
     currentsong: null,
     json: 0,
+    lastvol: 0,
     libraryhome: '',
     mode: 'websocket',
     noticeUI: {},
@@ -68,20 +69,11 @@ var GUI = {
 
 // send a MPD playback control command
 function sendCmd(inputcmd) {
-    var request = new XMLHttpRequest();
-    request.open('GET', '/command/?cmd='+inputcmd, true);
-    request.onreadystatechange = function() {
-        if (this.readyState === 4){
-        // TODO: check this
-            if (this.status >= 200 && this.status < 400){
-                // Success! resp = this.responseText;
-            } else {
-                // Error
-            }
-        }
-    };
-    request.send();
-    request = null;
+    $.ajax({
+        type: 'GET',
+        url: '/command/?cmd=' + inputcmd,
+        cache: false
+    });
 }
 
 // check WebSocket support
@@ -356,6 +348,11 @@ function sortOrder(id) {
     sendCmd('moveid ' + id + ' ' + pos);
 }
 
+// sort list by inner HTML
+function sortByInnerHtml(a, b){
+    return a.innerHTML.toLowerCase() > b.innerHTML.toLowerCase() ? 1 : -1;
+}
+
 // loading spinner display/hide
 function loadingSpinner(section, hide) {
     if (hide === 'hide') {
@@ -386,11 +383,13 @@ function setPlaybackSource() {
     // update volume knob and control buttons
     if (activePlayer === 'Spotify' || activePlayer === 'Airplay') {
         $('#volume').trigger('configure', {'readOnly': true, 'fgColor': '#1A242F'}).css({'color': '#1A242F'});
-        $('.volume button').prop('disabled', true);
+        $('#volume-knob').addClass('nomixer');
+        $('#volume-knob button').prop('disabled', true);
         $('#single').addClass('disabled');
     } else {
         $('#volume').trigger('configure', {'readOnly': false, 'fgColor': '#0095D8'}).css({'color': '#0095D8'});
-        $('.volume button').prop('disabled', false);
+        $('#volume-knob').removeClass('nomixer');
+        $('#volume-knob button').prop('disabled', false);
         $('#single').removeClass('disabled');
     }
     // style the queue
@@ -426,7 +425,7 @@ function renderLibraryHome() {
     // Set active player
     setPlaybackSource();
     if (notMPD) {
-        toggleMPD =  ' inactive';
+        toggleMPD = ' inactive';
     }
     // bookmarks blocks
     for (i = 0; (bookmark = obj.bookmarks[i]); i += 1) {
@@ -580,7 +579,7 @@ function updateGUI() {
     var currentsong = GUI.json.currentsong;
     var currentalbum = GUI.json.currentalbum;
     // set radio mode if stream is present
-    GUI.stream = ((radioname !== null && radioname !== undefined && radioname !== '') ? 'radio' : '');
+    GUI.stream = isUrl(GUI.json.file) ? 'radio' : '';
     // check MPD status and refresh the UI info
     refreshState();
     if ($('#section-index').length) {
@@ -626,47 +625,56 @@ function updateGUI() {
             $('#single').removeClass('btn-primary');
         }
         
-        GUI.currentsong = currentsong;
-        var currentalbumstring = currentartist + ' - ' + currentalbum;
-        if (GUI.currentalbum !== currentalbumstring) {
-            if (radioname === null || radioname === undefined || radioname === '') {
-                var covercachenum = Math.floor(Math.random()*1001);
-                $('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
-            } else {
-                $('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
-            }
-        }
+		GUI.currentsong = currentsong;
+		var currentalbumstring = currentartist + ' - ' + currentalbum;
+		if (GUI.currentalbum !== currentalbumstring) {
+			if (GUI.stream !== 'radio') {
+				var covercachenum = Math.floor(Math.random()*1001);
+				$('#cover-art').css('background-image','url("/coverart/?v=' + covercachenum + '")');
+			
+				$.ajax({
+				   url: '/lyric/',
+				   success: function(data){
+					  $('#cover-art').attr('title',data);
+				   },
+				   cache: false
+				});
+			
+			} else {
+				$('#cover-art').css('background-image','url("assets/img/cover-radio.jpg")');
+			}
+		}
         GUI.currentalbum = currentalbumstring;
     }
 }
 
 // render the playing queue from the data response 
-function getPlaylistPlain(data){
+function getPlaylistPlain(data) {
     var current = parseInt(GUI.json.song) + 1;
     var state = GUI.json.state;
     var content = '', time = '', artist = '', album = '', title = '', name='', str = '', filename = '', path = '', id = 0, songid = '', bottomline = '', totaltime = '', pos = 0;
     var i, line, lines = data.split('\n'), infos=[];
     for (i = 0; (line = lines[i]); i += 1) {
         infos = line.split(': ');
-        if ( 'Time' === infos[0] ) {
+        if ('Time' === infos[0]) {
             time = parseInt(infos[1]);
         }
-        else if ( 'Artist' === infos[0] ) {
+        else if ('Artist' === infos[0]) {
             artist = infos[1];
         }
-        else if ( 'Title' === infos[0] ) {
+        else if ('Title' === infos[0]) {
             title = infos[1];
         }
-        else if ( 'Name' === infos[0] ) {
+        else if ('Name' === infos[0]) {
             name = infos[1];
         }
-        else if ( 'Album' === infos[0] ) {
+        else if ('Album' === infos[0]) {
             album = infos[1];
         }
-        else if ( 'file' === infos[0] ) {
+        else if ('file' === infos[0]) {
             str = infos[1];
         }
-        else if ( 'Id' === infos[0] ) {
+        else if ('Id' === infos[0]) {
             songid = infos[1];
             if (title === '' || album === '') {
                 path = parsePath(str);
@@ -727,7 +735,8 @@ function getPlaylistCmd(){
                 $('#pl-count').removeClass('hide').html('0 entries');
             }
             loadingSpinner('pl', 'hide');
-        }
+        },
+        cache: false
     });
 }
 
@@ -760,6 +769,7 @@ function renderUI(text){
     toggleLoader('close');
     // update global GUI array
     GUI.json = text[0];
+    // console.log(JSON.stringify(text[0]));
     GUI.state = GUI.json.state;
     // console.log('current song = ', GUI.json.currentsong);
     // console.log( 'GUI.state = ', GUI.state );
@@ -774,6 +784,7 @@ function renderUI(text){
         if (GUI.stream !== 'radio') {
             refreshKnob();
         } else {
+            window.clearInterval(GUI.currentKnob);
             $('#time').val(0, false).trigger('update');
         }
         // console.log('GUI.json.playlist = ' + GUI.json.playlist + ', GUI.playlist = ', GUI.playlist);
@@ -815,7 +826,10 @@ function getPlaylists(){
         url: '/command/?cmd=listplaylists',
         success: function(data){
             renderPlaylists(data);
-        }
+            var list = $("#pl-editor");
+            list.children().sort(sortByInnerHtml).appendTo(list);
+        },
+        cache: false
     });
 }
 
@@ -984,21 +998,25 @@ function parseResponse(options) {
         
         case 'Dirble':
         // Dirble plugin
-            if (querytype === '') {
+            if (querytype === '' || querytype === 'childs') {
             // folders
-                content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder" data-path="';
+                var childClass = (querytype === 'childs') ? ' db-dirble-child' : '';
+                content = '<li id="db-' + (i + 1) + '" class="db-dirble db-folder' + childClass + '" data-path="';
                 content += inputArr.id;
                 content += '"><span><i class="fa fa-folder-open"></i>';
-                content += inputArr.name;
+                content += inputArr.title;
                 content += '</span></li>';
-            } else if (querytype === 'stations') {
+            } else if (querytype === 'search' || querytype === 'stations' || querytype === 'childs-stations') {
             // stations
+                if (inputArr.streams.length === 0) {
+                    break; // Filter stations with no streams
+                }
                 content = '<li id="db-' + (i + 1) + '" class="db-dirble db-radio" data-path="';
-                content += inputArr.name + ' | ' + inputArr.streamurl;
+                content += inputArr.name + ' | ' + inputArr.streams[0].stream;
                 content += '"><i class="fa fa-bars db-action" title="Actions" data-toggle="context" data-target="#context-menu-dirble"></i><i class="fa fa-microphone db-icon"></i>';
-                content += '<span class="sn">' + inputArr.name + ' <span>' + inputArr.bitrate + '</span></span>';
+                content += '<span class="sn">' + inputArr.name + '<span>(' + inputArr.country + ')</span></span>';
                 content += '<span class="bl">';
-                content += inputArr.website;
+                content += inputArr.website ? inputArr.website : '-no website-';
                 content += '</span></li>';
             }
         break;
@@ -1033,6 +1051,7 @@ function populateDB(options){
         
     // DEBUG
     // console.log('populateDB OPTIONS: data = ' + data + ', path = ' + path + ', uplevel = ' + uplevel + ', keyword = ' + keyword +', querytype = ' + querytype);
+    // console.log(JSON.stringify(data));
 
     if (plugin !== '') {
     // plugins
@@ -1063,10 +1082,34 @@ function populateDB(options){
             $('#db-level-up').removeClass('hide');
             $('#home-blocks').addClass('hide');
             if (path) {
-                GUI.currentpath = path;
+                if (querytype === 'search') {
+                    GUI.currentpath = 'Dirble';
+                } else {
+                    GUI.currentpath = path;
+                }
             }
-            document.getElementById('database-entries').innerHTML = '';
+            if (querytype === 'childs-stations') {
+                content = document.getElementById('database-entries').innerHTML;
+            } else {
+                document.getElementById('database-entries').innerHTML = '';
+            }
             // console.log(data);
+            
+            data.sort(function(a, b){
+                if (querytype === 'childs' || querytype === 'categories') {
+                    nameA=a.title.toLowerCase(), nameB=b.title.toLowerCase();
+                } else if (querytype === 'childs-stations' || querytype === 'stations') {
+                    nameA=a.name.toLowerCase(), nameB=b.name.toLowerCase();
+                } else {
+                    return 0;
+                }
+                if (nameA < nameB) //sort string ascending
+                    return -1;
+                if (nameA > nameB)
+                    return 1;
+                return 0; //default return value (no sorting)
+            });
+
             for (i = 0; (row = data[i]); i += 1) {
                 content += parseResponse({
                     inputArr: row,
@@ -1167,7 +1210,9 @@ function populateDB(options){
     } else {
         customScroll('db', 0, 0);
     }
-    loadingSpinner('db', 'hide');
+    if (querytype != 'childs') {
+        loadingSpinner('db', 'hide');
+    }
 } // end populateDB()
 
 // launch the right AJAX call for Library rendering
@@ -1204,15 +1249,36 @@ function getDB(options){
         }
         else if (plugin === 'Dirble') {
         // Dirble plugin
-            $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function(data){
-                populateDB({
-                    data: data,
-                    path: path,
-                    plugin: plugin,
-                    querytype: querytype,
-                    uplevel: uplevel
-                });
-            }, 'json');
+            if (querytype === 'childs') {
+                $.post('/db/?cmd=dirble', { 'querytype': 'childs', 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: 'childs',
+                        uplevel: uplevel
+                    });
+                }, 'json');
+                $.post('/db/?cmd=dirble', { 'querytype': 'childs-stations', 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: 'childs-stations',
+                        uplevel: uplevel
+                    });
+                }, 'json');            
+            } else {
+                $.post('/db/?cmd=dirble', { 'querytype': (querytype === '') ? 'categories' : querytype, 'args': args }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: plugin,
+                        querytype: querytype,
+                        uplevel: uplevel
+                    });
+                }, 'json');
+            }
         }
         else if (plugin === 'Jamendo') {
         // Jamendo plugin
@@ -1229,14 +1295,26 @@ function getDB(options){
     // normal browsing
         if (cmd === 'search') {
             var keyword = $('#db-search-keyword').val();
-            $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function(data) {
-                populateDB({
-                    data: data,
-                    path: path,
-                    uplevel: uplevel,
-                    keyword: keyword
-                });
-            }, 'json');
+            if (path.match(/Dirble/)) {
+                $.post('/db/?cmd=dirble', { 'querytype': 'search', 'args': keyword }, function(data){
+                    populateDB({
+                        data: data,
+                        path: path,
+                        plugin: 'Dirble',
+                        querytype: 'search',
+                        uplevel: uplevel
+                    });
+                }, 'json');
+            } else {
+                $.post('/db/?querytype=' + GUI.browsemode + '&cmd=search', { 'query': keyword }, function(data) {
+                    populateDB({
+                        data: data,
+                        path: path,
+                        uplevel: uplevel,
+                        keyword: keyword
+                    });
+                }, 'json');
+            }
         } else if (cmd === 'browse') {
             $.post('/db/?cmd=browse', { 'path': path, 'browsemode': GUI.browsemode }, function(data) {
                 populateDB({
@@ -1381,7 +1459,7 @@ function libraryHome(text) {
 // list of in range wlans
 function listWLANs(text) {
     var i = 0, content = '', inrange = '', stored = '', wlans = text[0];
-    // console.log(wlans);
+    //console.log(wlans);
     $.each(wlans, function(i) {
         content += '<p><a href="/network/wlan/' + wlans[i].nic + '/' + wlans[i].ESSID + '" class="btn btn-lg btn-default btn-block" title="See network properties">';
         if (wlans[i].connected !== 0) {
@@ -1399,10 +1477,11 @@ function listWLANs(text) {
             }
         }
         content += '<strong>' + wlans[i].ESSID + '</strong></a></p>';
+        if (wlans[i].origin === 'scan') {
+            inrange += content;
+        }
         if (wlans[i].storedprofile === 1) {
             stored += content;
-        } else {
-            inrange += content;
         }
         content = '';
     });
@@ -1411,7 +1490,10 @@ function listWLANs(text) {
     }
     document.getElementById('wifiNetworks').innerHTML = inrange;
     document.getElementById('wifiStored').innerHTML = stored;
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({
+        url: '/command/?cmd=wifiscan',
+        cache: false
+    });
 }
 
 // draw the NICs details table
@@ -1422,7 +1504,7 @@ function nicsDetails(text) {
         if (i === $('#nic-details').data('name')) {
             content += '<tr><th>Name:</th><td><strong>' + i + '<strong></td></tr>';
             content += '<tr><th>Type:</th><td>wireless</td></tr>';
-            if (nics[i].currentssid === 'off/any') {
+            if (nics[i].currentssid === null) {
                 content += '<tr><th>Status:</th><td><i class="fa fa-times red sx"></i>no network connected</td></tr>';
             } else {
                 content += '<tr><th>Status:</th><td><i class="fa fa-check green sx"></i>connected</td></tr>';
@@ -1431,10 +1513,12 @@ function nicsDetails(text) {
             
             content += '<tr><th>Assigned IP:</th><td>' + ((nics[i].ip !== null) ? ('<strong>' + nics[i].ip + '</strong>') : 'none') + '</td></tr>';
             content += '<tr><th>Speed:</th><td>' + ((nics[i].speed !== null) ? nics[i].speed : 'unknown') + '</td></tr>';
-            // content += '<tr><th>Netmask:</th><td>' + nics[i].netmask + '</td></tr>';
-            // content += '<tr><th>Gateway:</th><td>' + nics[i].gw + '</td></tr>';
-            // content += '<tr><th>DNS1:</th><td>' + nics[i].dns1 + '</td></tr>';
-            // content += '<tr><th>DNS2:</th><td>' + nics[i].dns2 + '</td></tr>';
+            if (nics[i].currentssid !== null) {
+                content += '<tr><th>Netmask:</th><td>' + nics[i].netmask + '</td></tr>';
+                content += '<tr><th>Gateway:</th><td>' + nics[i].gw + '</td></tr>';
+                content += '<tr><th>DNS1:</th><td>' + nics[i].dns1 + '</td></tr>';
+                content += '<tr><th>DNS2:</th><td>' + nics[i].dns2 + '</td></tr>';
+            }
         }
     });
     $('#nic-details tbody').html(content);
@@ -1520,7 +1604,10 @@ function wlansChannel(){
     pushstream.onmessage = listWLANs;
     pushstream.addChannel('wlans');
     pushstream.connect();
-    $.ajax({url: '/command/?cmd=wifiscan'});
+    $.ajax({
+        url: '/command/?cmd=wifiscan',
+        cache: false
+    });
 }
 
 // open the NIC details channel
@@ -1625,7 +1712,35 @@ function visChange() {
     }
 }
 
+// check if a string is a url
+function isUrl(s) {
+    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+    return regexp.test(s);
+}
 
+// display date time on local browsers
+function checkTime(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
+function startTime() {
+    var today = new Date();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    // add a zero in front of numbers<10
+    m = checkTime(m);
+    s = checkTime(s);
+    document.getElementById('clock-display').innerHTML = h + ":" + m + ":" + s;
+    t = setTimeout(function () {
+        startTime()
+    }, 500);
+}
+
+if (document.location.hostname == "localhost")
+    startTime();
 
 if ($('#section-index').length) {
 
@@ -1697,6 +1812,14 @@ if ($('#section-index').length) {
             }
         });
         
+        // play/pause when clicking on the counter or total time inside the progress knob
+        $('#countdown-display').click(function(){
+            sendCmd('pause');
+        });
+        $('#total').click(function(){
+            sendCmd('pause');
+        });
+        
         
         // KNOBS
         // ----------------------------------------------------------------------------------------------------
@@ -1717,13 +1840,22 @@ if ($('#section-index').length) {
         });
 
         // volume knob
+        var dynVolumeKnob = $('#volume').data('dynamic');
         $('#volume').knob({
             inline: false,
             change: function (value) {
-                //setvol(value);    // disabled until perfomance issues are solved (mouse wheel is not working now)
+                var vol = parseInt(value);
+                if (dynVolumeKnob && vol !== GUI.lastvol) {
+                    GUI.lastvol = vol;
+                    setvol(vol);
+                }
             },
             release: function (value) {
-                setvol(value);
+                var vol = parseInt(value);
+                if (!dynVolumeKnob && vol !== GUI.lastvol) {
+                    GUI.lastvol = vol;
+                    setvol(vol);
+                }
             },
             draw: function() {
                 // "tron" case
@@ -1992,11 +2124,12 @@ if ($('#section-index').length) {
                         GUI.plugin = 'Spotify';
                     } else if (el.hasClass('db-dirble')) {
                     // Dirble folders
-                        path = GUI.currentpath    + '/' + el.find('span').text();
+                        path = GUI.currentpath + '/' + el.find('span').text();
+                        var querytype = (el.hasClass('db-dirble-child')) ? 'stations' : 'childs';
                         getDB({
                             path: path,
                             plugin: 'Dirble',
-                            querytype: 'stations',
+                            querytype: querytype,
                             args: el.data('path')
                         });
                         GUI.plugin = 'Dirble';
@@ -2136,7 +2269,8 @@ if ($('#section-index').length) {
                         url: '/command/?cmd=rm%20%22' + path + '%22',
                         success: function(data){
                             getPlaylists(data);
-                        }
+                        },
+                        cache: false
                     });
                     break;
                     
@@ -2259,13 +2393,23 @@ if ($('#section-index').length) {
             $.scrollTo(0 , 500);
         });
         $('#pl-prevPage').click(function(){
-            var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop - $(window).height();
+	    var pageHeight = $(window).height() - document.getElementById("pl-manage").offsetHeight
+	                                        - document.getElementById("menu-bottom").offsetHeight
+	                                        - document.getElementById("menu-top").offsetHeight
+	                                        - document.getElementById("pl-search").offsetHeight
+	                                        - document.getElementById("pl-1").offsetHeight;
+	    var scrollTop = $(window).scrollTop();
+            var scrolloffset = scrollTop - pageHeight;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-nextPage').click(function(){
-            var scrollTop = $(window).scrollTop();
-            var scrolloffset = scrollTop + $(window).height();
+	    var pageHeight = $(window).height() - document.getElementById("pl-manage").offsetHeight
+	                                        - document.getElementById("menu-bottom").offsetHeight
+	                                        - document.getElementById("menu-top").offsetHeight
+	                                        - document.getElementById("pl-search").offsetHeight
+	                                        - document.getElementById("pl-1").offsetHeight;
+	    var scrollTop = $(window).scrollTop();
+            var scrolloffset = scrollTop + pageHeight;
             $.scrollTo(scrolloffset , 500);
         });
         $('#pl-lastPage').click(function(){
@@ -2309,7 +2453,11 @@ if ($('#section-index').length) {
             $.post('/settings/', { 'syscmd' : 'reboot' });
             toggleLoader();
         });
-        
+        // local display off
+        $('#syscmd-display_off').click(function(){
+            $.post('/settings/', { 'syscmd' : 'display_off' });
+        });
+		
         // social share overlay
         overlayTrigger('#overlay-social');
         // play source overlay
@@ -2317,7 +2465,10 @@ if ($('#section-index').length) {
         // play source manual switch
         $('#playsource-mpd').click(function(){
             if ($(this).hasClass('inactive')) {
-                $.ajax({url: '/command/?switchplayer=MPD'});
+                $.ajax({
+                    url: '/command/?switchplayer=MPD',
+                    cache: false
+                });
                 // close switch buttons layer
                 $('#overlay-playsource-close').trigger('click');
             }
@@ -2325,7 +2476,10 @@ if ($('#section-index').length) {
         $('#playsource-spotify').click(function(){
             if ($(this).hasClass('inactive')) {
                 if (GUI.libraryhome.Spotify === '1') {
-                    $.ajax({url: '/command/?switchplayer=Spotify'});
+                    $.ajax({
+                        url: '/command/?switchplayer=Spotify',
+                        cache: false
+                    });
                     // close switch buttons layer
                     $('#overlay-playsource-close').trigger('click');
                 } else {
@@ -2337,6 +2491,10 @@ if ($('#section-index').length) {
                 }
             }
         });
+
+        // on screen keyboard
+        if (document.location.hostname == "localhost")
+            $('.osk-trigger').onScreenKeyboard();
         
     });
     
@@ -2521,6 +2679,25 @@ if ($('#section-index').length) {
                     $('#spotifyBox').removeClass('boxed-group');
                 }
             });
+            
+            // file upload
+            $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
+                var input = $(this).parents('.input-group').find(':text');
+                if (input.length) {
+                    input.val(label);
+                } else {
+                    if (label) {
+                        console.log('Selected file: ', label);
+                        if (label.indexOf('backup_') > -1 && label.indexOf('.tar.gz') > -1) {
+                            $('#backup-file').html(' <i class="fa fa-check dx green"></i> ' + label + '');
+                            $('#btn-backup-upload').prop('disabled', false);
+                        } else {
+                            $('#backup-file').html(' <i class="fa fa-times dx red"></i> not a valid backup file');
+                            $('#btn-backup-upload').prop('disabled', true);
+                        }
+                    }
+                }
+            });
 
         }
         
@@ -2577,7 +2754,6 @@ if ($('#section-index').length) {
             });
 
         }
-        
 
         // MPD
         // ----------------------------------------------------------------------------------------------------
@@ -2591,7 +2767,10 @@ if ($('#section-index').length) {
                 $.ajax({
                     type: 'POST',
                     url: '/mpd/',
-                    data: { ao: output }
+                    data: {
+                        ao: output
+                    },
+                    cache: false
                 });
             });
             
@@ -2623,7 +2802,21 @@ if ($('#section-index').length) {
             });
 
         }
-        
+
+        // on screen keyboard
+        if (document.location.hostname == "localhost")
+            $('.osk-trigger').onScreenKeyboard();
+		    
+    });
+    
+    
+    // FILE UPLOAD
+    // ----------------------------------------------------------------------------------------------------
+    $(document).on('change', '.btn-file :file', function() {
+        var input = $(this),
+            numFiles = input.get(0).files ? input.get(0).files.length : 1,
+            label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+        input.trigger('fileselect', [numFiles, label]);
     });
 
 }

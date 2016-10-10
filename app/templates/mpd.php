@@ -20,7 +20,7 @@
         </fieldset>
     </form>
     <form class="form-horizontal" action="" method="post" data-parsley-validate>
-    <fieldset>
+        <fieldset>
             <legend>Volume control</legend>
             <div class="form-group">
                 <label class="col-sm-2 control-label" for="mixer-type">Volume control</label>
@@ -38,13 +38,38 @@
                     </span>
                 </div>
             </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="start-volume">Start volume</label>
+                <div class="col-sm-10">
+                    <input class="form-control osk-trigger input-lg" type="number" id="start-volume" name="mpdvol[start_volume]" value="<?=$this->mpd['start_volume'] ?>" data-trigger="change" min="-1" max="100" placeholder="-1" />
+                    <span class="help-block">Sets a forced playback volume at startup (0-100, -1 disables the feature).</span>
+                </div>
+            </div>
+            <div class="form-group" >
+                <label class="col-sm-2 control-label" for="realtime-volume">Volume knob</label>
+                <div class="col-sm-10">
+                    <select id="realtime-volume" name="mpdvol[realtime_volume]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="yes" <?php if($this->realtime_volume == '1'): ?> selected <?php endif ?>>realtime</option>
+                        <option value="no" <?php if($this->realtime_volume == '0'): ?> selected <?php endif ?>>on release</option>
+                    </select>
+                    <span class="help-block">This setting specifies the behavior of the UI's volume knob when it's turned.<br>
+                    <strong>realtime</strong> - volume changes continuously while the knob is dragged.<br>
+                    <strong>on release</strong> - volume changes when the knob is released.</span>
+                </div>
+            </div>
         </fieldset>
+        <div class="form-group form-actions">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/mpd/" class="btn btn-default btn-lg">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg" name="save" value="save">Save and apply</button>
+            </div>
+        </div>
         <fieldset>
             <legend>General music daemon options</legend>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="port">Port</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="text" id="port" name="conf[port]" value="<?=$this->conf['port'] ?>" data-trigger="change" disabled>
+                    <input class="form-control osk-trigger input-lg" type="text" id="port" name="conf[port]" value="<?=$this->conf['port'] ?>" data-trigger="change" disabled>
                     <span class="help-block">This setting is the TCP port that is desired for the daemon to get assigned to.</span>
                 </div>
             </div>
@@ -104,28 +129,54 @@
             </div>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="dsd-usb">DSD support</label>
-                <div class="col-sm-10">
+                <?php if($this->hwplatformid === '08' || $this->hwplatformid === '10'): ?>
+				<div class="col-sm-10">
+                    <select id="dsd-usb" name="conf[dsd_usb]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="DSDNATIVE" <?php if($this->conf['dsd_usb'] == 'DSDNATIVE'): ?> selected <?php endif ?>>DSD (native)</option>
+                        <option value="DSDDOP" <?php if($this->conf['dsd_usb'] == 'DSDDOP'): ?> selected <?php endif ?>>DSD (DOP)</option>
+                        <option value="no" <?php if($this->conf['dsd_usb'] == 'no'): ?> selected <?php endif ?>>disabled</option>
+                    </select>
+                    <span class="help-block">Enable DSD audio support.</span>
+                </div>
+                <?php else:?>
+				<div class="col-sm-10">
                     <select id="dsd-usb" name="conf[dsd_usb]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="yes" <?php if($this->conf['dsd_usb'] == 'yes'): ?> selected <?php endif ?>>enabled</option>
                         <option value="no" <?php if($this->conf['dsd_usb'] == 'no'): ?> selected <?php endif ?>>disabled</option>
                     </select>
                     <span class="help-block">Enable DSD audio support.</span>
                 </div>
+                <?php endif;?>
             </div>
             <div class="form-group" >
-                <label class="col-sm-2 control-label" for="dsd-usb">Volume normalization</label>
+                <label class="col-sm-2 control-label" for="replaygain">ReplayGain</label>
+                <div class="col-sm-10">
+                    <select id="replaygain" name="conf[replaygain]" class="selectpicker" data-style="btn-default btn-lg">
+                        <option value="off" <?php if($this->conf['replaygain'] == 'off'): ?> selected <?php endif ?>>off</option>    
+                        <option value="album" <?php if($this->conf['replaygain'] == 'album'): ?> selected <?php endif ?>>album</option>
+                        <option value="track" <?php if($this->conf['replaygain'] == 'track'): ?> selected <?php endif ?>>track</option>
+                        <option value="auto" <?php if($this->conf['replaygain'] == 'auto'): ?> selected <?php endif ?>>auto</option>
+                    </select>
+                    <span class="help-block">If specified, mpd will adjust the volume of songs played using ReplayGain tags (see <a href="http://www.replaygain.org/" target="_blank">http://www.replaygain.org/</a>). 
+                    Setting this to "album" will adjust volume using the album's ReplayGain tags, while setting it to "track" will adjust it using the track ReplayGain tags. 
+                    "auto" uses the track ReplayGain tags if random play is activated otherwise the album ReplayGain tags. 
+                    Currently only FLAC, Ogg Vorbis, Musepack, and MP3 (through ID3v2 ReplayGain tags, not APEv2) are supported.</span>
+                </div>
+            </div>
+            <div class="form-group" >
+                <label class="col-sm-2 control-label" for="volume-normalization">Volume normalization</label>
                 <div class="col-sm-10">
                     <select id="volume-normalization" name="conf[volume_normalization]" class="selectpicker" data-style="btn-default btn-lg">
                         <option value="yes" <?php if($this->conf['volume_normalization'] == 'yes'): ?> selected <?php endif ?>>enabled</option>    
                         <option value="no" <?php if($this->conf['volume_normalization'] == 'no'): ?> selected <?php endif ?>>disabled</option>
                     </select>
-                    <span class="help-block">If yes, mpd will normalize the volume of songs as they play. The default is no</span>
+                    <span class="help-block">If yes, mpd will normalize the volume of songs as they play. The default is no. NOTE: Enabling this feature means your audio will no longer be bit perfect.</span>
                 </div>
             </div>
             <div class="form-group" >
                 <label class="col-sm-2 control-label" for="port">Audio buffer size</label>
                 <div class="col-sm-10">
-                    <input class="form-control input-lg" type="number" id="audio-buffer-size" name="conf[audio_buffer_size]" value="<?=$this->conf['audio_buffer_size'] ?>" data-trigger="change" min="512" />
+                    <input class="form-control osk-trigger input-lg" type="number" id="audio-buffer-size" name="conf[audio_buffer_size]" value="<?=$this->conf['audio_buffer_size'] ?>" data-trigger="change" min="512" />
                     <span class="help-block">This specifies the size of the audio buffer in kibibytes. The default is 2048, large enough for nearly 12 seconds of CD-quality audio.</span>
                 </div>
             </div>
@@ -149,6 +200,41 @@
                         <option value="no" <?php if($this->conf['auto_update'] == 'no'): ?> selected <?php endif ?>>disabled</option>                
                     </select>
                     <span class="help-block">This setting enables automatic update of MPD's database when files in music_directory are changed.</span>
+                </div>
+            </div>
+        </fieldset>
+        <div class="form-group form-actions">
+            <div class="col-sm-offset-2 col-sm-10">
+                <a href="/mpd/" class="btn btn-default btn-lg">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg" name="save" value="save">Save and apply</button>
+            </div>
+        </div>
+    </form>
+    <form class="form-horizontal" action="" method="post" data-parsley-validate>
+        <legend>Misc options</legend>
+        <fieldset>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="crossfade">Crossfade</label>
+                <div class="col-sm-10">
+                    <input class="form-control osk-trigger input-lg" type="number" id="crossfade" name="mpd[crossfade]" value="<?=$this->mpd['crossfade'] ?>" data-trigger="change" min="0" placeholder="0" />
+                    <span class="help-block">Sets the current amount of crossfading between songs, in seconds (0 disables crossfading).</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-sm-2" for="globalrandom">Global random</label>
+                <div class="col-sm-10">
+                    <label class="switch-light well" onclick="">
+                        <input name="mpd[globalrandom]" type="checkbox" value="1"<?php if($this->mpd['globalrandom'] == 1): ?> checked="checked" <?php endif ?>>
+                        <span><span>OFF</span><span>ON</span></span><a class="btn btn-primary"></a>
+                    </label>
+                    <span class="help-block">(EXPERIMENTAL) Toggles the global random, which adds a random song to the queue when it reaches the end. Changes will take effect after you restart your device.</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="addrandom">Add random tracks</label>
+                <div class="col-sm-10">
+                    <input class="form-control osk-trigger input-lg" type="number" id="addrandom" name="mpd[addrandom]" value="<?=$this->mpd['addrandom'] ?>" data-trigger="change" min="1" placeholder="0" />
+                    <span class="help-block">Add an amount of tracks to the playing queue, randomly picked from the MPD database.</span>
                 </div>
             </div>
         </fieldset>

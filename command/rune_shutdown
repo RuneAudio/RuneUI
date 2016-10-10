@@ -30,12 +30,22 @@
 #  version: 1.3
 #  coder: Simone De Gregori
 #
+
+if [ $1 == "poweroff" ] ; then
+  echo "power off RuneAudio"
+else
+  echo "reboot RuneAudio"
+fi
+
 echo "Stop MPD and unmount shares..."
 mpc stop
 systemctl stop nginx
 sleep 1
 systemctl stop mpd
 systemctl stop spopd
+sleep 1
+export DISPLAY=:0
+xset dpms force off
 sleep 1
 umount -aft nfs
 umount -aft cifs

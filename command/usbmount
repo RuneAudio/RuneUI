@@ -57,7 +57,9 @@ foreach ($usbmounts as $line) {
     runelog('usbmount line: ', $line);
 }
 // connect to MPD daemon
-$mpd = openMpdSocket('/run/mpd.sock');
+if ($redis->get('usb_db_autorebuild') == '1') {
+    $mpd = openMpdSocket('/run/mpd.sock');
+}
 // update MPD database
 sendMpdCommand($mpd, 'update USB');
 // update library panel

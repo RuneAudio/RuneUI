@@ -5,7 +5,10 @@ Requires=avahi-daemon.service
 After=avahi-daemon.service
 
 [Service]
-ExecStart=/usr/bin/shairport -w --name=RuneAudio --on-start=/var/www/command/airplay_toggle --on-stop=/var/www/command/airplay_toggle -o alsa -- -d hw:0,0
+Environment="ON=/var/www/command/airplay_toggle on"
+Environment="OFF=/var/www/command/airplay_toggle off"
+ExecStartPre=/usr/bin/mkdir -p /var/run/shairport
+ExecStart=/usr/bin/shairport -w --name=RuneAudio --on-start=$ON --on-stop=$OFF --meta-dir=/var/run/shairport -o alsa -- -d hw:0,0
 Restart=always
 
 [Install]
