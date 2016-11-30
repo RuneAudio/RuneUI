@@ -241,7 +241,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="spotify-pasw">Password</label>
                         <div class="col-sm-10">
-                            <input class="form-control osk-trigger input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="<?php echo $this->spotify['pass']; ?>" placeholder="pass" autocomplete="off">
+                            <input class="form-control osk-trigger input-lg" type="password" id="spotify_pass" name="features[spotify][pass]" value="" placeholder="pass" autocomplete="off">
                             <span class="help-block">Insert your Spotify <i>password</i> (case sensitive)</span>
                         </div>
                     </div>
