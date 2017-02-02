@@ -1,0 +1,49 @@
+MPC=`which mpc`
+MPC=/usr/bin/mpc
+BACKUP_VOLUME=`$MPC volume | sed -e 's/[^0-9]*\([0-9]*\).*/\1/'`
+
+BC="`which bc` -l"
+BC=/usr/bin/bc
+# MPDRUNFILE="/var/run/mpd.pid"
+
+# backup_wakeup ()
+# {
+ # mpc volume $BACKUP_VOLUME > /dev/null
+ # mpc clear; mpc load startup;mpc play
+# }
+
+if [ $# -ne 3 ] ; then
+ echo "usage: mpc-fade <start volume> <end volume> <length in secs>" ;
+ exit 1 ;
+fi
+
+# # check if mpd is running, and with some files to play
+# if [ ! -e $MPDRUNFILE ] ; then
+ # backup_wakeup ;
+##  fi
+
+# if [ `mpc playlist | wc -l` -eq 0 ] ; then
+ # backup_wakeup ;
+# fi
+
+VOLUME=$1
+$MPC play > /dev/null
+
+if [ $1 -lt $2 ] ; then
+ while [ $VOLUME -le $2 ] ; do
+ $MPC volume $VOLUME > /dev/null ;
+ VOLUME=$(($VOLUME + 1)) ;
+ sleep `echo "$3/($2-$1)" | $BC` ;
+ done ;
+else
+ while [ $VOLUME -ge $2 ] ; do
+ $MPC volume $VOLUME > /dev/null ;
+ VOLUME=$(($VOLUME - 1)) ;
+ sleep `echo "$3/($1-$2)" | $BC` ;
+ done ;
+fi
+
+exit 0
+
+# eof
+
