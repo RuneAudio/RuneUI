@@ -7,9 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="msapplication-tap-highlight" content="no" />
     <link rel="stylesheet" href="<?=$this->asset('/css/runeui.css')?>">
-    <?php if (is_localhost()): ?>
-        <link rel="stylesheet" href="<?=$this->asset('/css/onScreenKeyboard.css')?>">
-    <?php endif ?>
     <link rel="shortcut icon" href="<?=$this->asset('/img/favicon.ico')?>">
     <link rel="apple-touch-icon" sizes="57x57" href="<?=$this->asset('/img/apple-touch-icon-57x57.png')?>">
     <link rel="apple-touch-icon" sizes="114x114" href="<?=$this->asset('/img/apple-touch-icon-114x114.png')?>">
@@ -80,6 +77,8 @@
             <li class="<?=$this->uri(1, 'network', 'active')?>"><a href="/network/"><i class="fa fa-sitemap"></i> Network</a></li>
             <li class="<?=$this->uri(1, 'debug', 'active')?>"><a href="/debug/"><i class="fa fa-bug"></i> Debug</a></li>
             <li class="<?=$this->uri(1, 'credits', 'active')?>"><a href="/credits/"><i class="fa fa-trophy"></i> Credits</a></li>
+            <li class="<?=$this->uri(1, 'fade', 'active')?>"><a href="/fade/"><i class="fa fa-volume-up"></i> Fade</a></li>
+            <li class="<?=$this->uri(1, 'alarm', 'active')?>"><a href="/alarm/"><i class="fa fa-clock-o"></i> Alarm</a></li>
             <li><a href="#poweroff-modal" data-toggle="modal"><i class="fa fa-power-off"></i> Turn off</a></li>
         </ul>
     </div>
@@ -89,7 +88,7 @@
         <button id="play" class="btn btn-default btn-cmd" title="Play/Pause" data-cmd="play"><i class="fa fa-play"></i></button>
         <button id="next" class="btn btn-default btn-cmd" title="Next" data-cmd="next"><i class="fa fa-step-forward"></i></button>
     </div>
-    <a id="clock-display" class="home" href="/"><img src="<?=$this->asset('/img/logo.png')?>" class="logo" alt="RuneAudio"></a>
+    <a class="home" href="/"><img src="<?=$this->asset('/img/logo.png')?>" class="logo" alt="RuneAudio"></a>
 </div>
 <div id="menu-bottom">
     <ul>
