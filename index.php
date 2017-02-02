@@ -53,9 +53,10 @@ $activePlayer = $redis->get('activePlayer');
 $template->activePlayer = $activePlayer;
 // allowed controllers
 $controllers = array(
-    'lyric',
-    'coverart',
     'credits',
+    'alarm',
+    'fade',
+    'coverart',
     'dev',
     'debug',
     'help',
