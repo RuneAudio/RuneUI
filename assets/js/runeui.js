@@ -546,7 +546,7 @@ function refreshState() {
         } else {
             $('#total').html((GUI.json.time !== undefined)? timeConvert(GUI.json.time) : '00:00');
         }
-        var fileinfo = (GUI.json.audio_channels && GUI.json.audio_sample_depth && GUI.json.audio_sample_rate) ? (GUI.json.audio_channels + ', ' + GUI.json.audio_sample_depth + ' bit, ' + GUI.json.audio_sample_rate +' kHz, '+GUI.json.bitrate+' kbps') : '&nbsp;';
+        var fileinfo = (GUI.json.audio_channels && GUI.json.audio_sample_depth && GUI.json.audio_sample_rate) ? (GUI.json.audio_channels + ', ' + GUI.json.audio_sample_depth + '-bit, ' + GUI.json.audio_sample_rate +' kHz, '+GUI.json.bitrate+' kbit/s') : '&nbsp;';
         $('#format-bitrate').html(fileinfo);
         $('li', '#playlist-entries').removeClass('active');
         var current = parseInt(GUI.json.song);
